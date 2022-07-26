@@ -1,0 +1,3 @@
+VapourSynth>=59
+vardautomation>=1.2.1
+lvsfunc>=0.4.2
