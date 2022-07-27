@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["VideoTooling"]
 
 from typing import Any, Callable, Dict, List, Tuple, Type, Union

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["ChapterTooling"]
 
 from typing import List, NoReturn, Sequence, Type, Union, cast
