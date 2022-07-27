@@ -18,8 +18,18 @@ class ChapterTooling(BaseEncoder):
         chapters_names: Sequence[str | None] | None = None,
         format: Type[ChaptersFormat] = MatroskaXMLChapters,
         path: str | VPath | None = None,
-        offset: int | None = None,
+        shift_time: int | None = None,
     ) -> None:
+        """
+        Create a chapter file from list of Chapter or int.
+
+        :param chapters:            List of chapters.
+        :param chapters_names:      Overrides the default chapters name.
+        :param format:              Chapter file format. Default to Matroska XML Chapters.
+        :param path:                Override chapter file path.
+        :param shift_time:          Custom shift for all of the chapters in number of frames. Positive shift means
+                                    chapters will start latter, negative means earlier. If None, use FileInfo trims.
+        """
 
         if path is not None:
             if isinstance(path, str):
@@ -41,7 +51,7 @@ class ChapterTooling(BaseEncoder):
         if chapters_names is not None:
             chapter_file.set_names(chapters_names)
 
-        chapter_file.shift_times(self._get_offset(offset), self.clip.fps)
+        chapter_file.shift_times(self._get_offset(shift_time), self.clip.fps)
 
 
     def _get_offset(self, offset: int | None = None) -> int | NoReturn:

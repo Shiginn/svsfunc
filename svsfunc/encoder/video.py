@@ -28,6 +28,16 @@ class VideoTooling(BaseEncoder):
         qp_file: bool | vs.VideoNode | None = None,
         **overrides: Any
     ) -> None:
+        """
+        Set the video encoder.
+
+        :param encoder:     Encoder to use.
+        :param settings:    Video encoder settings.
+        :param zones:       Custom zone ranges.
+        :param resumable:   Allow encoding to be paused and resumed.
+        :param qp_file:     Generate qp file from clip. If True, will use `file.clip_cut`. Custom clip can also be used.
+        :param overrides:   Additional paramters to be passed to the encoder.
+        """
         self.v_encoder = encoder(settings, zones, **overrides)
         self.v_encoder.resumable = resumable
         self.v_encoder.prefetch = prefetch
@@ -48,7 +58,13 @@ class VideoTooling(BaseEncoder):
         post_filterchain_func: Callable[[VPath], vs.VideoNode] | None = None,
         **overrides: Any
     ) -> None:
+        """
+        Set lossless video encoder.
 
+        :param lossless_encoder:        Encoder to be used.
+        :param post_filterchain_func:   Function to be run after filterchain and before encoding.
+        :param overrides:               Addition parameters to be passed to the encoder.
+        """
         self.v_lossless_encoder = lossless_encoder(**overrides)
         logger.info(f"Video Lossless Encoder: {lossless_encoder.__name__}")
 

@@ -17,10 +17,16 @@ core = vs.core
 
 class UtilsTooling(BaseEncoder):
 
-    def make_comp(self, **comp_args: Any) -> None:
-        logger.info("Generation comps")
+    def make_comp(self, num_frames: int = 100, **comp_args: Any) -> None:
+        """
+        Make comp with source, filtered and encoded file. Will use lossless intermediate if the file exists.
 
-        args: Dict[str, Any] = dict(num=100, force_bt709=True)
+        :param num_frames:  Number of comp to generate.
+        :param comp_args:   Additional paramters to be passed to :py:func:`make_comp`
+        """
+        logger.info("Generating comps")
+
+        args: Dict[str, Any] = dict(num=num_frames, force_bt709=True)
         args |= comp_args
 
         if os.path.isdir("comps"):
@@ -57,6 +63,12 @@ class UtilsTooling(BaseEncoder):
     def generate_keyframes(
         self, mode: SceneChangeMode = SceneChangeMode.WWXD_SCXVID_UNION, delete_index: bool = True
     ) -> None:
+        """
+        Generate Aegisub compatible keyframes.
+
+        :param mode:            Scene change detection mode. Defaults to WWXD or SCXVID.
+        :param delete_index:    Delete index file generated when indexing `file.name_file_final`. Defaults to True.
+        """
         if self.file.name_file_final.exists():
             logger.info("Generating keyframes from encoded file")
             clip = core.lsmas.LWLibavSource(self.file.name_file_final.to_str())
