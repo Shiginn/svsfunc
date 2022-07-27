@@ -1,20 +1,29 @@
-.. svsfunc documentation master file, created by
-   sphinx-quickstart on Wed Jul 27 01:29:58 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to svsfunc's documentation!
+svsfunc's Documentation
 ===================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+
+.. automodule:: svsfunc
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 
+.. image:: https://img.shields.io/badge/python-3.10-blue
+..
+    todo: switch to pypi version
 
-Indices and tables
+
+.. image:: https://img.shields.io/github/workflow/status/Shiginn/svsfunc/lint?label=lint
+
+.. image:: https://img.shields.io/readthedocs/svsfunc
+
+About
 ==================
+svsfunc is a collection of VapourSynth functions I use in my scripts.
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+Contents
+========
+.. toctree:: 
+    :maxdepth: 2
+    
+    installation
