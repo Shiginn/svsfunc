@@ -65,7 +65,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 html_theme = "sphinx_rtd_theme"
 
 autosummary_generate = True
-
+autodoc_member_order = "bysource"
 autodoc_mock_imports = ["vapoursynth", "vardautomation", "lvsfunc"]
 
 # -- Options for todo extension ----------------------------------------------

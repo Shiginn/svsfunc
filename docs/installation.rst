@@ -1,6 +1,3 @@
-Installation
-============
-
 .. note:: 
     svsfunc is currently not available on PyPi as it is still in prototyping phase
 
