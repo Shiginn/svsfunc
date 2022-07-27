@@ -1,3 +1,5 @@
+__all__ = ["BaseEncoder"]
+
 import vapoursynth as vs
 from vardautomation import FileInfo
 
