@@ -16,6 +16,7 @@ T = TypeVar("T")
 
 
 class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
+    """Generate an encoding chain"""
 
     def muxer(
         self,

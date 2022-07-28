@@ -19,6 +19,8 @@ AudioEncodersType = Type[AudioEncoders]
 
 
 class AudioTooling(BaseEncoder):
+    """Tools for audio extracting/cutting and encoding"""
+
     a_tracks: List[int]
     track_number: int
     output_tracks: List[int]

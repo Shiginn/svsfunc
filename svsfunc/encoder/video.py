@@ -14,18 +14,22 @@ VideoLosslessEncoders = Union[FFV1, NVEncCLossless]
 
 
 class VideoTooling(BaseEncoder):
-    v_encoder: VideoEncoders | None = None
+    """Tools for video encoding"""
+
+    v_encoder: VideoEncoders
     v_lossless_encoder: VideoLosslessEncoders | None = None
 
     qp_file: vs.VideoNode | None = None
     post_filterchain_func: Callable[[VPath], vs.VideoNode] | None = None
 
     def video_encoder(
-        self, encoder: Type[VideoEncoders],
-        settings: str | List[str] | Dict[str, Any],
+        self,
+        encoder: Type[VideoEncoders],
+        settings: Union[str, List[str], Dict[str, Any]],
+        resumable: bool = False,
         zones: Dict[Tuple[int, int], Dict[str, Any]] | None = None,
-        resumable: bool = False, prefetch: int = 0,
-        qp_file: bool | vs.VideoNode | None = None,
+        prefetch: int = 0,
+        qp_file: Union[bool, vs.VideoNode] | None = None,
         **overrides: Any
     ) -> None:
         """
@@ -33,8 +37,9 @@ class VideoTooling(BaseEncoder):
 
         :param encoder:     Encoder to use.
         :param settings:    Video encoder settings.
-        :param zones:       Custom zone ranges.
         :param resumable:   Allow encoding to be paused and resumed.
+        :param zones:       Custom zone ranges.
+        :param prefetch:    Max number of concurrent rendered frames
         :param qp_file:     Generate qp file from clip. If True, will use `file.clip_cut`. Custom clip can also be used.
         :param overrides:   Additional paramters to be passed to the encoder.
         """
@@ -61,7 +66,7 @@ class VideoTooling(BaseEncoder):
         """
         Set lossless video encoder.
 
-        :param lossless_encoder:        Encoder to be used.
+        :param lossless_encoder:        Encoder to use.
         :param post_filterchain_func:   Function to be run after filterchain and before encoding.
         :param overrides:               Addition parameters to be passed to the encoder.
         """

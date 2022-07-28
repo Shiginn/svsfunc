@@ -16,6 +16,7 @@ core = vs.core
 
 
 class UtilsTooling(BaseEncoder):
+    """Set of useful functions"""
 
     def make_comp(self, num_frames: int = 100, **comp_args: Any) -> None:
         """

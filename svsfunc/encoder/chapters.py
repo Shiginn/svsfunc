@@ -12,12 +12,14 @@ ChaptersFormat = Union[MatroskaXMLChapters, OGMChapters]
 
 
 class ChapterTooling(BaseEncoder):
+    """Tools for generating chapter files"""
+
     def make_chapters(
         self,
         chapters: List[int] | List[Chapter],
         chapters_names: Sequence[str | None] | None = None,
         format: Type[ChaptersFormat] = MatroskaXMLChapters,
-        path: str | VPath | None = None,
+        path: Union[str, VPath] | None = None,
         shift_time: int | None = None,
     ) -> None:
         """
