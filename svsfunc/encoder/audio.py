@@ -19,6 +19,8 @@ AudioEncodersType = Type[AudioEncoders]
 
 
 class AudioTooling(BaseEncoder):
+    """Tools for audio extracting/cutting and encoding"""
+
     a_tracks: List[int]
     track_number: int
     output_tracks: List[int]
@@ -27,6 +29,11 @@ class AudioTooling(BaseEncoder):
     a_encoder: List[AudioEncoders] | None = None
 
     def set_tracks(self, tracks: int | List[int] | None) -> None:
+        """
+        Set the tracks that will be processed by the audio extracter/cutter/encoder.
+
+        :param tracks:  Tracks to process.
+        """
         self.a_tracks = ([tracks] if isinstance(tracks, int) else tracks) if tracks is not None else []
         self.track_number = len(self.a_tracks)
         self.output_tracks = list(range(1, self.track_number + 1))
@@ -40,6 +47,13 @@ class AudioTooling(BaseEncoder):
         global_settings: Dict[str, Any] | None = None,
         overrides: List[Tuple[int, Dict[str, Any]]] | None = None
     ) -> None:
+        """
+        Set the audio extracter that will be used. Not needeed if you use FileInfo2.
+
+        :param extracter:           Audio extracter to use.
+        :param global_settings:     Settings that will be passed to every track.
+        :param overrides:           Override global settings for specific tracks. Format is (track_number, settings).
+        """
         self._check_tracks()
         func_name = inspect.stack()[0][3]
 
@@ -60,6 +74,13 @@ class AudioTooling(BaseEncoder):
         global_settings: Dict[str, Any] | None = None,
         overrides: List[Tuple[int, Dict[str, Any]]] | None = None
     ) -> None:
+        """
+        Set the audio cutter that will be used. Not needeed if you use FileInfo2.
+
+        :param cutter:              Audio cutter to use.
+        :param global_settings:     Settings that will be passed to every track.
+        :param overrides:           Override global settings for specific tracks. Format is (track_number, settings).
+        """
         self._check_tracks()
         func_name = inspect.stack()[0][3]
 
@@ -81,6 +102,13 @@ class AudioTooling(BaseEncoder):
         global_settings: Dict[str, Any] | None = None,
         overrides: List[Tuple[int, Dict[str, Any]]] | None = None
     ) -> None:
+        """
+        Set the audio encoder that will be used.
+
+        :param encoder:             Audio encoder to use.
+        :param global_settings:     Settings that will be passed to every track.
+        :param overrides:           Override global settings for specific tracks. Format is (track_number, settings).
+        """
         self._check_tracks()
         func_name = inspect.stack()[0][3]
 
@@ -96,8 +124,8 @@ class AudioTooling(BaseEncoder):
 
 
     def _get_settings(
-        self,
-        global_settings: Dict[str, Any] | None, overrides: List[Tuple[int, Dict[str, Any]]] | None,
+        self, global_settings: Dict[str, Any] | None,
+        overrides: List[Tuple[int, Dict[str, Any]]] | None,
         func: str
     ) -> List[Dict[str, Any]]:
         self._check_tracks()

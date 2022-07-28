@@ -1,3 +1,4 @@
 VapourSynth>=59
+vskernels==1.0.5
 vardautomation>=1.2.1
 lvsfunc>=0.4.2

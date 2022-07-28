@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["VideoTooling"]
 
 from typing import Any, Callable, Dict, List, Tuple, Type, Union
@@ -12,20 +14,35 @@ VideoLosslessEncoders = Union[FFV1, NVEncCLossless]
 
 
 class VideoTooling(BaseEncoder):
-    v_encoder: VideoEncoders | None = None
+    """Tools for video encoding"""
+
+    v_encoder: VideoEncoders
     v_lossless_encoder: VideoLosslessEncoders | None = None
 
     qp_file: vs.VideoNode | None = None
     post_filterchain_func: Callable[[VPath], vs.VideoNode] | None = None
 
     def video_encoder(
-        self, encoder: Type[VideoEncoders],
-        settings: str | List[str] | Dict[str, Any],
+        self,
+        encoder: Type[VideoEncoders],
+        settings: Union[str, List[str], Dict[str, Any]],
+        resumable: bool = False,
         zones: Dict[Tuple[int, int], Dict[str, Any]] | None = None,
-        resumable: bool = False, prefetch: int = 0,
-        qp_file: bool | vs.VideoNode | None = None,
+        prefetch: int = 0,
+        qp_file: Union[bool, vs.VideoNode] | None = None,
         **overrides: Any
     ) -> None:
+        """
+        Set the video encoder.
+
+        :param encoder:     Encoder to use.
+        :param settings:    Video encoder settings.
+        :param resumable:   Allow encoding to be paused and resumed.
+        :param zones:       Custom zone ranges.
+        :param prefetch:    Max number of concurrent rendered frames
+        :param qp_file:     Generate qp file from clip. If True, will use `file.clip_cut`. Custom clip can also be used.
+        :param overrides:   Additional paramters to be passed to the encoder.
+        """
         self.v_encoder = encoder(settings, zones, **overrides)
         self.v_encoder.resumable = resumable
         self.v_encoder.prefetch = prefetch
@@ -46,7 +63,13 @@ class VideoTooling(BaseEncoder):
         post_filterchain_func: Callable[[VPath], vs.VideoNode] | None = None,
         **overrides: Any
     ) -> None:
+        """
+        Set lossless video encoder.
 
+        :param lossless_encoder:        Encoder to use.
+        :param post_filterchain_func:   Function to be run after filterchain and before encoding.
+        :param overrides:               Addition parameters to be passed to the encoder.
+        """
         self.v_lossless_encoder = lossless_encoder(**overrides)
         logger.info(f"Video Lossless Encoder: {lossless_encoder.__name__}")
 

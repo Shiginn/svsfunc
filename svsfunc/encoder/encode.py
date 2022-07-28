@@ -16,6 +16,7 @@ T = TypeVar("T")
 
 
 class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
+    """Generate an encoding chain"""
 
     def muxer(
         self,
@@ -25,6 +26,16 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
         external_audio: List[AnyPath | Tuple[AnyPath, str | None, Lang]] | None = None,
         **muxer_options: Any
     ) -> None:
+        """
+        Set parameters for the muxer.
+
+        :param v_title:         Video track name.
+        :param a_title:         Audio track(s) name(s).
+        :param a_lang:          Audio track(s) language(s).
+        :param external_audio:  Add external audio tracks. Can be a list of path, or a list of tuple
+                                (path, track_name, track_lang).
+        :param muxer_options:   Additional paramters to be passed to the muxer.
+        """
 
         if not isinstance(a_title, List):
             a_title = [a_title] * self.track_number
@@ -66,6 +77,11 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
 
 
     def run(self, order: RunnerConfig.Order = RunnerConfig.Order.VIDEO) -> None:
+        """
+        Start the encode with specified settings. Should be called after everything is configured.
+
+        :param order:   Encode video or audio first (defaults to video).
+        """
         if self.v_encoder is None:
             raise TypeError("Encoder.run: no video encoder set")
 
@@ -95,6 +111,13 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
         add_file: AnyPath | Sequence[AnyPath] | None = None,
         ignore_file: VPath | Sequence[VPath] | None = None
     ) -> None:
+        """
+        Delete temp files created by the encoder such as file.a_src/file.a_src_cut/file.a_enc_cut.
+
+        :param add_file:        Additional files to delete.
+        :param ignore_file:     Files that should not be deleted.
+        """
+
         if not hasattr(self, "runner"):
             logger.error("Runner not found", False)
 
