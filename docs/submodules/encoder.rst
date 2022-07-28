@@ -1,28 +1,28 @@
-svsfunc.encoder
+svsfunc.encode
 ===============
 
 Vardautomation wrapper for encoding video, audio and chapters.
 
 .. autosummary::
 
-    svsfunc.encoder.VideoTooling
-    svsfunc.encoder.AudioTooling
-    svsfunc.encoder.ChapterTooling
-    svsfunc.encoder.UtilsTooling
-    svsfunc.encoder.Encoder
+    svsfunc.tooling.VideoTooling
+    svsfunc.tooling.AudioTooling
+    svsfunc.tooling.ChapterTooling
+    svsfunc.tooling.UtilsTooling
+    svsfunc.encode.Encoder
 
 
 Base Encoder
 ------------
 
-.. automodule:: svsfunc.encoder.base
+.. automodule:: svsfunc.tooling.base
     :members:
     :undoc-members:
 
 
 Video Tooling
 -------------
-.. automodule:: svsfunc.encoder.video
+.. automodule:: svsfunc.tooling.video
     :members:
     :undoc-members:
     :show-inheritance:
@@ -31,7 +31,7 @@ Video Tooling
 Audio Tooling
 -------------
 
-.. automodule:: svsfunc.encoder.audio
+.. automodule:: svsfunc.tooling.audio
     :members:
     :undoc-members:
     :show-inheritance:
@@ -39,7 +39,7 @@ Audio Tooling
 
 Chapter Tooling
 ---------------
-.. automodule:: svsfunc.encoder.chapters
+.. automodule:: svsfunc.tooling.chapters
     :members:
     :undoc-members:
     :show-inheritance:
@@ -47,7 +47,7 @@ Chapter Tooling
 
 Utils Tooling
 -------------
-.. automodule:: svsfunc.encoder.utils
+.. automodule:: svsfunc.tooling.utils
     :members:
     :undoc-members:
     :show-inheritance:
@@ -55,7 +55,7 @@ Utils Tooling
 
 Encoder
 -------------
-.. automodule:: svsfunc.encoder.encode
+.. automodule:: svsfunc.encode
     :members:
     :undoc-members:
     :show-inheritance:

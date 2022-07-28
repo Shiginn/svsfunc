@@ -7,10 +7,11 @@ from vardautomation import (
     VideoTrack, VPath, logger
 )
 
-from .audio import AudioTooling
-from .chapters import ChapterTooling
-from .utils import UtilsTooling
-from .video import VideoTooling
+from .tooling.audio import AudioTooling
+from .tooling.chapters import ChapterTooling
+from .tooling.utils import UtilsTooling
+from .tooling.video import VideoTooling
+
 
 T = TypeVar("T")
 

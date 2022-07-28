@@ -21,7 +21,7 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     install_requires=requirements,
     python_requires='>=3.10',
-    packages=[package_name, f"{package_name}.encoder"],
+    packages=[package_name, f"{package_name}.tooling"],
     package_data={
         package_name: ['py.typed']
     },

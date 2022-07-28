@@ -1,4 +1,4 @@
-Using svsfunc.encoder
+Using svsfunc.encode
 =====================
 
 .. note:: 
