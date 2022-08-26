@@ -13,26 +13,28 @@ __all__ = ["ParseFolder", "ParseBD"]
 
 core = vs.core
 
-IndexedT = TypeVar("IndexedT", bound=Union[vs.VideoNode, FileInfo])
-IndexerT = TypeVar("IndexerT", bound=Union[VPSIdx, Type[FileInfo]])
+Indexed = Union[vs.VideoNode, FileInfo]
+Indexer = Union[VPSIdx, Type[FileInfo]]
+IndexedT = TypeVar("IndexedT", bound=Indexed)
+IndexerT = TypeVar("IndexerT", bound=Indexer)
 
 
-class HasEpisode(Generic[IndexerT], ABC):
+class HasEpisode(ABC):
     episodes: List[VPath]
-    indexer: IndexerT
+    indexer: Indexer
     indexer_settings: Dict[str, Any]
 
 
-    def _get_episode(self, ep_num: int | str, **indexer_overrides: Any) -> IndexedT:
+    def _get_episode(self, ep_num: int | str, **indexer_overrides: Any) -> Indexed:
         if isinstance(ep_num, str):
             ep_num = int(ep_num)
 
         idx_settings: Dict[str, Any] = self.indexer_settings | indexer_overrides
-        return cast(IndexedT, self.indexer(self.episodes[ep_num - 1].to_str(), **idx_settings))
+        return self.indexer(self.episodes[ep_num - 1].to_str(), **idx_settings)
 
 
     @abstractmethod
-    def get_episode(self, ep_num: int | str, **indexer_overrides: Any) -> IndexedT:
+    def get_episode(self, ep_num: int | str, **indexer_overrides: Any) -> Indexed:
         ...
 
 
@@ -54,7 +56,7 @@ class ParseFolder(HasEpisode, Generic[IndexedT, IndexerT]):
     @overload
     def __init__(
         self: "ParseFolder[vs.VideoNode, VPSIdx]",
-        folder: str | Path, episode_pattern: str | None = None,
+        episode_folder: str | Path, episode_pattern: str | None = None,
         indexer: VPSIdx | None = None, **indexer_settings: Any
     ) -> None:
         ...
@@ -112,7 +114,7 @@ class ParseFolder(HasEpisode, Generic[IndexedT, IndexerT]):
 
         :return:                    FileInfo object
         """
-        return super()._get_episode(ep_num, **indexer_overrides)
+        return cast(IndexedT, super()._get_episode(ep_num, **indexer_overrides))
 
 
 class ParseBD(HasEpisode, Generic[IndexedT, IndexerT]):
@@ -234,7 +236,7 @@ class ParseBD(HasEpisode, Generic[IndexedT, IndexerT]):
 
         :return:                    FileInfo object
         """
-        return super()._get_episode(ep_num, **indexer_overrides)
+        return cast(IndexedT, super()._get_episode(ep_num, **indexer_overrides))
 
 
     def get_chapter(self, ep_num: int | str) -> List[Chapter]:
