@@ -43,7 +43,7 @@ class VideoTooling(BaseEncoder):
         :param qp_file:     Generate qp file from clip. If True, will use `file.clip_cut`. Custom clip can also be used.
         :param overrides:   Additional paramters to be passed to the encoder.
         """
-        self.v_encoder = encoder(settings, zones, **overrides)
+        self.v_encoder = encoder(settings, zones=zones, **overrides)
         self.v_encoder.resumable = resumable
         self.v_encoder.prefetch = prefetch
 
@@ -77,4 +77,5 @@ class VideoTooling(BaseEncoder):
             raise TypeError("VideoEncoder.video_lossless_encoder: post_filtering_func must be callable.")
 
         self.post_filterchain_func = post_filterchain_func
-        logger.info("Post-filtering function set.")
+        if self.post_filterchain_func:
+            logger.info("Post-filtering function set.")
