@@ -1,6 +1,6 @@
 
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Callable, Dict
 
 import vapoursynth as vs
 
@@ -29,19 +29,32 @@ class BaseFiltering(ABC):
         self.filtersteps_clips = input if self.filtersteps_clips is None else self.filtersteps_clips | input
 
 
-    def preview(self, name_pos: int = 8, display_props: int | None = None, font_scaling: int = 1) -> None:
+    def preview(
+        self,
+        name_pos: int = 8,
+        display_props: int | None = None,
+        font_scaling: int = 1,
+        preview_func: Callable[[vs.VideoNode], vs.VideoNode] | None = None
+    ) -> None:
         """
         Preview every clip in the list of filtersteps.
 
         :param name_pos:        Position of the name of the clip (0 = disable). Default to 8 (top-middle)
         :param display_props:   Position of the frame-props of the clip. Default to disable.
         :param font_scaling:    Scaling of the font used to write name and frame_props. Defaults to 1.
+        :param preview_func:    Function to apply to clip before previewing (e.g. PlaneStat, stack_planes, ...)
         """
+
+        if preview_func is not None and not callable(preview_func):
+            raise TypeError("BaseFiltering.preview: preview_func must be callable.")
 
         if self.filtersteps_clips is None:
             raise ValueError("BaseFiltering: no output set.")
 
         for i, (output_name, output) in enumerate(self.filtersteps_clips.items()):
+            if preview_func is not None:
+                output = preview_func(output)
+
             if display_props:
                 output = output.text.FrameProps(alignment=display_props, scale=font_scaling)
 
