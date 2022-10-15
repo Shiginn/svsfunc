@@ -1,11 +1,10 @@
 __all__ = ["AudioTooling"]
 
-import inspect
 from typing import Any, Dict, List, Tuple, Type, Union
 
 from vardautomation import (
     Eac3toAudioExtracter, EztrimCutter, FFmpegAudioExtracter, FlacEncoder, MKVAudioExtracter, OpusEncoder,
-    PassthroughAudioEncoder, PassthroughCutter, QAACEncoder, ScipyCutter, SoxCutter, logger
+    PassthroughAudioEncoder, PassthroughCutter, PresetWEB, QAACEncoder, ScipyCutter, SoxCutter, logger
 )
 
 from .base import BaseEncoder
@@ -28,15 +27,17 @@ class AudioTooling(BaseEncoder):
     a_cutter: List[AudioCutters] | None = None
     a_encoder: List[AudioEncoders] | None = None
 
+
     def set_tracks(self, tracks: int | List[int] | None) -> None:
         """
-        Set the tracks that will be processed by the audio extracter/cutter/encoder.
+        Set the tracks that will be processed by the audio extracter/cutter/encoder. The first audio tracks is track
+        number 1, things might broke if you source has more than one video track. Track order is not preserved.
 
         :param tracks:  Tracks to process.
         """
-        self.input_tracks = ([tracks] if isinstance(tracks, int) else tracks) if tracks is not None else []
+        self.input_tracks = ([tracks] if isinstance(tracks, int) else sorted(tracks)) if tracks is not None else []
+        self.output_tracks = self.input_tracks.copy()
         self.track_number = len(self.input_tracks)
-        self.output_tracks = list(range(1, self.track_number + 1))
 
         logger.info(f"Processing audio tracks: {', '.join(str(t) for t in self.input_tracks)}")
 
@@ -54,10 +55,12 @@ class AudioTooling(BaseEncoder):
         :param global_settings:     Settings that will be passed to every track.
         :param overrides:           Override global settings for specific tracks. Format is (track_number, settings).
         """
-        func_name = inspect.stack()[0][3]
+        # eac3to index start at 1 while others are zero based
+        if extracter == Eac3toAudioExtracter:
+            self.input_tracks = [t + 1 for t in self.input_tracks]
 
         extracter_list = [extracter] * self.track_number
-        settings = self._get_settings(global_settings, overrides, func_name)
+        settings = self._get_settings(global_settings, overrides, self.get_func_name())
 
         self.a_extracter = []
         for ext_t, in_idx, out_idx, setting in zip(extracter_list, self.input_tracks, self.output_tracks, settings):
@@ -80,10 +83,8 @@ class AudioTooling(BaseEncoder):
         :param global_settings:     Settings that will be passed to every track.
         :param overrides:           Override global settings for specific tracks. Format is (track_number, settings).
         """
-        func_name = inspect.stack()[0][3]
-
         cutter_list = [cutter] * self.track_number
-        settings = self._get_settings(global_settings, overrides, func_name)
+        settings = self._get_settings(global_settings, overrides, self.get_func_name())
 
         self.a_cutter = []
         for cutter_t, out_idx, setting in zip(cutter_list, self.output_tracks, settings):
@@ -107,7 +108,10 @@ class AudioTooling(BaseEncoder):
         :param global_settings:     Settings that will be passed to every track.
         :param overrides:           Override global settings for specific tracks. Format is (track_number, settings).
         """
-        func_name = inspect.stack()[0][3]
+        func_name = self.get_func_name()
+
+        if PresetWEB in self.file.preset:
+            raise ValueError(f"AudioEncoder.{func_name}: cannot set audio_encoder when using PresetWEB.")
 
         encoder_list = [encoder] * self.track_number
         settings = self._get_settings(global_settings, overrides, func_name)
