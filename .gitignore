@@ -26,3 +26,5 @@ MANIFEST
 
 # Other
 .vscode
+.vspreview
+tests/
