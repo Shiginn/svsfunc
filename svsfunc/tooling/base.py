@@ -29,7 +29,7 @@ class BaseEncoder:
         trims = self.file.trims_or_dfs
 
         if trims is None:
-            offset = 0
+            offset: int | None = 0
         elif isinstance(trims, tuple):
             offset = trims[0]
         elif isinstance(trims, list) and isinstance(trims[0], tuple):
