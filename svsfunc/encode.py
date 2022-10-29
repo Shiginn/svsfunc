@@ -1,6 +1,6 @@
 __all__ = ["Encoder"]
 
-from typing import List, NoReturn, Sequence, Tuple, TypeVar
+from typing import List, NoReturn, Sequence, TypeVar
 
 from vardautomation import (
     UNDEFINED, AnyPath, AudioTrack, ChaptersTrack, FileInfo2, Lang, MatroskaFile, RunnerConfig, SelfRunner, Track,
@@ -17,15 +17,16 @@ T = TypeVar("T")
 
 class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
     """Generate an encoding chain"""
+    external_audio: List[VPath] = []
     mux: MatroskaFile | None = None
-    runner: SelfRunner
+    runner: SelfRunner | None = None
 
     def muxer(
         self,
         v_title: str | None = None,
         a_title: str | List[str | None] | None = None,
         a_lang: Lang | List[Lang] = UNDEFINED,
-        external_audio: List[AnyPath | Tuple[AnyPath, str | None, Lang]] | None = None,
+        external_audio: List[AnyPath | AudioTrack] | None = None,
         audio_tracks_order: List[int] | None = None,
         *muxer_overrides: str
     ) -> None:
@@ -66,16 +67,20 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
 
         if external_audio is not None:
             for track in external_audio:
+                if not isinstance(track, AudioTrack):
+                    track = AudioTrack(track, None, UNDEFINED)
+
+                if not track.path.exists():
+                    raise ValueError(f"Encoder.muxer: external audio file {track.path.to_str()} does not exist.")
+
                 self.track_number += 1
-                self.input_tracks.append(max(self.input_tracks) + 1)  # [2, 4] ->  [2, 4, 5]
-                self.output_tracks.append(max(self.output_tracks) + 1)
+                self.input_tracks.append(max(self.input_tracks) + 1 if self.input_tracks else 1)  # [2, 4] ->  [2, 4, 5]
+                self.output_tracks.append(max(self.output_tracks) + 1 if self.output_tracks else 1)
 
-                if not isinstance(track, tuple):
-                    track = (track, None, UNDEFINED)
+                a_tracks.append(track)
+                self.external_audio.append(track.path)
 
-                path, name, lang = track
-                logger.info(f"Muxing audio file {path} (track name: {name}, track lang: {lang.name}-{lang.iso639})")
-                a_tracks.append(AudioTrack(path, name, lang))
+                logger.info(f"Muxing audio file {track.path} (track name: {track.name}, track lang: {track.lang.name}-{track.lang.iso639})")  # noqa: E501
 
         if audio_tracks_order is not None:
             if len(audio_tracks_order) != self.track_number:
@@ -130,27 +135,25 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
     def clean_up(
         self,
         add_file: AnyPath | Sequence[AnyPath] | None = None,
-        ignore_file: VPath | Sequence[VPath] | None = None
-    ) -> None:
+        ignore_file: VPath | Sequence[VPath] | None = None,
+        keep_external_audio: bool = True
+    ) -> None | NoReturn:
         """
         Delete temp files created by the encoder such as file.a_src/file.a_src_cut/file.a_enc_cut.
 
-        :param add_file:        Additional files to delete.
-        :param ignore_file:     Files that should not be deleted.
+        :param add_file:            Additional files to delete.
+        :param ignore_file:         Files that should not be deleted.
+        :param keep_external_audio  Do not delete external audio files used in Encoder.muxer (Default: True)
         """
 
-        if not hasattr(self, "runner"):
-            logger.error("Runner not found", False)
+        if self.runner is None:
+            logger.error("No runner detected", False)
 
-        if add_file is None:
-            add_file = []
-        elif not isinstance(add_file, Sequence):
-            add_file = [add_file]
+        add_file = self.to_seq(add_file)
+        ignore_file = list(self.to_seq(ignore_file))
 
-        if ignore_file is None:
-            ignore_file = []
-        elif not isinstance(ignore_file, Sequence):
-            ignore_file = [ignore_file]
+        if keep_external_audio:
+            ignore_file += self.external_audio
 
         for add in add_file:
             self.runner.work_files.add(add)
@@ -161,9 +164,10 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
             logger.info(f"Removing {ignore} from workfiles")
 
         for file in sorted(self.runner.work_files):
-            logger.info(f"Removing file {file}")
+            logger.info(f"Deleted {file}")
 
         self.runner.work_files.clear()
+        return None  # mypy?
 
 
     def _select_a_track(self) -> VPath | NoReturn:
@@ -176,6 +180,15 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
                 return track
 
         raise ValueError("Encoder._select_a_track: could not select audio from source file")
+
+
+    @staticmethod
+    def to_seq(elem: T | Sequence[T] | None) -> Sequence[T]:
+        if elem is None:
+            elem = []
+        elif not isinstance(elem, Sequence):
+            elem = [elem]
+        return elem
 
 
     @staticmethod
