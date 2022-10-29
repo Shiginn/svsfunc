@@ -22,11 +22,12 @@ class BaseEncoder:
         self.clip = clip
 
 
-    def get_offset(self) -> int:
+    @staticmethod
+    def get_offset(file: FileInfo) -> int:
         """
         Get offset based on FileInfo trims
         """
-        trims = self.file.trims_or_dfs
+        trims = file.trims_or_dfs
 
         if trims is None:
             offset: int | None = 0
@@ -36,6 +37,14 @@ class BaseEncoder:
             offset = trims[0][0]
 
         return 0 if offset is None else offset * -1
+
+
+    @staticmethod
+    def get_offset_ms(file: FileInfo, clip: vs.VideoNode):
+        """
+        Get offset in ms from FileInfo trims
+        """
+        return BaseEncoder.get_offset(file) * (1000 / clip.fps)
 
 
     @staticmethod

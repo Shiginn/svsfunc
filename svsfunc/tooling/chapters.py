@@ -53,4 +53,4 @@ class ChapterTooling(BaseEncoder):
         if chapters_names is not None:
             chapter_file.set_names(chapters_names)
 
-        chapter_file.shift_times(shift_time or self.get_offset(), self.clip.fps)
+        chapter_file.shift_times(shift_time or self.get_offset(self.file), self.clip.fps)
