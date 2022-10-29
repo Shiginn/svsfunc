@@ -44,7 +44,7 @@ class BaseEncoder:
         """
         Get offset in ms from FileInfo trims
         """
-        return BaseEncoder.get_offset(file) * (1000 / clip.fps)
+        return float(BaseEncoder.get_offset(file) * (1000 / clip.fps))
 
 
     @staticmethod
