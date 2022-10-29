@@ -40,7 +40,7 @@ class BaseEncoder:
 
 
     @staticmethod
-    def get_offset_ms(file: FileInfo, clip: vs.VideoNode):
+    def get_offset_ms(file: FileInfo, clip: vs.VideoNode) -> float:
         """
         Get offset in ms from FileInfo trims
         """
