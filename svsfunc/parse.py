@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from glob import glob
 from pathlib import Path
-from typing import Any, Dict, Generic, List, Sequence, Type, TypeVar, Union, cast, overload
+from typing import Any, Generic, Sequence, Type, TypeVar, Union, cast, overload
 
 import vapoursynth as vs
 from vardautomation import Chapter, FileInfo, FileInfo2, MplsChapters, MplsReader, VPath, VPSIdx
@@ -20,16 +20,16 @@ IndexerT = TypeVar("IndexerT", bound=Indexer)
 
 
 class HasEpisode(ABC):
-    episodes: List[VPath]
+    episodes: list[VPath]
     indexer: Indexer
-    indexer_settings: Dict[str, Any]
+    indexer_settings: dict[str, Any]
 
 
     def _get_episode(self, ep_num: int | str, **indexer_overrides: Any) -> Indexed:
         if isinstance(ep_num, str):
             ep_num = int(ep_num)
 
-        idx_settings: Dict[str, Any] = self.indexer_settings | indexer_overrides
+        idx_settings: dict[str, Any] = self.indexer_settings | indexer_overrides
         return self.indexer(self.episodes[ep_num - 1].to_str(), **idx_settings)
 
 
@@ -51,7 +51,7 @@ class ParseFolder(HasEpisode, Generic[IndexedT, IndexerT]):
     folder: VPath
     episode_number: int
     indexer: IndexerT
-    indexer_settings: Dict[str, Any]
+    indexer_settings: dict[str, Any]
 
     @overload
     def __init__(
@@ -131,11 +131,11 @@ class ParseBD(HasEpisode, Generic[IndexedT, IndexerT]):
     """
 
     bdmv_folder: VPath
-    episodes: List[VPath]
-    chapters: List[MplsChapters]
+    episodes: list[VPath]
+    chapters: list[MplsChapters]
     episode_number: int
     indexer: IndexerT
-    indexer_settings: Dict[str, Any]
+    indexer_settings: dict[str, Any]
 
     @overload
     def __init__(
@@ -239,7 +239,7 @@ class ParseBD(HasEpisode, Generic[IndexedT, IndexerT]):
         return cast(IndexedT, super()._get_episode(ep_num, **indexer_overrides))
 
 
-    def get_chapter(self, ep_num: int | str) -> List[Chapter]:
+    def get_chapter(self, ep_num: int | str) -> list[Chapter]:
         """Get a list of chapters of an episode
 
         :param ep_num:      Episode to get (not zero-based)

@@ -1,6 +1,6 @@
 __all__ = ["AudioTooling"]
 
-from typing import Any, Dict, List, Tuple, Type, Union
+from typing import Any, Type, Union
 
 from vardautomation import (
     Eac3toAudioExtracter, EztrimCutter, FFmpegAudioExtracter, FlacEncoder, MKVAudioExtracter, OpusEncoder,
@@ -21,14 +21,14 @@ class AudioTooling(BaseEncoder):
     """Tools for audio extracting/cutting and encoding"""
 
     track_number: int = 0
-    input_tracks: List[int] = []
-    output_tracks: List[int] = []
-    a_extracter: List[AudioExtracters] | None = None
-    a_cutter: List[AudioCutters] | None = None
-    a_encoder: List[AudioEncoders] | None = None
+    input_tracks: list[int] = []
+    output_tracks: list[int] = []
+    a_extracter: list[AudioExtracters] | None = None
+    a_cutter: list[AudioCutters] | None = None
+    a_encoder: list[AudioEncoders] | None = None
 
 
-    def set_tracks(self, tracks: int | List[int] | None) -> None:
+    def set_tracks(self, tracks: int | list[int] | None) -> None:
         """
         Set the tracks that will be processed by the audio extracter/cutter/encoder. The first audio tracks is track
         number 1, things might broke if you source has more than one video track. Track order is not preserved.
@@ -45,8 +45,8 @@ class AudioTooling(BaseEncoder):
     def audio_extracter(
         self,
         extracter: AudioExtractersType,
-        global_settings: Dict[str, Any] | None = None,
-        overrides: List[Tuple[int, Dict[str, Any]]] | None = None
+        global_settings: dict[str, Any] | None = None,
+        overrides: list[tuple[int, dict[str, Any]]] | None = None
     ) -> None:
         """
         Set the audio extracter that will be used. Not needeed if you use FileInfo2.
@@ -73,8 +73,8 @@ class AudioTooling(BaseEncoder):
     def audio_cutter(
         self,
         cutter: AudioCuttersType,
-        global_settings: Dict[str, Any] | None = None,
-        overrides: List[Tuple[int, Dict[str, Any]]] | None = None
+        global_settings: dict[str, Any] | None = None,
+        overrides: list[tuple[int, dict[str, Any]]] | None = None
     ) -> None:
         """
         Set the audio cutter that will be used. Not needeed if you use FileInfo2.
@@ -98,8 +98,8 @@ class AudioTooling(BaseEncoder):
     def audio_encoder(
         self,
         encoder: AudioEncodersType,
-        global_settings: Dict[str, Any] | None = None,
-        overrides: List[Tuple[int, Dict[str, Any]]] | None = None
+        global_settings: dict[str, Any] | None = None,
+        overrides: list[tuple[int, dict[str, Any]]] | None = None
     ) -> None:
         """
         Set the audio encoder that will be used.
@@ -125,10 +125,10 @@ class AudioTooling(BaseEncoder):
 
 
     def _get_settings(
-        self, global_settings: Dict[str, Any] | None,
-        overrides: List[Tuple[int, Dict[str, Any]]] | None,
+        self, global_settings: dict[str, Any] | None,
+        overrides: list[tuple[int, dict[str, Any]]] | None,
         func: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
 
         if global_settings is None:
             global_settings = dict[str, Any]()

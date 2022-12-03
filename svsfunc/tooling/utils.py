@@ -3,7 +3,7 @@ __all__ = ["UtilsTooling"]
 import os
 from functools import partial
 from shutil import rmtree
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 import vapoursynth as vs
 from lvsfunc import find_scene_changes
@@ -27,7 +27,7 @@ class UtilsTooling(BaseEncoder):
         """
         logger.info("Generating comps")
 
-        args: Dict[str, Any] = dict(num=num_frames, force_bt709=True)
+        args: dict[str, Any] = dict(num=num_frames, force_bt709=True)
         args |= comp_args
 
         if os.path.isdir("comps"):

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 __all__ = ["ChapterTooling"]
 
-from typing import List, Sequence, Type, Union, cast
+from typing import Sequence, Type, Union, cast
 
 from vardautomation import Chapter, MatroskaXMLChapters, OGMChapters, VPath
 
@@ -16,10 +16,10 @@ class ChapterTooling(BaseEncoder):
 
     def make_chapters(
         self,
-        chapters: List[int] | List[Chapter],
+        chapters: list[int] | list[Chapter],
         chapters_names: Sequence[str | None] | None = None,
         format: Type[ChaptersFormat] = MatroskaXMLChapters,
-        path: Union[str, VPath] | None = None,
+        path: str | VPath | None = None,
         shift_time: int | None = None,
     ) -> None:
         """
@@ -45,7 +45,7 @@ class ChapterTooling(BaseEncoder):
         elif any(not isinstance(chapter, Chapter) for chapter in chapters):
             raise TypeError("ChapterEncoder.make_chapters: chapters must be all int or chapter")
 
-        chapters = cast(List[Chapter], chapters)
+        chapters = cast(list[Chapter], chapters)
 
         chapter_file = format(self.file.chapter)
         chapter_file.create(chapters, self.clip.fps)

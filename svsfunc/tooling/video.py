@@ -2,7 +2,7 @@ from __future__ import annotations
 
 __all__ = ["VideoTooling"]
 
-from typing import Any, Callable, Dict, List, Tuple, Type, Union
+from typing import Any, Callable, Type, Union
 
 import vapoursynth as vs
 from vardautomation import FFV1, X264, X265, NVEncCLossless, VPath, logger
@@ -25,11 +25,11 @@ class VideoTooling(BaseEncoder):
     def video_encoder(
         self,
         encoder: Type[VideoEncoders],
-        settings: Union[str, List[str], Dict[str, Any]],
+        settings: str | list[str] | dict[str, Any],
         resumable: bool = False,
-        zones: Dict[Tuple[int, int], Dict[str, Any]] | None = None,
+        zones: dict[tuple[int, int], dict[str, Any]] | None = None,
         prefetch: int = 0,
-        qp_file: Union[bool, vs.VideoNode] | None = None,
+        qp_file: bool | vs.VideoNode | None = None,
         **overrides: Any
     ) -> None:
         """
@@ -51,7 +51,7 @@ class VideoTooling(BaseEncoder):
         logger.info(f"Zones: {zones}")
 
         if isinstance(qp_file, vs.VideoNode):
-            self.qp_file = qp_file
+            self.qp_file = qp_file  # type: ignore  # wtf mypy ?
             logger.info("Using custom VideoNode for qp_file")
         elif qp_file:
             self.qp_file = self.file.clip_cut

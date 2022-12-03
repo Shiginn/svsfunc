@@ -1,6 +1,6 @@
 __all__ = ["Encoder"]
 
-from typing import List, NoReturn, Sequence, TypeVar
+from typing import NoReturn, Sequence, TypeVar
 
 from vardautomation import (
     UNDEFINED, AnyPath, AudioTrack, ChaptersTrack, FileInfo2, Lang, MatroskaFile, RunnerConfig, SelfRunner, Track,
@@ -17,17 +17,17 @@ T = TypeVar("T")
 
 class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
     """Generate an encoding chain"""
-    external_audio: List[VPath] = []
+    external_audio: list[VPath] = []
     mux: MatroskaFile | None = None
     runner: SelfRunner | None = None
 
     def muxer(
         self,
         v_title: str | None = None,
-        a_title: str | List[str | None] | None = None,
-        a_lang: Lang | List[Lang] = UNDEFINED,
-        external_audio: List[AnyPath | AudioTrack] | None = None,
-        audio_tracks_order: List[int] | None = None,
+        a_title: str | list[str | None] | None = None,
+        a_lang: Lang | list[Lang] = UNDEFINED,
+        external_audio: list[AnyPath | AudioTrack] | None = None,
+        audio_tracks_order: list[int] | None = None,
         *muxer_overrides: str
     ) -> None:
         """
@@ -43,18 +43,18 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
         :param muxer_options:       Additional paramters to be passed to the muxer.
         """
 
-        if not isinstance(a_title, List):
+        if not isinstance(a_title, list):
             a_title = [a_title] * self.track_number
         else:
             a_title = self.ensure_size(a_title, self.track_number, "Encoder.muxer (a_title)")
 
-        if not isinstance(a_lang, List):
+        if not isinstance(a_lang, list):
             a_lang = [a_lang] * self.track_number
         else:
             a_lang = self.ensure_size(a_lang, self.track_number, "Encoder.muxer (a_lang)")
 
         logger.info(f"Muxing video file: {self.file.name_clip_output} (track name: {v_title})")
-        tracks: List[Track] = [VideoTrack(self.file.name_clip_output, v_title)]
+        tracks: list[Track] = [VideoTrack(self.file.name_clip_output, v_title)]
 
         a_tracks = list[AudioTrack]()
 
@@ -192,7 +192,7 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
 
 
     @staticmethod
-    def ensure_size(lst: List[T], max_size: int, source: str) -> NoReturn | List[T]:
+    def ensure_size(lst: list[T], max_size: int, source: str) -> NoReturn | list[T]:
         input_size = len(lst)
 
         if input_size > max_size:
