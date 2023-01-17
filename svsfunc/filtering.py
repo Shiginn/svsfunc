@@ -8,6 +8,8 @@ __all__ = ["BaseFiltering"]
 
 
 class BaseFiltering(ABC):
+    """Filterchain base class"""
+
     filtersteps_clips: Dict[str, vs.VideoNode] | None = None
 
     @abstractmethod
