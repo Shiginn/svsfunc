@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["Encoder"]
 
 from typing import NoReturn, Sequence, TypeVar
@@ -120,7 +122,8 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
         self.runner = SelfRunner(self.clip, self.file, config)
 
         if self.a_encoder and isinstance(self.file, FileInfo2):
-            for file in (self.file.a_src_cut.set_track(i) for i in self.input_tracks if self.file.a_src_cut):
+            file_tracks = self.input_tracks[:len(self.external_audio) - 1]
+            for file in (self.file.a_src_cut.set_track(i) for i in file_tracks if self.file.a_src_cut):
                 self.runner.work_files.add(file)
 
         if self.post_filterchain_func is not None:
