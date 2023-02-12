@@ -10,14 +10,14 @@ __all__ = ["BaseFiltering"]
 class BaseFiltering(ABC):
     """Filterchain base class"""
 
-    filtersteps_clips: Dict[str, vs.VideoNode] | None = None
+    preview_clips: Dict[str, vs.VideoNode] | None = None
 
     @abstractmethod
     def filter(self) -> vs.VideoNode:
         ...
 
 
-    def set_output(self, clip: vs.VideoNode, name: str | None = None) -> None:
+    def add_preview(self, clip: vs.VideoNode, name: str | None = None) -> None:
         """
         Add a VideoNode to the list of filtersteps.
 
@@ -25,13 +25,13 @@ class BaseFiltering(ABC):
         :param name:    Name of the clip.
         """
         if name is None:
-            name = f"Video Node {1 if self.filtersteps_clips is None else len(self.filtersteps_clips) + 1}"
+            name = f"Video Node {1 if self.preview_clips is None else len(self.preview_clips) + 1}"
 
-        input = {name: clip}
-        self.filtersteps_clips = input if self.filtersteps_clips is None else self.filtersteps_clips | input
+        preview = {name: clip}
+        self.preview_clips = preview if self.preview_clips is None else self.preview_clips | preview
 
 
-    def preview(
+    def set_outputs(
         self,
         name_pos: int = 8,
         display_props: int | None = None,
@@ -50,10 +50,10 @@ class BaseFiltering(ABC):
         if preview_func is not None and not callable(preview_func):
             raise TypeError("BaseFiltering.preview: preview_func must be callable.")
 
-        if self.filtersteps_clips is None:
+        if self.preview_clips is None:
             raise ValueError("BaseFiltering: no output set.")
 
-        for i, (output_name, output) in enumerate(self.filtersteps_clips.items()):
+        for i, (output_name, output) in enumerate(self.preview_clips.items()):
             if preview_func is not None:
                 output = preview_func(output)
 
@@ -76,13 +76,13 @@ class BaseFiltering(ABC):
         :return:            Requested clip.
         """
 
-        if self.filtersteps_clips is None:
+        if self.preview_clips is None:
             raise ValueError("BaseFiltering: no output set.")
 
         if isinstance(clip_name, int):
             clip_name = f"Video Node {clip_name}"
 
-        clip = self.filtersteps_clips.get(clip_name)
+        clip = self.preview_clips.get(clip_name)
         if clip is None:
             raise ValueError("BaseFiltering: requested clip does not exist.")
 
