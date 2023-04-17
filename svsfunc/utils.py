@@ -4,6 +4,16 @@ __all__ = ["trim"]
 
 
 def trim(clip: vs.VideoNode, frame_range: FrameRangeN | FrameRangesN) -> vs.VideoNode:
+    """
+    Trim clip to keep only selected frames. Ranges are inclusives.
+
+    :param clip:            Clip to trim
+    :param frame_range:     Frames to keep
+
+    :raises ValueError:     If no ranges are given
+
+    :return:                Trimmed clip
+    """
     ranges = normalize_ranges(clip, frame_range)
     if not ranges:
         raise ValueError("trim: Cannot trim clip with empty range")
