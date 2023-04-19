@@ -42,6 +42,9 @@ class ChapterTooling(BaseEncoder):
 
         if all(isinstance(chapter, int) for chapter in chapters):
             chapters = [Chapter(f"Chapter {i}", f, None) for i, f in enumerate(chapters, 1)]  # type: ignore
+            if shift_time is None:  # shift is forced to 0 if None because we assume frames are taken on the cut clip
+                shift_time = 0
+
         elif any(not isinstance(chapter, Chapter) for chapter in chapters):
             raise TypeError("ChapterEncoder.make_chapters: chapters must be all int or chapter")
 
@@ -53,4 +56,7 @@ class ChapterTooling(BaseEncoder):
         if chapters_names is not None:
             chapter_file.set_names(chapters_names)
 
-        chapter_file.shift_times(shift_time or self.get_offset(self.file), self.clip.fps)
+        if shift_time is None:
+            shift_time = self.get_offset(self.file)
+
+        chapter_file.shift_times(shift_time, self.clip.fps)
