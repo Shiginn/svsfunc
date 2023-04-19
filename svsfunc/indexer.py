@@ -43,16 +43,19 @@ class Indexer(Generic[IndexedT]):
 
 
     def __call__(self, path: str | Path, **indexer_overrides: Any) -> IndexedT:
+        return self.index(path, **indexer_overrides)
+
+
+    def index(self, path: str | Path, **indexer_overrides: Any) -> IndexedT:
         """
-        Index a file and initialize the clip the vstools :py:func:`initialize_clip`
+        Index a file with the chosen indexer
 
-        :param path:        File to index
-        :param intialize:   Whether or not the clip is initialized after indexing
-        :param init_args:   Arguments that will be passed to :py:func:`initialize_clip`
+        :param path:                File to index
+        :param indexer_overrides:   Override indexer settings (keyword arguments only)
 
-        :raises ValueError: If the given path is not valid
+        :raises ValueError:         If the given path is not valid
 
-        :return:            Indexed file
+        :return:                    Indexed file
         """
         if isinstance(path, str):
             path = Path(path)
@@ -199,7 +202,7 @@ class EpisodeInfo(Generic[IndexedT]):
         :param indexer:             Indexer used to index given file, defaults to :py:func:`Indexer.lsmas()`
         :param indexer_overrides:   Overrdide indexer settings (keyword arguments only)
         """
-        self.indexed = indexer(path, **indexer_overrides)
+        self.indexed = indexer.index(path, **indexer_overrides)
         self.ep_num = ep_num
         self.op_range = op_range
         self.ed_range = ed_range
