@@ -43,6 +43,9 @@ class VideoTooling(BaseEncoder):
         :param qp_file:     Generate qp file from clip. If True, will use `file.clip_cut`. Custom clip can also be used.
         :param overrides:   Additional paramters to be passed to the encoder.
         """
+        if zones is not None and resumable:
+            logger.warning("Zones are not shifted when encode is resumed. This may lead to incorrect zones.")
+
         self.v_encoder = encoder(settings, zones=zones, **overrides)
         self.v_encoder.resumable = resumable
         self.v_encoder.prefetch = prefetch
