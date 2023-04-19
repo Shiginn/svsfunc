@@ -3,185 +3,157 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from glob import glob
 from pathlib import Path
-from typing import Any, Generic, Sequence, Type, TypeVar, Union, cast, overload
+from typing import Any, Generic, Sequence
 
-import vapoursynth as vs
-from vardautomation import Chapter, FileInfo, FileInfo2, MplsChapters, MplsReader, VPath, VPSIdx
+from vardautomation import Chapter, MplsChapters, MplsReader, VPath
+
+from .indexer import Indexer, EpisodeInfo
+from .custom_types import IndexedT
 
 __all__ = ["ParseFolder", "ParseBD"]
 
 
-core = vs.core
-
-Indexed = Union[vs.VideoNode, FileInfo]
-Indexer = Union[VPSIdx, Type[FileInfo]]
-IndexedT = TypeVar("IndexedT", bound=Indexed)
-IndexerT = TypeVar("IndexerT", bound=Indexer)
-
-
-class HasEpisode(ABC):
+class HasEpisode(Generic[IndexedT], ABC):
     episodes: list[VPath]
-    indexer: Indexer
-    indexer_settings: dict[str, Any]
-
-
-    def _get_episode(self, ep_num: int | str, **indexer_overrides: Any) -> Indexed:
-        if isinstance(ep_num, str):
-            ep_num = int(ep_num)
-
-        idx_settings: dict[str, Any] = self.indexer_settings | indexer_overrides
-        return self.indexer(self.episodes[ep_num - 1].to_str(), **idx_settings)
-
+    indexer: Indexer[IndexedT]
+    op_ranges: list[tuple[int, int] | None]
+    ed_ranges: list[tuple[int, int] | None]
 
     @abstractmethod
-    def get_episode(self, ep_num: int | str, **indexer_overrides: Any) -> Indexed:
+    def get_episode(self, ep_num: int, **indexer_overrides: Any) -> EpisodeInfo[IndexedT]:
         ...
 
+    def _get_episode(self, ep_num: int, **indexer_overrides: Any) -> EpisodeInfo[IndexedT]:
+        return EpisodeInfo(
+            self.episodes[ep_num - 1], ep_num, self.op_ranges[ep_num - 1], self.ed_ranges[ep_num - 1], self.indexer,
+            **indexer_overrides
+        )
 
-class ParseFolder(HasEpisode, Generic[IndexedT, IndexerT]):
+    def set_op_ed_ranges(
+        self, op_ranges: list[tuple[int, int] | None] | None = None,
+        ed_ranges: list[tuple[int, int] | None] | None = None
+    ) -> None:
+        """
+        Set the ranges of the OPs and EDs of each episode. Range is tuple of two int: (start_frame, end_frame) or None
+        if there is no OP/ED in the episode. Ranges are inclusive.
+        Theses ranges are then used by EpisodeInfo.get_op/ed to get a clip that only contains the OP/ED of the episode.
+
+        :param op_ranges: List of OP ranges, defaults to None
+        :param ed_ranges: List of ED ranges, defaults to None
+
+        :raises ValueError: If the number of ranges is greater than the number of episode
+        """
+        eps_num = len(self.episodes)
+
+        if op_ranges is None:
+            op_ranges = []
+        if ed_ranges is None:
+            ed_ranges = []
+
+        ops_num = len(op_ranges)
+        eds_num = len(ed_ranges)
+
+        if ops_num < eps_num:
+            op_ranges = op_ranges + [None] * ((eps_num - ops_num))
+        elif ops_num > eps_num:
+            raise ValueError(f"Too many OP ranges given: expected {eps_num} max, got {ops_num}")
+
+        if eds_num < eps_num:
+            ed_ranges = ed_ranges + [None] * ((eps_num - eds_num))
+        elif eds_num > eps_num:
+            raise ValueError(f"Too many ED ranges given: expected {eps_num} max, got {eds_num}")
+
+        self.op_ranges = op_ranges
+        self.ed_ranges = ed_ranges
+
+
+class ParseFolder(HasEpisode, Generic[IndexedT]):
     """
     Folder parser that uses pattern mathching to get episode list.
-
-    :param folder:              Folder that includes all of the episodes.
-    :param indexer:             Indexer used to index the files. Needs to be a function that takes a string (path to the
-                                file) and return a VideoNone or a FileInfo
-    :param indexer_settings:    Global settings for the indexer.
     """
-
     folder: VPath
     episode_number: int
-    indexer: IndexerT
-    indexer_settings: dict[str, Any]
+    indexer: Indexer[IndexedT]
 
-    @overload
-    def __init__(
-        self: "ParseFolder[vs.VideoNode, VPSIdx]",
-        episode_folder: str | Path, episode_pattern: str | None = None,
-        indexer: VPSIdx | None = None, **indexer_settings: Any
-    ) -> None:
-        ...
-
-    # using generics for fileinfo/fileinfo2 breaks mypy lmao
-    @overload
-    def __init__(
-        self: "ParseFolder[FileInfo2, Type[FileInfo2]]",
-        episode_folder: str | Path, episode_pattern: str | None = None,
-        indexer: Type[FileInfo2] | None = None, **indexer_settings: Any
-    ) -> None:
-        ...
-
-    @overload
-    def __init__(
-        self: "ParseFolder[FileInfo, Type[FileInfo]]",
-        episode_folder: str | Path, episode_pattern: str | None = None,
-        indexer: Type[FileInfo] | None = None, **indexer_settings: Any
-    ) -> None:
-        ...
 
     def __init__(
-        self, episode_folder: str | Path, episode_pattern: str | None = None,
-        indexer: VPSIdx | Type[FileInfo] | Type[FileInfo2] | None = None, **indexer_settings: Any
+        self: "ParseFolder[IndexedT]", folder: str | Path, pattern: str | None = None,
+        indexer: Indexer[IndexedT] = Indexer.lsmas()  # type: ignore
     ) -> None:
-        self.folder = VPath(episode_folder).resolve()
+        """
+        Parse folder and list every file that matches given pattern.
+
+        :param folder:      Folder that includes all of the episodes.
+        :param pattern:     Pattern that files must match (uses glob syntax)
+        :param indexer:     Indexer used to index the files. Defaults to :py:func:`Indexer.lsmas()`
+        """
+        self.indexer = indexer
+
+        self.folder = VPath(folder).resolve()
         if not self.folder.exists():
             raise ValueError("Invalid episode folder path")
 
-        if indexer is None:
-            indexer = core.lsmas.LWLibavSource
-        elif not callable(indexer):
-            raise ValueError("Indexer must be callable")
-        self.indexer = cast(IndexerT, indexer)
-        self.indexer_settings = indexer_settings
-
-        if episode_pattern is None:
+        if pattern is None:
             self.episodes = [VPath(x) for x in self.folder.iterdir() if x.is_file()]
         else:
             self.episodes = [
-                VPath(self.folder / ep) for ep in glob(episode_pattern, root_dir=self.folder.to_str())
+                VPath(self.folder / ep) for ep in glob(pattern, root_dir=self.folder.to_str())
             ]
         self.episode_number = len(self.episodes)
 
         if not self.episode_number:
             raise ValueError("No episode found, check episode folder and/or pattern.")
 
+        self.set_op_ed_ranges()
 
-    def get_episode(self, ep_num: int | str, **indexer_overrides: Any) -> IndexedT:
+
+    def get_episode(self, ep_num: int, **indexer_overrides: Any) -> EpisodeInfo[IndexedT]:
         """
         Get indexed episode
 
         :param ep_num:              Episode to get (not zero-based)
         :param indexer_overrides:   Override for indexer settings
 
-        :return:                    FileInfo object
+        :return:                    EpisodeInfo object
         """
-        return cast(IndexedT, super()._get_episode(ep_num, **indexer_overrides))
+        return super()._get_episode(ep_num, **indexer_overrides)
 
 
-class ParseBD(HasEpisode, Generic[IndexedT, IndexerT]):
+class ParseBD(HasEpisode, Generic[IndexedT]):
     """
     BDMV parser that uses playlist files to get episodes and chapters
-
-    :param bdmv_folder:         Path to the BDMV folder that contains every volume
-    :param bd_volumes:          Path to every volume of the BD (relative to the BDMV folder). Will try to automatically
-                                find them if None.
-    :param ep_playlist:         Playlist file for the episodes (defaults to 1, can be set for each volume)
-    :param indexer:             Indexer used to index the files. Needs to be a function that takes a string (path to the
-                                file) and return a VideoNone or a FileInfo
-    :param indexer_settings:    Global settings for the indexer.
     """
 
     bdmv_folder: VPath
     episodes: list[VPath]
     chapters: list[MplsChapters]
     episode_number: int
-    indexer: IndexerT
-    indexer_settings: dict[str, Any]
+    indexer: Indexer[IndexedT]
 
-    @overload
-    def __init__(
-        self: "ParseBD[vs.VideoNode, VPSIdx]", bdmv_folder: str | Path,
-        bd_volumes: Sequence[str | Path] | None = None,
-        ep_playlist: int | Sequence[int] = 1,
-        indexer: VPSIdx | None = None, **indexer_settings: Any
-    ) -> None:
-        ...
-
-    # using generics for fileinfo/fileinfo2 breaks mypy lmao
-    @overload
-    def __init__(
-        self: "ParseBD[FileInfo2, Type[FileInfo2]]", bdmv_folder: str | Path,
-        bd_volumes: Sequence[str | Path] | None = None,
-        ep_playlist: int | Sequence[int] = 1,
-        indexer: Type[FileInfo2] | None = None, **indexer_settings: Any
-    ) -> None:
-        ...
-
-    @overload
-    def __init__(
-        self: "ParseBD[FileInfo, Type[FileInfo]]", bdmv_folder: str | Path,
-        bd_volumes: Sequence[str | Path] | None = None,
-        ep_playlist: int | Sequence[int] = 1,
-        indexer: Type[FileInfo] | None = None, **indexer_settings: Any
-    ) -> None:
-        ...
 
     def __init__(
-        self, bdmv_folder: str | Path,
-        bd_volumes: Sequence[str | Path] | None = None,
-        ep_playlist: int | Sequence[int] = 1,
-        indexer: VPSIdx | Type[FileInfo] | Type[FileInfo2] | None = None, **indexer_settings: Any
+        self, bdmv_folder: str | Path, bd_volumes: Sequence[str | Path] | None = None,
+        ep_playlist: int | Sequence[int] = 1, indexer: Indexer[IndexedT] = Indexer.lsmas()  # type: ignore
     ) -> None:
+        """
+        Parse BDMV and list every file in matching episode playlist(s).
+
+        :param bdmv_folder:     Path to the BDMV folder that contains every volume
+        :param bd_volumes:      Path to every volume of the BD (relative to the BDMV folder). Will do a recursive search
+                                of every subfolder of the BDMV folder to try to locate them if None.
+        :param ep_playlist:     Playlist file for the episodes, defaults to 1, can be set for each BD volume
+        :param indexer:         Indexer used to index the files. Defaults to :py:func:`Indexer.lsmas()`
+
+        :raises ValueError:     If the BDMV folder does not exists
+        :raises ValueError:     If any of the BD volume folder does not exists
+        :raises ValueError:     If BD volume cannot be found (in recursive search)
+        :raises ValueError:     If number of episode playlist is greater than number of BD volume
+        """
+        self.indexer = indexer
 
         self.bdmv_folder = VPath(bdmv_folder).resolve()
         if not self.bdmv_folder.exists():
             raise ValueError("Invalid BDMV path")
-
-        if indexer is None:
-            indexer = core.lsmas.LWLibavSource
-        elif not callable(indexer):
-            raise ValueError("Indexer must be callable")
-        self.indexer = cast(IndexerT, indexer)
-        self.indexer_settings = indexer_settings
 
         if bd_volumes:
             vols = [Path(self.bdmv_folder / bd_vol).resolve() for bd_vol in bd_volumes]
@@ -209,6 +181,7 @@ class ParseBD(HasEpisode, Generic[IndexedT, IndexerT]):
             self.chapters += chaps
 
         self.episode_number = len(self.episodes)
+        self.set_op_ed_ranges()
 
 
     def _find_vol_path(self, root_dir: Path) -> Path | None:
@@ -227,26 +200,23 @@ class ParseBD(HasEpisode, Generic[IndexedT, IndexerT]):
         return None
 
 
-    def get_episode(self, ep_num: int | str, **indexer_overrides: Any) -> IndexedT:
+    def get_episode(self, ep_num: int, **indexer_overrides: Any) -> EpisodeInfo[IndexedT]:
         """
         Get indexed episode
 
-        :param ep_num:              Episode to get (not zero-based)
+        :param ep_num:              Number of the episode to get, one-based
         :param indexer_overrides:   Override for indexer settings
 
-        :return:                    FileInfo object
+        :return:                    EpisodeInfo object
         """
-        return cast(IndexedT, super()._get_episode(ep_num, **indexer_overrides))
+        return super()._get_episode(ep_num, **indexer_overrides)
 
 
-    def get_chapter(self, ep_num: int | str) -> list[Chapter]:
+    def get_chapter(self, ep_num: int) -> list[Chapter]:
         """Get a list of chapters of an episode
 
-        :param ep_num:      Episode to get (not zero-based)
+        :param ep_num:      Number of the episode to get chapters from, one-based
 
         :return:            List of chapters
         """
-        if isinstance(ep_num, str):
-            ep_num = int(ep_num)
-
         return self.chapters[ep_num - 1].to_chapters()
