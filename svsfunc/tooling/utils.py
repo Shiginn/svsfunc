@@ -5,10 +5,8 @@ from functools import partial
 from shutil import rmtree
 from typing import Any, cast
 
-import vapoursynth as vs
-from lvsfunc import find_scene_changes
-from lvsfunc.types import SceneChangeMode
 from vardautomation import logger, make_comps
+from vstools import Keyframes, SceneChangeMode, vs
 
 from .base import BaseEncoder
 
@@ -63,7 +61,7 @@ class UtilsTooling(BaseEncoder):
             logger.info("Generating keyframes from filtered clip")
             clip = self.clip
 
-        kf = find_scene_changes(clip, mode)
+        kf = Keyframes.from_clip(clip, mode)
 
         with open(f"{self.file.name_file_final.to_str()}_keyframes.txt", "w") as f:
             f.write("# WWXD log file, using qpfile format\n\n")
