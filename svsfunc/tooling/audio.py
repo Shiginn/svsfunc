@@ -1,6 +1,6 @@
 __all__ = ["AudioTooling"]
 
-from typing import Any, Type, Union
+from typing import Any, Type, Union, NoReturn
 
 from vardautomation import (
     Eac3toAudioExtracter, EztrimCutter, FFmpegAudioExtracter, FlacEncoder, MKVAudioExtracter, OpusEncoder,
@@ -28,7 +28,7 @@ class AudioTooling(BaseEncoder):
     a_encoder: list[AudioEncoders] | None = None
 
 
-    def set_tracks(self, tracks: int | list[int] | None) -> None:
+    def set_audio_tracks(self, tracks: int | list[int] | None) -> None:
         """
         Set the tracks that will be processed by the audio extracter/cutter/encoder. The first audio tracks is track
         number 1, things might broke if you source has more than one video track. Track order is not preserved.
@@ -46,24 +46,27 @@ class AudioTooling(BaseEncoder):
         self,
         extracter: AudioExtractersType,
         global_settings: dict[str, Any] | None = None,
-        overrides: list[tuple[int, dict[str, Any]]] | None = None
+        overrides: dict[int, dict[str, Any]] | None = None
     ) -> None:
         """
         Set the audio extracter that will be used. Not needeed if you use FileInfo2.
 
         :param extracter:           Audio extracter to use.
         :param global_settings:     Settings that will be passed to every track.
-        :param overrides:           Override global settings for specific tracks. Format is (track_number, settings).
+        :param overrides:           Override global settings for specific tracks. Format is a dict where key is the
+                                    track to override and value is a dict of settings.
         """
+        func_name = self.get_func_name()
+        self._check_tracks(func_name)
+
         # eac3to index start at 1 while others are zero based
-        if extracter == Eac3toAudioExtracter:
-            self.input_tracks = [t + 1 for t in self.input_tracks]
+        a_tracks = [t + 1 for t in self.input_tracks] if extracter == Eac3toAudioExtracter else self.input_tracks
 
         extracter_list = [extracter] * self.track_number
         settings = self._get_settings(global_settings, overrides, self.get_func_name())
 
         self.a_extracter = []
-        for ext_t, in_idx, out_idx, setting in zip(extracter_list, self.input_tracks, self.output_tracks, settings):
+        for ext_t, in_idx, out_idx, setting in zip(extracter_list, a_tracks, self.output_tracks, settings):
             self.a_extracter.append(ext_t(self.file, track_in=in_idx, track_out=out_idx, **setting))
 
         logger.info(f"Audio Extracter: {extracter.__name__}")
@@ -74,15 +77,19 @@ class AudioTooling(BaseEncoder):
         self,
         cutter: AudioCuttersType,
         global_settings: dict[str, Any] | None = None,
-        overrides: list[tuple[int, dict[str, Any]]] | None = None
+        overrides: dict[int, dict[str, Any]] | None = None
     ) -> None:
         """
         Set the audio cutter that will be used. Not needeed if you use FileInfo2.
 
         :param cutter:              Audio cutter to use.
         :param global_settings:     Settings that will be passed to every track.
-        :param overrides:           Override global settings for specific tracks. Format is (track_number, settings).
+        :param overrides:           Override global settings for specific tracks. Format is a dict where key is the
+                                    track to override and value is a dict of settings.
         """
+        func_name = self.get_func_name()
+        self._check_tracks(func_name)
+
         cutter_list = [cutter] * self.track_number
         settings = self._get_settings(global_settings, overrides, self.get_func_name())
 
@@ -99,16 +106,18 @@ class AudioTooling(BaseEncoder):
         self,
         encoder: AudioEncodersType,
         global_settings: dict[str, Any] | None = None,
-        overrides: list[tuple[int, dict[str, Any]]] | None = None
+        overrides: dict[int, dict[str, Any]] | None = None
     ) -> None:
         """
         Set the audio encoder that will be used.
 
         :param encoder:             Audio encoder to use.
         :param global_settings:     Settings that will be passed to every track.
-        :param overrides:           Override global settings for specific tracks. Format is (track_number, settings).
+        :param overrides:           Override global settings for specific tracks. Format is a dict where key is the
+                                    track to override and value is a dict of settings.
         """
         func_name = self.get_func_name()
+        self._check_tracks(func_name)
 
         if PresetWEB in self.file.preset:
             raise ValueError(f"AudioEncoder.{func_name}: cannot set audio_encoder when using PresetWEB.")
@@ -124,30 +133,35 @@ class AudioTooling(BaseEncoder):
         logger.info(f"Overrides: {overrides}")
 
 
+    def _check_tracks(self, func_name: str) -> None | NoReturn:
+        if self.track_number == 0:
+            raise ValueError(
+                f"AudioEncoder.{func_name}: no audio track set. Use AudioEncoder.set_audio_tracks before running " +
+                f"AudioEncoder.{func_name}"
+            )
+        return None
+
+
     def _get_settings(
         self, global_settings: dict[str, Any] | None,
-        overrides: list[tuple[int, dict[str, Any]]] | None,
+        overrides: dict[int, dict[str, Any]] | None,
         func: str
     ) -> list[dict[str, Any]]:
 
         if global_settings is None:
             global_settings = dict[str, Any]()
 
-        settings = [global_settings] * self.track_number
+        settings = [global_settings.copy() for _ in range(self.track_number)]
 
-        if overrides:
-            if len(overrides) > self.track_number:
-                raise ValueError(f"AudioEncoder.{func}: too many overrides")
+        if overrides is None:
+            return settings
 
-            overrides = sorted(overrides)
+        if len(overrides) > self.track_number:
+            raise ValueError(f"AudioEncoder.{func}: too many overrides")
 
-            for i, track in enumerate(self.input_tracks):
-                override_track, override_settings = overrides[0]
-                if track == override_track:
-                    settings[i] = override_settings
-                    overrides.pop(0)
 
-                    if not overrides:
-                        break
+        for i, track in enumerate(self.input_tracks):
+            if track in overrides:
+                settings[i] |= overrides[track]
 
         return settings
