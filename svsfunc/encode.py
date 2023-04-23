@@ -6,7 +6,7 @@ from typing import NoReturn, Sequence, TypeVar
 
 from vardautomation import (
     UNDEFINED, AnyPath, AudioTrack, ChaptersTrack, FileInfo2, Lang, MatroskaFile, RunnerConfig, SelfRunner, Track,
-    VideoTrack, VPath, logger
+    VideoTrack, VPath, logger, Eac3toAudioExtracter
 )
 
 from .tooling.audio import AudioTooling
@@ -60,30 +60,31 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
 
         a_tracks = list[AudioTrack]()
 
+        # tracks extracted/cut/encoded from input file
         if self.output_tracks:
-            a_srcs = list(zip(self.output_tracks, a_title, a_lang))
             file_track = self._select_a_track()
-            for idx, name, lang in a_srcs:
+            for idx, name, lang in zip(self.output_tracks, a_title, a_lang):
                 logger.info(f"Muxing audio track {idx} (track name: {name}, track lang: {lang.name}-{lang.iso639})")
                 a_tracks.append(AudioTrack(file_track.set_track(idx), name, lang))
 
-        if external_audio is not None:
-            for track in external_audio:
-                if not isinstance(track, AudioTrack):
-                    track = AudioTrack(track, None, UNDEFINED)
+        # external tracks provided by user
+        for track in (external_audio or []):
+            if not isinstance(track, AudioTrack):
+                track = AudioTrack(track, None, UNDEFINED)
 
-                if not track.path.exists():
-                    raise ValueError(f"Encoder.muxer: external audio file {track.path.to_str()} does not exist.")
+            if not track.path.exists():
+                raise ValueError(f"Encoder.muxer: external audio file {track.path.to_str()} does not exist.")
 
-                self.track_number += 1
-                self.input_tracks.append(max(self.input_tracks) + 1 if self.input_tracks else 1)  # [2, 4] ->  [2, 4, 5]
-                self.output_tracks.append(max(self.output_tracks) + 1 if self.output_tracks else 1)
+            self.track_number += 1
+            self.input_tracks.append(max(self.input_tracks) + 1 if self.input_tracks else 1)  # [2, 4] ->  [2, 4, 5]
+            self.output_tracks.append(max(self.output_tracks) + 1 if self.output_tracks else 1)
 
-                a_tracks.append(track)
-                self.external_audio.append(track.path)
+            a_tracks.append(track)
+            self.external_audio.append(track.path)
 
-                logger.info(f"Muxing audio file {track.path} (track name: {track.name}, track lang: {track.lang.name}-{track.lang.iso639})")  # noqa: E501
+            logger.info(f"Muxing audio file {track.path} (track name: {track.name}, track lang: {track.lang.name}-{track.lang.iso639})")  # noqa: E501
 
+        # reordering tracks
         if audio_tracks_order is not None:
             if len(audio_tracks_order) != self.track_number:
                 raise ValueError("Encoder.muxer: missing audio tracks in audio_tracks_order.")
@@ -93,7 +94,8 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
 
         tracks += [a_tracks[i - 1] for i in self.output_tracks]
 
-        if self.file.chapter:
+        # chapter file
+        if self.file.chapter is not None and self.file.chapter.exists():
             logger.info(f"Muxing chapter file: {self.file.chapter}")
             tracks.append(ChaptersTrack(self.file.chapter))
 
@@ -121,9 +123,15 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
 
         self.runner = SelfRunner(self.clip, self.file, config)
 
+        input_file_tracks = self.input_tracks[:-len(self.external_audio)]
+
+        # add eac3to log files to work files
+        if self.a_extracter and isinstance(self.a_extracter[0], Eac3toAudioExtracter):
+            for i in input_file_tracks:
+                self.runner.work_files.add(self.file.a_src.set_track(i).append_stem(" - Log").with_suffix(".txt"))
+
         if self.a_encoder and isinstance(self.file, FileInfo2):
-            file_tracks = self.input_tracks[:len(self.external_audio) - 1]
-            for file in (self.file.a_src_cut.set_track(i) for i in file_tracks if self.file.a_src_cut):
+            for file in (self.file.a_src_cut.set_track(i) for i in input_file_tracks if self.file.a_src_cut):
                 self.runner.work_files.add(file)
 
         if self.post_filterchain_func is not None:
