@@ -126,7 +126,7 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
         input_file_tracks = self.input_tracks[:-len(self.external_audio)]
 
         # add eac3to log files to work files
-        if self.a_extracter and isinstance(self.a_extracter[0], Eac3toAudioExtracter):
+        if self.file.a_src and self.a_extracter and isinstance(self.a_extracter[0], Eac3toAudioExtracter):
             for i in input_file_tracks:
                 self.runner.work_files.add(self.file.a_src.set_track(i).append_stem(" - Log").with_suffix(".txt"))
 
