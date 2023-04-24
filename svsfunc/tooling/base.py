@@ -2,8 +2,8 @@ __all__ = ["BaseEncoder"]
 
 import inspect
 
-import vapoursynth as vs
 from vardautomation import FileInfo
+from vstools import vs
 
 
 class BaseEncoder:

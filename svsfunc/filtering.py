@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import Callable, Dict
 
-import vapoursynth as vs
+from vstools import vs
 
 __all__ = ["BaseFiltering"]
 

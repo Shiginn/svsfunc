@@ -4,8 +4,8 @@ __all__ = ["VideoTooling"]
 
 from typing import Any, Callable
 
-import vapoursynth as vs
 from vardautomation import VPath, logger
+from vstools import vs
 
 from ..custom_types import EncoderTypes
 from .base import BaseEncoder
