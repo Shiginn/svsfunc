@@ -4,9 +4,9 @@ from typing import Any, Generic, Sequence, overload
 from vardautomation import (
     AnyPath, DuplicateFrame, FileInfo, FileInfo2, Preset, PresetBD, PresetBDWAV64, Trim, VPath, VPSIdx
 )
-from vstools import core, vs
+from vstools import DataType, core, vs
 
-from .custom_types import FileInfoT, IndexedT, VSDataType, VSIdxFunc
+from .custom_types import FileInfoT, IndexedT, VSIdxFunc
 from .utils import trim
 
 __all__ = ["Indexer", "EpisodeInfo"]
@@ -112,12 +112,12 @@ class Indexer(Generic[IndexedT]):
 
     @classmethod
     def lsmas(
-        cls, stream_index: int | None = None, cache: int | None = None, cachefile: VSDataType | None = None,
+        cls, stream_index: int | None = None, cache: int | None = None, cachefile: DataType | None = None,
         threads: int | None = None, seek_mode: int | None = None, seek_threshold: int | None = None,
         dr: int | None = None, fpsnum: int | None = None, fpsden: int | None = None, variable: int | None = None,
-        format: VSDataType | None = None, decoder: VSDataType | None = None,
+        format: DataType | None = None, decoder: DataType | None = None,
         prefer_hw: int | None = None, repeat: int | None = None, dominance: int | None = None,
-        ff_loglevel: int | None = None, cachedir: VSDataType | None = None, soft_reset: int | None = None
+        ff_loglevel: int | None = None, cachedir: DataType | None = None, soft_reset: int | None = None
     ) -> "Indexer[vs.VideoNode]":
         """
         LWLibavSource from LSMAS plugin.
@@ -136,10 +136,10 @@ class Indexer(Generic[IndexedT]):
 
     @classmethod
     def ffms2(
-        cls, track: int | None = None, cache: int | None = None, cachefile: VSDataType | None = None,
+        cls, track: int | None = None, cache: int | None = None, cachefile: DataType | None = None,
         fpsnum: int | None = None, fpsden: int | None = None, threads: int | None = None,
-        timecodes: VSDataType | None = None, seekmode: int | None = None, width: int | None = None,
-        height: int | None = None, resizer: VSDataType | None = None, format: int | None = None,
+        timecodes: DataType | None = None, seekmode: int | None = None, width: int | None = None,
+        height: int | None = None, resizer: DataType | None = None, format: int | None = None,
         alpha: int | None = None
     ) -> "Indexer[vs.VideoNode]":
         """
@@ -159,8 +159,8 @@ class Indexer(Generic[IndexedT]):
     def best_source(
         cls, track: int | None = None, variableformat: int | None = None, threads: int | None = None,
         seekpreroll: int | None = None, exact: int | None = None, enable_drefs: int | None = None,
-        use_absolute_path: int | None = None, cachepath: VSDataType | None = None,
-        hwdevice: VSDataType | None = None
+        use_absolute_path: int | None = None, cachepath: DataType | None = None,
+        hwdevice: DataType | None = None
     ) -> "Indexer[vs.VideoNode]":
         """
         bs.VideoSource from BestSource plugin.
