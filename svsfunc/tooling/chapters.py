@@ -2,13 +2,12 @@ from __future__ import annotations
 
 __all__ = ["ChapterTooling"]
 
-from typing import Sequence, Type, Union, cast
+from typing import Sequence, cast
 
-from vardautomation import Chapter, MatroskaXMLChapters, OGMChapters, VPath
+from vardautomation import Chapter, MatroskaXMLChapters, VPath
 
+from ..custom_types import EncoderTypes
 from .base import BaseEncoder
-
-ChaptersFormat = Union[MatroskaXMLChapters, OGMChapters]
 
 
 class ChapterTooling(BaseEncoder):
@@ -18,7 +17,7 @@ class ChapterTooling(BaseEncoder):
         self,
         chapters: list[int] | list[Chapter],
         chapters_names: Sequence[str | None] | None = None,
-        format: Type[ChaptersFormat] = MatroskaXMLChapters,
+        format: type[EncoderTypes.Chapter.Format] = MatroskaXMLChapters,
         path: str | VPath | None = None,
         shift_time: int | None = None,
     ) -> None:

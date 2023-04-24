@@ -2,51 +2,50 @@ from __future__ import annotations
 
 __all__ = ["VideoTooling"]
 
-from typing import Any, Callable, Type, Union
+from typing import Any, Callable
 
 import vapoursynth as vs
-from vardautomation import FFV1, X264, X265, NVEncCLossless, VPath, logger
+from vardautomation import VPath, logger
 
+from ..custom_types import EncoderTypes
 from .base import BaseEncoder
-
-VideoEncoders = Union[X264, X265]
-VideoLosslessEncoders = Union[FFV1, NVEncCLossless]
 
 
 class VideoTooling(BaseEncoder):
     """Tools for video encoding"""
 
-    v_encoder: VideoEncoders
-    v_lossless_encoder: VideoLosslessEncoders | None = None
+    v_encoder: EncoderTypes.Video.Encoder
+    v_lossless_encoder: EncoderTypes.Video.LosslessEncoder | None = None
 
     qp_file: vs.VideoNode | None = None
     post_filterchain_func: Callable[[VPath], vs.VideoNode] | None = None
 
     def video_encoder(
         self,
-        encoder: Type[VideoEncoders],
+        encoder: type[EncoderTypes.Video.Encoder],
         settings: str | list[str] | dict[str, Any],
         resumable: bool = False,
         zones: dict[tuple[int, int], dict[str, Any]] | None = None,
         prefetch: int = 0,
         qp_file: bool | vs.VideoNode | None = None,
-        **overrides: Any
+        **enc_overrides: Any
     ) -> None:
         """
         Set the video encoder.
 
-        :param encoder:     Encoder to use.
-        :param settings:    Video encoder settings.
-        :param resumable:   Allow encoding to be paused and resumed.
-        :param zones:       Custom zone ranges.
-        :param prefetch:    Max number of concurrent rendered frames
-        :param qp_file:     Generate qp file from clip. If True, will use `file.clip_cut`. Custom clip can also be used.
-        :param overrides:   Additional paramters to be passed to the encoder.
+        :param encoder:         Encoder to use.
+        :param settings:        Video encoder settings.
+        :param resumable:       Allow encoding to be paused and resumed.
+        :param zones:           Custom zone ranges.
+        :param prefetch:        Max number of concurrent rendered frames
+        :param qp_file:         Generate qp file from clip. If True, will use `file.clip_cut`.
+                                Custom clip can also be used.
+        :param enc_overrides:   Additional paramters to be passed to the encoder.
         """
         if zones is not None and resumable:
             logger.warning("Zones are not shifted when encode is resumed. This may lead to incorrect zones.")
 
-        self.v_encoder = encoder(settings, zones=zones, **overrides)
+        self.v_encoder = encoder(settings, zones=zones, **enc_overrides)
         self.v_encoder.resumable = resumable
         self.v_encoder.prefetch = prefetch
 
@@ -62,18 +61,18 @@ class VideoTooling(BaseEncoder):
 
 
     def video_lossless_encoder(
-        self, lossless_encoder: Type[VideoLosslessEncoders],
+        self, lossless_encoder: type[EncoderTypes.Video.LosslessEncoder],
         post_filterchain_func: Callable[[VPath], vs.VideoNode] | None = None,
-        **overrides: Any
+        **enc_overrides: Any
     ) -> None:
         """
         Set lossless video encoder.
 
         :param lossless_encoder:        Encoder to use.
         :param post_filterchain_func:   Function to be run after filterchain and before encoding.
-        :param overrides:               Addition parameters to be passed to the encoder.
+        :param enc_overrides:           Addition parameters to be passed to the encoder.
         """
-        self.v_lossless_encoder = lossless_encoder(**overrides)
+        self.v_lossless_encoder = lossless_encoder(**enc_overrides)
         logger.info(f"Video Lossless Encoder: {lossless_encoder.__name__}")
 
         if post_filterchain_func is not None and not callable(post_filterchain_func):
