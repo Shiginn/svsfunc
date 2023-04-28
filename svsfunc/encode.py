@@ -39,10 +39,10 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
         :param v_title:             Video track name.
         :param a_title:             Audio track(s) name(s).
         :param a_lang:              Audio track(s) language(s).
-        :param external_audio:      Add external audio tracks. Can be a list of path, or a list of tuple
-                                    (path, track_name, track_lang).
-        :param audio_track_order:   Change audio track order on ouput file. Uses same indexes as AudioEncoder.set_tracks
-                                    If external audios are added, the track number is defined as max(current_tracks) + 1
+        :param external_audio:      Add external audio tracks. Can be a list of path, or a list of AudioTrack.
+        :param audio_track_order:   Change audio track order on ouput file. Uses same indexes as
+                                    AudioEncoder.set_input_tracks. If external audios are added, the track number is
+                                    defined as max(current_tracks) + 1
         :param muxer_options:       Additional paramters to be passed to the muxer.
         """
 
