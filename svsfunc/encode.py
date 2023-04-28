@@ -117,7 +117,7 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
 
         self.runner = SelfRunner(self.clip, self.file, config)
 
-        input_file_tracks = self.input_tracks[:-len(self.external_audio)]
+        input_file_tracks = self.input_tracks[:len(self.input_tracks) - len(self.external_audio)]
 
         # add eac3to log files to work files
         if self.file.a_src and self.a_extracter and isinstance(self.a_extracter[0], Eac3toAudioExtracter):
