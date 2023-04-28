@@ -5,9 +5,10 @@ __all__ = ["Encoder"]
 from typing import NoReturn, Sequence, TypeVar
 
 from vardautomation import (
-    UNDEFINED, AnyPath, AudioTrack, ChaptersTrack, FileInfo2, Lang, MatroskaFile, RunnerConfig, SelfRunner, Track,
-    VideoTrack, VPath, logger, Eac3toAudioExtracter
+    UNDEFINED, AnyPath, AudioTrack, ChaptersTrack, Eac3toAudioExtracter, FileInfo2, Lang, MatroskaFile, RunnerConfig,
+    SelfRunner, Track, VideoTrack, VPath, logger
 )
+from vstools import to_arr
 
 from .tooling.audio import AudioTooling
 from .tooling.chapters import ChapterTooling
@@ -45,15 +46,8 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
         :param muxer_options:       Additional paramters to be passed to the muxer.
         """
 
-        if not isinstance(a_title, list):
-            a_title = [a_title] * self.track_number
-        else:
-            a_title = self.ensure_size(a_title, self.track_number, "Encoder.muxer (a_title)")
-
-        if not isinstance(a_lang, list):
-            a_lang = [a_lang] * self.track_number
-        else:
-            a_lang = self.ensure_size(a_lang, self.track_number, "Encoder.muxer (a_lang)")
+        a_title = self.normalize_list(a_title, self.track_number, "Encoder.muxer (a_title)")
+        a_lang = self.normalize_list(a_lang, self.track_number, "Encoder.muxer (a_lang)")
 
         logger.info(f"Muxing video file: {self.file.name_clip_output} (track name: {v_title})")
         tracks: list[Track] = [VideoTrack(self.file.name_clip_output, v_title)]
@@ -160,8 +154,8 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
         if self.runner is None:
             logger.error("No runner detected", False)
 
-        add_file = self.to_seq(add_file)
-        ignore_file = list(self.to_seq(ignore_file))
+        add_file = to_arr(add_file) if add_file is not None else []
+        ignore_file = to_arr(ignore_file) if ignore_file is not None else []
 
         if keep_external_audio:
             ignore_file += self.external_audio
@@ -178,7 +172,7 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
             logger.info(f"Deleted {file}")
 
         self.runner.work_files.clear()
-        return None  # mypy?
+        return None
 
 
     def _select_a_track(self) -> VPath | NoReturn:
@@ -194,21 +188,15 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
 
 
     @staticmethod
-    def to_seq(elem: T | Sequence[T] | None) -> Sequence[T]:
-        if elem is None:
-            elem = []
-        elif not isinstance(elem, Sequence):
-            elem = [elem]
-        return elem
+    def normalize_list(val: list[T] | T, max_size: int, source: str) -> NoReturn | list[T]:
+        if not isinstance(val, list):
+            return [val] * max_size
 
-
-    @staticmethod
-    def ensure_size(lst: list[T], max_size: int, source: str) -> NoReturn | list[T]:
-        input_size = len(lst)
+        input_size = len(val)
 
         if input_size > max_size:
-            raise ValueError(f"{source}: Too many elements")
+            raise ValueError(f"{source}: Too many elements given, exepected 0-{max_size}, got {input_size}.")
         elif input_size < max_size:
-            return lst + [lst[-1]] * (max_size - input_size)
+            return val + [val[-1]] * (max_size - input_size)
         else:
-            return lst
+            return val
