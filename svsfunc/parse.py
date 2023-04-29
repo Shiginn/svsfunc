@@ -7,8 +7,9 @@ from typing import Any, Generic, Sequence
 
 from vardautomation import Chapter, MplsChapters, MplsReader, VPath
 
-from .indexer import Indexer, EpisodeInfo
 from .custom_types import IndexedT
+from .indexer import EpisodeInfo, Indexer
+from .utils import normalize_list
 
 __all__ = ["ParseFolder", "ParseBD"]
 
@@ -44,27 +45,8 @@ class HasEpisode(Generic[IndexedT], ABC):
         :raises ValueError: If the number of ranges is greater than the number of episode
         """
         eps_num = len(self.episodes)
-
-        if op_ranges is None:
-            op_ranges = []
-        if ed_ranges is None:
-            ed_ranges = []
-
-        ops_num = len(op_ranges)
-        eds_num = len(ed_ranges)
-
-        if ops_num < eps_num:
-            op_ranges = op_ranges + [None] * ((eps_num - ops_num))
-        elif ops_num > eps_num:
-            raise ValueError(f"Too many OP ranges given: expected {eps_num} max, got {ops_num}")
-
-        if eds_num < eps_num:
-            ed_ranges = ed_ranges + [None] * ((eps_num - eds_num))
-        elif eds_num > eps_num:
-            raise ValueError(f"Too many ED ranges given: expected {eps_num} max, got {eds_num}")
-
-        self.op_ranges = op_ranges
-        self.ed_ranges = ed_ranges
+        self.op_ranges = normalize_list(op_ranges, eps_num, None, "Parse.set_op_ed_ranges")
+        self.ed_ranges = normalize_list(ed_ranges, eps_num, None, "Parse.set_op_ed_ranges")
 
 
 class ParseFolder(HasEpisode, Generic[IndexedT]):

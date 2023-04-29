@@ -2,7 +2,7 @@ from __future__ import annotations
 
 __all__ = ["Encoder"]
 
-from typing import NoReturn, Sequence, TypeVar
+from typing import NoReturn, Sequence
 
 from vardautomation import (
     UNDEFINED, AnyPath, AudioTrack, ChaptersTrack, Eac3toAudioExtracter, FileInfo2, Lang, MatroskaFile, RunnerConfig,
@@ -14,8 +14,7 @@ from .tooling.audio import AudioTooling
 from .tooling.chapters import ChapterTooling
 from .tooling.utils import UtilsTooling
 from .tooling.video import VideoTooling
-
-T = TypeVar("T")
+from .utils import normalize_list
 
 
 class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
@@ -46,8 +45,8 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
         :param muxer_options:       Additional paramters to be passed to the muxer.
         """
 
-        a_title = self.normalize_list(a_title, self.track_number, "Encoder.muxer (a_title)")
-        a_lang = self.normalize_list(a_lang, self.track_number, "Encoder.muxer (a_lang)")
+        a_title = normalize_list(a_title, self.track_number, None, "Encoder.muxer (a_title)")
+        a_lang = normalize_list(a_lang, self.track_number, UNDEFINED, "Encoder.muxer (a_lang)")
 
         logger.info(f"Muxing video file: {self.file.name_clip_output} (track name: {v_title})")
         tracks: list[Track] = [VideoTrack(self.file.name_clip_output, v_title)]
@@ -185,18 +184,3 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
                 return track
 
         raise ValueError("Encoder._select_a_track: could not select audio from source file")
-
-
-    @staticmethod
-    def normalize_list(val: list[T] | T, max_size: int, source: str) -> NoReturn | list[T]:
-        if not isinstance(val, list):
-            return [val] * max_size
-
-        input_size = len(val)
-
-        if input_size > max_size:
-            raise ValueError(f"{source}: Too many elements given, exepected 0-{max_size}, got {input_size}.")
-        elif input_size < max_size:
-            return val + [val[-1]] * (max_size - input_size)
-        else:
-            return val
