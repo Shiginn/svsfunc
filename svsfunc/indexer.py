@@ -192,7 +192,7 @@ class Indexer(Generic[IndexedT]):
 
         :return: Preconfigured DGIndexNV indexer.
         """
-        def _index_file(path: str, *args, **kwargs) -> None:
+        def _index_file(path: str, *args: Any, **kwargs: Any) -> vs.VideoNode:
             input_path = Path(path)
             dgi_path = input_path.with_suffix(".dgi")
 
@@ -201,10 +201,10 @@ class Indexer(Generic[IndexedT]):
                     "DGIndexNV", "-i", str(input_path), "-o", str(dgi_path), "-h"
                 ])
 
-            return core.dgdecodenv.DGSource(dgi_path, *args, **kwargs)
+            return core.lazy.dgdecodenv.DGSource(dgi_path, *args, **kwargs)
 
         return cls(
-            _index_file, i420=i420, deinterlace=deinterlace, use_top_field=use_top_field, use_pf=use_pf, ct=ct, cb=cb,
+            _index_file, i420=i420, deinterlace=deinterlace, use_top_field=use_top_field, use_pf=use_pf, ct=ct, cb=cb,  # type: ignore  # noqa: E501
             cl=cl, cr=cr, rw=rw, rh=rh, fieldop=fieldop, show=show, show2=show2
         )
 
