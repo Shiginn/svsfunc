@@ -1,5 +1,12 @@
-from vstools import FrameRangeN, FrameRangesN, normalize_ranges, vs
-from typing import TypeVar, NoReturn, Any
+from functools import partial
+from typing import Any, Callable, NoReturn, TypeVar
+
+from vstools import (
+    ChromaLocation, ColorRange, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, VSMapValue, get_prop,
+    normalize_ranges, to_arr, vs
+)
+
+from .custom_types import FramePropKey
 
 __all__ = ["trim", "normalize_list"]
 
@@ -28,6 +35,50 @@ def trim(clip: vs.VideoNode, frame_range: FrameRangeN | FrameRangesN) -> vs.Vide
         trim_clip += clip[s:e + 1]
 
     return trim_clip
+
+
+def write_props(
+    clip: vs.VideoNode, props: FramePropKey | list[FramePropKey] = "_PictType", clip_name: str | None = None,
+    alignment: int = 7, scale: int = 1
+) -> vs.VideoNode:
+    """
+    Write frame props on a clip
+
+    :param clip:        Clip to get frame props from
+    :param props:       Frame props to write, defaults to "_PictType"
+    :param clip_name:   Name of the clip, defaults to None
+    :param alignment:   Where to write props on the clip (see .text.Text), defaults to 7
+    :param scale:       Scale of the text (see .text.Text), defaults to 1
+
+    :raises KeyError:   If requested prop is not supported
+
+    :return:            Clip with frame props
+    """
+    prop_map: dict[FramePropKey, tuple[str, type[VSMapValue], Callable[[Any], str]]] = {
+        "_PictType": ("Picture Type", bytes, lambda x: x.decode()),  # type: ignore
+        "_ChromaLocation": ("Chroma Location", int, lambda x: ChromaLocation(x).pretty_string),
+        "_Primaries": ("Primaries", int, lambda x: Primaries(x).pretty_string),
+        "_Transfer": ("Transfer", int, lambda x: Transfer(x).pretty_string),
+        "_Matrix": ("Matrix", int, lambda x: Matrix(x).pretty_string),
+        "_ColorRange": ("Color Range", int, lambda x: ColorRange(x).pretty_string)
+    }
+
+    def _get_props(n: int, f: vs.VideoFrame, clip: vs.VideoNode, props: list[FramePropKey]) -> vs.VideoNode:
+        txt = f"{'Frame Info' if clip_name is None else clip_name}\nFrame Number: {n}"
+
+        for prop in props:
+            if prop not in prop_map:
+                raise KeyError(f"write_props: unable to find prop \"{prop}\"")
+
+            prop_name, prop_type, convert_func = prop_map[prop]
+            prop_value = get_prop(f, prop, prop_type)
+
+            txt += f"\n{prop_name}: {convert_func(prop_value)}"
+
+        return clip.text.Text(txt, alignment=alignment, scale=scale)
+
+    f = partial(_get_props, clip=clip, props=to_arr(props))
+    return clip.std.FrameEval(f, prop_src=clip)
 
 
 def normalize_list(val: list[T] | T, max_size: int, padding: Any, source: str) -> NoReturn | list[T]:

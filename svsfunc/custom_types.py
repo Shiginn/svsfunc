@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, TypeAlias, TypeVar
+from typing import Callable, TypeAlias, TypeVar, Literal
 
 from vardautomation import (
     FFV1, X264, X265, Eac3toAudioExtracter, EztrimCutter, FFmpegAudioExtracter, FileInfo, FileInfo2, FlacEncoder,
@@ -17,6 +17,8 @@ __all__ = [
 FileInfoT = TypeVar("FileInfoT", FileInfo, FileInfo2)
 IndexedT = TypeVar("IndexedT", vs.VideoNode, FileInfo, FileInfo2)
 VSIdxFunc: TypeAlias = Callable[[str | Path], vs.VideoNode]
+
+FramePropKey: TypeAlias = Literal["_PictType", "_ChromaLocation", "_Primaries", "_Transfer", "_Matrix", "_ColorRange"]
 
 
 class EncoderTypes:

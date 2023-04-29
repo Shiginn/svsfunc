@@ -1,13 +1,14 @@
 __all__ = ["UtilsTooling"]
 
 import os
-from functools import partial
 from shutil import rmtree
-from typing import Any, cast
+from typing import Any
 
 from vardautomation import logger, make_comps
 from vstools import Keyframes, SceneChangeMode, vs
 
+from ..indexer import Indexer
+from ..utils import write_props
 from .base import BaseEncoder
 
 core = vs.core
@@ -32,17 +33,15 @@ class UtilsTooling(BaseEncoder):
             rmtree("comps")
             logger.info("Removed old comps folder")
 
+        idx = Indexer.lsmas()
 
         lossless = self.file.name_clip_output.append_stem("_lossless.mkv")
-        filtered = core.lsmas.LWLibavSource(lossless.to_str()) if lossless.exists() else self.clip
-        make_comps(
-            {
-                "source": self.write_props(self.file.clip_cut),
-                "filtered": self.write_props(filtered),
-                "encode": self.write_props(core.lsmas.LWLibavSource(self.file.name_file_final.to_str())),
-            },
-            **args
-        )
+        filtered = idx(lossless.to_str()) if lossless.exists() else self.clip
+        make_comps({
+            "source": write_props(self.file.clip_cut, clip_name="Source"),
+            "filtered": write_props(filtered, clip_name="Filtered"),
+            "encode": write_props(idx(self.file.name_file_final.to_str()), clip_name="Encode"),
+        }, **args)
 
 
     def generate_keyframes(
@@ -69,18 +68,3 @@ class UtilsTooling(BaseEncoder):
 
         if delete_index:
             os.remove(f"{self.file.name_file_final.to_str()}.lwi")
-
-
-    @staticmethod
-    def write_props(clip: vs.VideoNode) -> vs.VideoNode:
-        def _get_props(n: int, f: vs.VideoFrame, clip: vs.VideoNode) -> vs.VideoNode:
-            txt = f"Frame Info:\nFrame Number: {n}"
-
-            pict_type = cast(bytes | None, f.props.get("_PictType"))
-            if (pict_type):
-                txt += f"\nPicture Type: {pict_type.decode()}"
-
-            return clip.text.Text(txt, 7, 1)
-
-        f = partial(_get_props, clip=clip)
-        return clip.std.FrameEval(f, prop_src=clip)
