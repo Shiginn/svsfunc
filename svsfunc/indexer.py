@@ -1,4 +1,5 @@
 from pathlib import Path
+from subprocess import check_call
 from typing import Any, Generic, Sequence, overload
 
 from vardautomation import (
@@ -155,6 +156,7 @@ class Indexer(Generic[IndexedT]):
             format=format, alpha=alpha
         )
 
+
     @classmethod
     def best_source(
         cls, track: int | None = None, variableformat: int | None = None, threads: int | None = None,
@@ -173,6 +175,37 @@ class Indexer(Generic[IndexedT]):
             core.lazy.bs.VideoSource, track=track, variableformat=variableformat, threads=threads,  # type: ignore
             seekpreroll=seekpreroll, exact=exact, enable_drefs=enable_drefs, use_absolute_path=use_absolute_path,
             cachepath=cachepath, hwdevice=hwdevice
+        )
+
+
+    @classmethod
+    def dg_index_nv(
+        cls, i420: int | None = None, deinterlace: int | None = None, use_top_field: int | None = None,
+        use_pf: int | None = None, ct: int | None = None, cb: int | None = None, cl: int | None = None,
+        cr: int | None = None, rw: int | None = None, rh: int | None = None, fieldop: int | None = None,
+        show: int | None = None, show2: DataType | None = None
+    ) -> "Indexer[vs.VideoNode]":
+        """
+        dgdecodenv.DGSource from DGIndexNV/DGDecodeNV plugin
+
+        Documentation: see the DGDecodeNVManual.html and DGIndexNVManual.html files
+
+        :return: Preconfigured DGIndexNV indexer.
+        """
+        def _index_file(path: str, *args, **kwargs) -> None:
+            input_path = Path(path)
+            dgi_path = input_path.with_suffix(".dgi")
+
+            if not dgi_path.exists():
+                check_call([
+                    "DGIndexNV", "-i", str(input_path), "-o", str(dgi_path), "-h"
+                ])
+
+            return core.dgdecodenv.DGSource(dgi_path, *args, **kwargs)
+
+        return cls(
+            _index_file, i420=i420, deinterlace=deinterlace, use_top_field=use_top_field, use_pf=use_pf, ct=ct, cb=cb,
+            cl=cl, cr=cr, rw=rw, rh=rh, fieldop=fieldop, show=show, show2=show2
         )
 
 
