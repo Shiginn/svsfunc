@@ -5,13 +5,11 @@ from shutil import rmtree
 from typing import Any
 
 from vardautomation import logger, make_comps
-from vstools import Keyframes, SceneChangeMode, vs
+from vstools import Keyframes, SceneChangeMode
 
 from ..indexer import Indexer
 from ..utils import write_props
 from .base import BaseEncoder
-
-core = vs.core
 
 
 class UtilsTooling(BaseEncoder):
@@ -55,7 +53,7 @@ class UtilsTooling(BaseEncoder):
         """
         if self.file.name_file_final.exists():
             logger.info("Generating keyframes from encoded file")
-            clip = core.lsmas.LWLibavSource(self.file.name_file_final.to_str())
+            clip = Indexer.lsmas().index(self.file.name_file_final.to_str())
         else:
             logger.info("Generating keyframes from filtered clip")
             clip = self.clip
