@@ -76,7 +76,7 @@ class VideoTooling(BaseEncoder):
         logger.info(f"Video Lossless Encoder: {lossless_encoder.__name__}")
 
         if post_filterchain_func is not None and not callable(post_filterchain_func):
-            raise TypeError("VideoEncoder.video_lossless_encoder: post_filtering_func must be callable.")
+            raise TypeError("Encoder.video_lossless_encoder: post_filtering_func must be callable.")
 
         self.post_filterchain_func = post_filterchain_func
         if self.post_filterchain_func:

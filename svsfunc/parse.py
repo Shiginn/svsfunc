@@ -73,7 +73,7 @@ class ParseFolder(HasEpisode, Generic[IndexedT]):
 
         self.folder = VPath(folder).resolve()
         if not self.folder.exists():
-            raise ValueError("Invalid episode folder path")
+            raise ValueError("ParseFolder: Invalid episode folder path")
 
         if pattern is None:
             self.episodes = [VPath(x) for x in self.folder.iterdir() if x.is_file()]
@@ -84,7 +84,7 @@ class ParseFolder(HasEpisode, Generic[IndexedT]):
         self.episode_number = len(self.episodes)
 
         if not self.episode_number:
-            raise ValueError("No episode found, check episode folder and/or pattern.")
+            raise ValueError("ParseFolder: No episode found, check episode folder and/or pattern.")
 
         self.set_op_ed_ranges()
 
@@ -135,17 +135,17 @@ class ParseBD(HasEpisode, Generic[IndexedT]):
 
         self.bdmv_folder = VPath(bdmv_folder).resolve()
         if not self.bdmv_folder.exists():
-            raise ValueError("Invalid BDMV path")
+            raise ValueError("ParseBD: Invalid BDMV path")
 
         if bd_volumes:
             vols = [Path(self.bdmv_folder / bd_vol).resolve() for bd_vol in bd_volumes]
             if any(not path.exists() for path in vols):
-                raise ValueError("BD volume path does not exist.")
+                raise ValueError("ParseBD: BD volume path does not exist.")
         else:
             subdirs = [x for x in self.bdmv_folder.iterdir() if x.is_dir()]
             vols = [self._find_vol_path(vol) for vol in subdirs]  # type: ignore
             if any(path is None for path in vols):
-                raise ValueError("Could not find BD volume path.")
+                raise ValueError("ParseBD: Could not find BD volume path.")
 
         vol_num = len(vols)
         if not isinstance(ep_playlist, Sequence):
@@ -153,7 +153,7 @@ class ParseBD(HasEpisode, Generic[IndexedT]):
         elif len(ep_playlist) < vol_num:
             ep_playlist = list(ep_playlist) + ([ep_playlist[-1]] * (vol_num - len(ep_playlist)))
         elif len(ep_playlist) > vol_num:
-            raise ValueError(f"Too many playlist values, expected {vol_num} max")
+            raise ValueError(f"ParseBD: Too many playlist values, expected {vol_num} max")
 
         self.episodes = []
         self.chapters = []

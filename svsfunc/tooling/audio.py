@@ -47,14 +47,14 @@ class AudioTooling(BaseEncoder):
         :param overrides:           Override global settings for specific tracks. Format is a dict where key is the
                                     track to override and value is a dict of settings.
         """
-        func_name = self.get_func_name()
+        func_name = "Encoder.audio_extractor"
         self._check_tracks(func_name)
 
         # eac3to index start at 1 while others are zero based
         a_tracks = [t + 1 for t in self.input_tracks] if extracter == Eac3toAudioExtracter else self.input_tracks
 
         extracter_list = [extracter] * self.track_number
-        settings = self._get_settings(global_settings, overrides, self.get_func_name())
+        settings = self._get_settings(global_settings, overrides, func_name)
 
         self.a_extracter = []
         for ext_t, in_idx, out_idx, setting in zip(extracter_list, a_tracks, self.output_tracks, settings):
@@ -78,11 +78,11 @@ class AudioTooling(BaseEncoder):
         :param overrides:           Override global settings for specific tracks. Format is a dict where key is the
                                     track to override and value is a dict of settings.
         """
-        func_name = self.get_func_name()
+        func_name = "Encoder.audio_cutter"
         self._check_tracks(func_name)
 
         cutter_list = [cutter] * self.track_number
-        settings = self._get_settings(global_settings, overrides, self.get_func_name())
+        settings = self._get_settings(global_settings, overrides, func_name)
 
         self.a_cutter = []
         for cutter_t, out_idx, setting in zip(cutter_list, self.output_tracks, settings):
@@ -107,11 +107,11 @@ class AudioTooling(BaseEncoder):
         :param overrides:           Override global settings for specific tracks. Format is a dict where key is the
                                     track to override and value is a dict of settings.
         """
-        func_name = self.get_func_name()
+        func_name = "Encoder.audio_encoder"
         self._check_tracks(func_name)
 
         if PresetWEB in self.file.preset:
-            raise ValueError(f"AudioEncoder.{func_name}: cannot set audio_encoder when using PresetWEB.")
+            raise ValueError(f"{func_name}: cannot set audio_encoder when using PresetWEB.")
 
         encoder_list = [encoder] * self.track_number
         settings = self._get_settings(global_settings, overrides, func_name)
@@ -127,8 +127,7 @@ class AudioTooling(BaseEncoder):
     def _check_tracks(self, func_name: str) -> None | NoReturn:
         if self.track_number == 0:
             raise ValueError(
-                f"AudioEncoder.{func_name}: no audio track set. Use AudioEncoder.set_audio_tracks before running " +
-                f"AudioEncoder.{func_name}"
+                f"{func_name}: no audio track set. Use Encoder.set_audio_tracks before running {func_name}."
             )
         return None
 
@@ -148,7 +147,7 @@ class AudioTooling(BaseEncoder):
             return settings
 
         if len(overrides) > self.track_number:
-            raise ValueError(f"AudioEncoder.{func}: too many overrides")
+            raise ValueError(f"{func}: too many overrides given, expected 0-{self.track_number}, got {len(overrides)}.")
 
 
         for i, track in enumerate(self.input_tracks):

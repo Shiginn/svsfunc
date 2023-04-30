@@ -37,7 +37,7 @@ class ChapterTooling(BaseEncoder):
                 path = VPath(path)
             self.file.chapter = path
         elif self.file.chapter is None:
-            raise TypeError("ChapterEncoder.make_chapters: file.chapter is None")
+            raise TypeError("Encoder.make_chapters: file.chapter is not set")
 
         if all(isinstance(chapter, int) for chapter in chapters):
             chapters = [Chapter(f"Chapter {i}", f, None) for i, f in enumerate(chapters, 1)]  # type: ignore
@@ -45,7 +45,7 @@ class ChapterTooling(BaseEncoder):
                 shift_time = 0
 
         elif any(not isinstance(chapter, Chapter) for chapter in chapters):
-            raise TypeError("ChapterEncoder.make_chapters: chapters must be all int or chapter")
+            raise TypeError("Encoder.make_chapters: chapters must be all int or chapter")
 
         chapters = cast(list[Chapter], chapters)
 

@@ -48,10 +48,10 @@ class BaseFiltering(ABC):
         """
 
         if preview_func is not None and not callable(preview_func):
-            raise TypeError("BaseFiltering.preview: preview_func must be callable.")
+            raise TypeError(f"{self.__class__.__name__}.set_outputs: preview_func must be callable.")
 
         if self.preview_clips is None:
-            raise ValueError("BaseFiltering: no output set.")
+            raise ValueError(f"{self.__class__.__name__}.set_outputs: no output set.")
 
         for i, (output_name, output) in enumerate(self.preview_clips.items()):
             if preview_func is not None:
@@ -77,13 +77,13 @@ class BaseFiltering(ABC):
         """
 
         if self.preview_clips is None:
-            raise ValueError("BaseFiltering: no output set.")
+            raise ValueError(f"{self.__class__.__name__}.get_clip: no output set.")
 
         if isinstance(clip_name, int):
             clip_name = f"Video Node {clip_name}"
 
         clip = self.preview_clips.get(clip_name)
         if clip is None:
-            raise ValueError("BaseFiltering: requested clip does not exist.")
+            raise ValueError(f"{self.__class__.__name__}.get_clip: requested clip does not exist.")
 
         return clip

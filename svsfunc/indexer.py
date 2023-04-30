@@ -62,7 +62,7 @@ class Indexer(Generic[IndexedT]):
             path = Path(path)
 
         if not path.exists():
-            raise ValueError(f"The path \"{path}\" does not exist.")
+            raise ValueError(f"Indexer.index: The path \"{path}\" does not exist.")
 
         return self._indexer(str(path), *self.args, **(self.kwargs | indexer_overrides))  # type: ignore
 
@@ -252,7 +252,7 @@ class EpisodeInfo(Generic[IndexedT]):
         :return: OP clip
         """
         if self.op_range is None:
-            raise ValueError(f"{self.__class__.__name__}.get_op: cannot get OP clip if op_range is None.")
+            raise ValueError("EpisodeInfo.get_op: cannot get OP clip if op_range is None.")
 
         return trim(clip or self.clip, self.op_range)
 
@@ -268,7 +268,7 @@ class EpisodeInfo(Generic[IndexedT]):
         :return: ED clip
         """
         if self.ed_range is None:
-            raise ValueError(f"{self.__class__.__name__}.get_ed: cannot get ED clip if ed_range is None.")
+            raise ValueError("EpisodeInfo.get_ed: cannot get ED clip if ed_range is None.")
 
         return trim(clip or self.clip, self.ed_range)
 
@@ -302,6 +302,6 @@ class EpisodeInfo(Generic[IndexedT]):
         :return:            FileInfo object
         """
         if not isinstance(self.indexed, FileInfo):
-            raise TypeError("Indexer used does not support FileInfo")
+            raise TypeError("EpisodeInfo.file: The indexer used does not support FileInfo")
 
         return self.indexed

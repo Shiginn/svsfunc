@@ -1,9 +1,7 @@
-__all__ = ["BaseEncoder"]
-
-import inspect
-
 from vardautomation import FileInfo
 from vstools import vs
+
+__all__ = ["BaseEncoder"]
 
 
 class BaseEncoder:
@@ -45,8 +43,3 @@ class BaseEncoder:
         Get offset in ms from FileInfo trims
         """
         return round(BaseEncoder.get_offset(file) * (1000 / clip.fps))
-
-
-    @staticmethod
-    def get_func_name() -> str:
-        return inspect.stack()[1][3]
