@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Generic, Sequence
 
 from vardautomation import Chapter, MplsChapters, MplsReader, VPath
+from vstools import to_arr
 
 from .custom_types import IndexedT
 from .indexer import EpisodeInfo, Indexer
@@ -44,9 +45,10 @@ class HasEpisode(Generic[IndexedT], ABC):
 
         :raises ValueError: If the number of ranges is greater than the number of episode
         """
+        func_name = f"{self.__class__.__name__}.set_op_ed_ranges"
         eps_num = len(self.episodes)
-        self.op_ranges = normalize_list(op_ranges, eps_num, None, "Parse.set_op_ed_ranges")
-        self.ed_ranges = normalize_list(ed_ranges, eps_num, None, "Parse.set_op_ed_ranges")
+        self.op_ranges = normalize_list(op_ranges, eps_num, None, func_name)
+        self.ed_ranges = normalize_list(ed_ranges, eps_num, None, func_name)
 
 
 class ParseFolder(HasEpisode, Generic[IndexedT]):
@@ -139,21 +141,20 @@ class ParseBD(HasEpisode, Generic[IndexedT]):
 
         if bd_volumes:
             vols = [Path(self.bdmv_folder / bd_vol).resolve() for bd_vol in bd_volumes]
-            if any(not path.exists() for path in vols):
-                raise ValueError("ParseBD: BD volume path does not exist.")
+            for path in vols:
+                if not path.exists():
+                    raise ValueError(f"ParseBD: BD volume \"{path}\" does not exist.")
+
         else:
             subdirs = [x for x in self.bdmv_folder.iterdir() if x.is_dir()]
             vols = [self._find_vol_path(vol) for vol in subdirs]  # type: ignore
-            if any(path is None for path in vols):
-                raise ValueError("ParseBD: Could not find BD volume path.")
+            for vol_path, subdir in zip(vols, subdirs):
+                if vol_path is None:
+                    raise ValueError(f"ParseBD: sub-directory \"{subdir}\" of BDMV folder does not contains BD volume.")
 
         vol_num = len(vols)
-        if not isinstance(ep_playlist, Sequence):
-            ep_playlist = [ep_playlist] * vol_num
-        elif len(ep_playlist) < vol_num:
-            ep_playlist = list(ep_playlist) + ([ep_playlist[-1]] * (vol_num - len(ep_playlist)))
-        elif len(ep_playlist) > vol_num:
-            raise ValueError(f"ParseBD: Too many playlist values, expected {vol_num} max")
+        ep_playlist = to_arr(ep_playlist)
+        ep_playlist = normalize_list(ep_playlist, vol_num, ep_playlist[-1], "ParseBD")
 
         self.episodes = []
         self.chapters = []
