@@ -74,7 +74,12 @@ html_style = 'css/theme_overrides.css'
 # -- Extension configuration -------------------------------------------------
 
 autosummary_generate = True
-autodoc_member_order = "bysource"
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+    'member-order': 'bysource',
+    'special-members': '__init__',
+}
 autodoc_typehints = "signature"
 autodoc_mock_imports = [re.split("[>=~]=", line.strip())[0].lower() for line in Path("../requirements.txt").open()]
 pygments_style = 'sphinx'
