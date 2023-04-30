@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 from subprocess import check_call
 from typing import Any, Generic, Sequence, overload

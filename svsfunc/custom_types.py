@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Callable, TypeAlias, TypeVar, Literal
+from typing import Callable, TypeAlias, TypeVar, Literal, Union
 
 from vardautomation import (
     FFV1, X264, X265, Eac3toAudioExtracter, EztrimCutter, FFmpegAudioExtracter, FileInfo, FileInfo2, FlacEncoder,
@@ -23,13 +25,13 @@ FramePropKey: TypeAlias = Literal["_PictType", "_ChromaLocation", "_Primaries", 
 
 class EncoderTypes:
     class Video:
-        Encoder: TypeAlias = X264 | X265
-        LosslessEncoder: TypeAlias = FFV1 | NVEncCLossless
+        Encoder: TypeAlias = Union[X264, X265]
+        LosslessEncoder: TypeAlias = Union[FFV1, NVEncCLossless]
 
     class Audio:
-        Extracter: TypeAlias = FFmpegAudioExtracter | MKVAudioExtracter | Eac3toAudioExtracter
-        Cutter: TypeAlias = EztrimCutter | SoxCutter | ScipyCutter | PassthroughCutter
-        Encoder: TypeAlias = FlacEncoder | OpusEncoder | QAACEncoder | PassthroughAudioEncoder
+        Extracter: TypeAlias = Union[FFmpegAudioExtracter, MKVAudioExtracter, Eac3toAudioExtracter]
+        Cutter: TypeAlias = Union[EztrimCutter, SoxCutter, ScipyCutter, PassthroughCutter]
+        Encoder: TypeAlias = Union[FlacEncoder, OpusEncoder, QAACEncoder, PassthroughAudioEncoder]
 
     class Chapter:
-        Format: TypeAlias = MatroskaXMLChapters | OGMChapters
+        Format: TypeAlias = Union[MatroskaXMLChapters, OGMChapters]

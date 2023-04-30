@@ -75,7 +75,7 @@ html_style = 'css/theme_overrides.css'
 autosummary_generate = True
 autodoc_member_order = "bysource"
 autodoc_typehints = "signature"
-autodoc_mock_imports = ["vapoursynth", "vardautomation", "lvsfunc"]
+autodoc_mock_imports = ["vapoursynth", "vardautomation", "vstools", "vskernels"]
 pygments_style = 'sphinx'
 
 
