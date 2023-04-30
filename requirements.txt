@@ -1,5 +1,4 @@
 VapourSynth>=60
 vardautomation>=1.2.4
-lvsfunc>=0.7.1
 vstools>=2.0.5
 vskernels>=2.3.2
