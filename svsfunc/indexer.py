@@ -46,6 +46,7 @@ class Indexer(Generic[IndexedT]):
 
 
     def __call__(self, path: str | Path, **indexer_overrides: Any) -> IndexedT:
+        """Equivalent to :py:meth:`Indexer.index`."""
         return self.index(path, **indexer_overrides)
 
 
@@ -234,7 +235,7 @@ class EpisodeInfo(Generic[IndexedT]):
         :param ep_num:              Episode number, defaults to -1
         :param op_range:            Range of the opening, defaults to None
         :param ed_range:            Range of the ending, defaults to None
-        :param indexer:             Indexer used to index given file, defaults to :py:func:`Indexer.lsmas()`
+        :param indexer:             Indexer used to index given file, defaults to :py:meth:`Indexer.lsmas`
         :param indexer_overrides:   Overrdide indexer settings (keyword arguments only)
         """
         self.indexed = indexer.index(path, **indexer_overrides)
