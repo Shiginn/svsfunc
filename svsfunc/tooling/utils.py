@@ -4,23 +4,25 @@ import os
 from shutil import rmtree
 from typing import Any
 
-from vardautomation import logger, make_comps
+from vardautomation import logger, make_comps, VPath
 from vstools import Keyframes, SceneChangeMode
 
 from ..indexer import Indexer
-from ..utils import write_props
+from ..utils import write_props, get_lsmas_cachefile
 from .base import BaseEncoder
 
 
 class UtilsTooling(BaseEncoder):
     """Set of useful functions"""
 
-    def make_comp(self, num_frames: int = 100, **comp_args: Any) -> None:
+    def make_comp(self, num_frames: int = 100, delete_index: bool = True, **comp_args: Any) -> None:
         """
         Make comp with source, filtered and encoded file. Will use lossless intermediate if the file exists.
 
-        :param num_frames:  Number of comp to generate.
-        :param comp_args:   Additional paramters to be passed to :py:func:`make_comp`
+        :param num_frames:      Number of comp to generate.
+        :param delete_index:    Delete index file generated when indexing `file.name_file_final` and/or lossless clip.
+                                Defaults to True.
+        :param comp_args:       Additional paramters to be passed to :py:func:`make_comp`
         """
         logger.info("Generating comps")
 
@@ -40,6 +42,10 @@ class UtilsTooling(BaseEncoder):
             "filtered": write_props(filtered, clip_name="Filtered"),
             "encode": write_props(idx(self.file.name_file_final.to_str()), clip_name="Encode"),
         }, **args)
+
+        if delete_index:
+            VPath(get_lsmas_cachefile(lossless)).rm(True)
+            VPath(get_lsmas_cachefile(self.file.name_file_final)).rm(True)
 
 
     def generate_keyframes(
@@ -65,4 +71,4 @@ class UtilsTooling(BaseEncoder):
             f.writelines([f"{frame} I -1\n" for frame in kf[1:]])
 
         if delete_index:
-            os.remove(f"{self.file.name_file_final.to_str()}.lwi")
+            VPath(get_lsmas_cachefile(self.file.name_file_final)).rm(True)

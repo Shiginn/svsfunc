@@ -1,14 +1,26 @@
+from __future__ import annotations
+
+import os
+import re
 from functools import partial
-from typing import Any, Callable, NoReturn, TypeVar
+from pathlib import Path
+from typing import Any, Callable, NoReturn, TypeVar, TYPE_CHECKING
 
 from vstools import (
-    ChromaLocation, ColorRange, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, VSMapValue, get_prop,
-    normalize_ranges, to_arr, vs
+    ChromaLocation, ColorRange, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, VSMapValue, core, get_prop,
+    normalize_ranges, to_arr, vs, DataType
 )
 
 from .custom_types import FramePropKey
 
-__all__ = ["trim", "normalize_list"]
+if TYPE_CHECKING:
+    from .indexer import Indexer
+
+__all__ = [
+    "trim", "write_props",
+    "get_lsmas_cachefile",
+    "normalize_list"
+]
 
 T = TypeVar("T")
 
@@ -79,6 +91,48 @@ def write_props(
 
     f = partial(_get_props, clip=clip, props=to_arr(props))
     return clip.std.FrameEval(f, prop_src=clip)
+
+
+def get_lsmas_cachefile(source: str | Path, indexer: Indexer[vs.VideoNode] | None = None) -> Path:
+    """
+    Guess lsmas cache file path based on input path, indexer settings and lsmas build options.
+
+    :param source:          Input file path
+    :param indexer:         Indexer used (must be keyword arguments), defaults to None
+
+    :raises ValueError:     If cache directory cannot be guessed or is invalid
+
+    :return:                lsmas cache file path
+    """
+    source = Path(source) if isinstance(source, str) else source
+    source_lwi = str(
+        source.resolve().with_suffix(source.suffix + ".lwi")
+    ).replace(":", "_").replace("/", "_").replace("\\", "_")
+
+    cachedir: DataType | None = indexer.kwargs.get("cachedir", None) if indexer is not None else None
+    cachedir = str(cachedir, "utf8") if cachedir is not None else cachedir  # type: ignore
+
+    if cachedir is None:
+        config: bytes = core.lazy.lsmas.Version()["config"]  # type: ignore
+        regex = re.match("-Dcachedir=\"(.*)\"", config.decode())
+        if regex is None:
+            raise ValueError("get_lsmas_cache: Could not find cache directory")
+
+        cachedir = regex.group(1)
+
+    def _from_getenv(env: str) -> Path | NoReturn:
+        env_dir = os.getenv(env)
+        if env_dir is None:
+            raise ValueError(f"get_lsmas_cache: Environment variable \"{env}\" is missing")
+        return Path(env_dir) / source_lwi
+
+    match cachedir:
+        case '""' | "": return source.with_suffix(source.suffix + ".lwi")
+        case ".": return Path.cwd() / source_lwi
+        case "/tmp": return Path("/tmp") / source_lwi
+        case "getenv(\"TMPDIR\")": return _from_getenv("TMPDIR")
+        case "getenv(\"TEMP\")": return _from_getenv("TEMP")
+        case _: raise ValueError("get_lsmas_cache: Invalid cache directory found")
 
 
 def normalize_list(val: list[T] | T, max_size: int, padding: Any, source: str) -> NoReturn | list[T]:
