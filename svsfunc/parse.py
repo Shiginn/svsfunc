@@ -159,7 +159,7 @@ class ParseBD(HasEpisode, Generic[IndexedT]):
         self.episodes = []
         self.chapters = []
         for bd_vol, p in zip(vols, ep_playlist):
-            chaps = [chap for chap in MplsReader(bd_vol).get_playlist()[p].mpls_chapters]
+            chaps = MplsReader(bd_vol).get_playlist()[p].mpls_chapters
             self.episodes += [chap.m2ts for chap in chaps]
             self.chapters += chaps
 
@@ -173,12 +173,11 @@ class ParseBD(HasEpisode, Generic[IndexedT]):
         if "BDMV" in subdirs and "CERTIFICATE" in subdirs:
             return root_dir
 
-        elif len(subdirs):
-            for dir in subdirs:
-                path = self._find_vol_path(root_dir / dir)
+        for subdir in subdirs:
+            path = self._find_vol_path(root_dir / subdir)
 
-                if path is not None:
-                    return path
+            if path is not None:
+                return path
 
         return None
 
