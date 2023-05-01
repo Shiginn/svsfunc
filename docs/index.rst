@@ -1,13 +1,6 @@
 svsfunc's Documentation
 ===================================
 
-
-.. automodule:: svsfunc
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
 .. image:: https://img.shields.io/badge/python-3.10-blue
 ..
     todo: switch to pypi version
