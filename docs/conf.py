@@ -44,6 +44,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.todo",
     "sphinx_autodoc_typehints",
+    "sphinx_toolbox.more_autodoc.typevars"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
