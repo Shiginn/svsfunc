@@ -69,7 +69,7 @@ class ParseFolder(HasEpisode, Generic[IndexedT]):
 
         :param folder:      Folder that includes all of the episodes.
         :param pattern:     Pattern that files must match (uses glob syntax)
-        :param indexer:     Indexer used to index the files. Defaults to :py:func:`Indexer.lsmas()`
+        :param indexer:     Indexer used to index the files. Defaults to :py:meth:`svsfunc.indexer.Indexer.lsmas`
         """
         self.indexer = indexer
 
@@ -126,7 +126,7 @@ class ParseBD(HasEpisode, Generic[IndexedT]):
         :param bd_volumes:      Path to every volume of the BD (relative to the BDMV folder). Will do a recursive search
                                 of every subfolder of the BDMV folder to try to locate them if None.
         :param ep_playlist:     Playlist file for the episodes, defaults to 1, can be set for each BD volume
-        :param indexer:         Indexer used to index the files. Defaults to :py:func:`Indexer.lsmas()`
+        :param indexer:         Indexer used to index the files. Defaults to :py:meth:`svsfunc.indexer.Indexer.lsmas`
 
         :raises ValueError:     If the BDMV folder does not exists
         :raises ValueError:     If any of the BD volume folder does not exists

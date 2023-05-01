@@ -15,4 +15,8 @@ Dependencies
 This module requires `VapourSynth <https://www.vapoursynth.com>`_ as well as the following python modules and their dependencies :
 
 * `vardautomation <https://github.com/Ichunjo/vardautomation>`_
-* `lvsfunc <https://github.com/Irrational-Encoding-Wizardry/lvsfunc>`_
+* `vstools <https://github.com/Irrational-Encoding-Wizardry/vs-tools>`_
+* `vskernels <https://github.com/Irrational-Encoding-Wizardry/vs-kernels>`_
+
+.. warning:: 
+    Vardautomation might not install if you are using python 3.11 (or higher) and/or lvsfunc 0.7.0 (or higher).

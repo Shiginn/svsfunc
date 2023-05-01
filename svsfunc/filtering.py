@@ -8,7 +8,7 @@ __all__ = ["BaseFiltering"]
 
 
 class BaseFiltering(ABC):
-    """Filterchain base class"""
+    """Abstract base class that can be used to build a filterchain"""
 
     preview_clips: Dict[str, vs.VideoNode] | None = None
 
@@ -19,10 +19,10 @@ class BaseFiltering(ABC):
 
     def add_preview(self, clip: vs.VideoNode, name: str | None = None) -> None:
         """
-        Add a VideoNode to the list of filtersteps.
+        Add a VideoNode to the list of preview clips.
 
-        :param clip:    Clip to output. If None, name will be `Video Node x`.
-        :param name:    Name of the clip.
+        :param clip:    Clip to output.
+        :param name:    Name of the clip. If None, name will be `Video Node x`.
         """
         if name is None:
             name = f"Video Node {1 if self.preview_clips is None else len(self.preview_clips) + 1}"
@@ -39,12 +39,12 @@ class BaseFiltering(ABC):
         preview_func: Callable[[vs.VideoNode], vs.VideoNode] | None = None
     ) -> None:
         """
-        Preview every clip in the list of filtersteps.
+        Output every clip in the list of preview clips.
 
         :param name_pos:        Position of the name of the clip (0 = disable). Default to 8 (top-middle)
         :param display_props:   Position of the frame-props of the clip. Default to disable.
         :param font_scaling:    Scaling of the font used to write name and frame_props. Defaults to 1.
-        :param preview_func:    Function to apply to clip before previewing (e.g. PlaneStat, stack_planes, ...)
+        :param preview_func:    Function to apply to every clip before outputting (e.g. PlaneStat, stack_planes, ...)
         """
 
         if preview_func is not None and not callable(preview_func):
@@ -69,7 +69,7 @@ class BaseFiltering(ABC):
 
     def get_clip(self, clip_name: str | int) -> vs.VideoNode:
         """
-        Get a clip from the filtersteps.
+        Get a clip from the list of preview clips.
 
         :param clip_name:   Name of the clip. If int, will get `Video Node x`.
 
