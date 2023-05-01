@@ -32,10 +32,10 @@ svsfunc is a collection of VapourSynth functions I use in my scripts.
     :maxdepth: 1
     :caption: Sub-Modules
     
-    submodules/encoder
-    submodules/filtering
-    submodules/parse
     submodules/indexer
+    submodules/parse
+    submodules/filtering
+    submodules/encoder
     submodules/utils
     submodules/types
 
@@ -43,7 +43,7 @@ svsfunc is a collection of VapourSynth functions I use in my scripts.
     :maxdepth: 1
     :caption: Usage
     
-    usage/encoder
     usage/indexer
     usage/parse
     usage/filtering
+    usage/encoder
