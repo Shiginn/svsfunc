@@ -5,17 +5,18 @@ __all__ = ["BaseEncoder"]
 
 
 class BaseEncoder:
-    """
-    Base class for all Tooling and Encoder
-
-    :param file:    FileInfo object.
-    :param clip:    Clip to encode.
-    """
+    """Base class for all Tooling and Encoder"""
 
     file: FileInfo
     clip: vs.VideoNode
 
     def __init__(self, file: FileInfo, clip: vs.VideoNode) -> None:
+        """
+        Set file and clip that will be used by the encoder.
+
+        :param file: FileInfo object.
+        :param clip: Clip to encode.
+        """
         self.file = file
         self.clip = clip
 

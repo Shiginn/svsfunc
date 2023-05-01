@@ -23,19 +23,27 @@ svsfunc is a collection of VapourSynth functions I use in my scripts.
 
 
 .. toctree:: 
-    :maxdepth: 2
+    :maxdepth: 1
     :caption: Installation
 
     installation
 
 .. toctree:: 
-    :maxdepth: 2
+    :maxdepth: 1
     :caption: Sub-Modules
     
+    submodules/indexer
+    submodules/parse
+    submodules/filtering
     submodules/encoder
+    submodules/utils
+    submodules/types
 
 .. toctree:: 
     :maxdepth: 1
     :caption: Usage
     
+    usage/indexer
+    usage/parse
+    usage/filtering
     usage/encoder
