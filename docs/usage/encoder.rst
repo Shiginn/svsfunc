@@ -1,11 +1,9 @@
 Using svsfunc.encode
 =====================
 
-.. note:: 
-    In this exemple, we assume that ``clip`` is a ``VideoNode`` and ``file`` a ``FileInfo`` object.
-    Also, make sure you use the correct presets with FileInfo.
+The :py:class:`~svsfunc.encode.Encoder` allows you to automate the encoding process. To do so, it uses Vardautomation and the various tools it provides to encode, mux and create chapters.
 
-To use this module, you need to start by creating an ``Encoder`` object.
+The first step is to create an :py:class:`~svsfunc.encode.Encoder` object. You need a file (``FileInfo`` or ``FileInfo``) and a clip.
 
 .. code:: python
     
@@ -16,14 +14,12 @@ To use this module, you need to start by creating an ``Encoder`` object.
     
     encoder = Encoder(file, clip)
 
-You can now add the different steps of you encoding chain.
-
 
 Video
 -----
-Calling ``video_encoder()`` is required.
+You need to add a video encoder by calling :py:meth:`~svsfunc.tooling.video.VideoTooling.video_encoder`. You can also add a lossless video encoder. It can be useful to test different x264/x265 settings.
 
-.. note:: 
+.. warning:: 
     Resumable encodes do not support shifting zones when encode is resumed. This will create invalid zones. It is recommended to disable resumable encode if you are using zones.
 
 .. code:: python
@@ -36,10 +32,16 @@ Calling ``video_encoder()`` is required.
 
 Audio
 -----
-In this exemple, we assume that the source file has 2 audio tracks: the first one is Japanese dub in 2.0 and the second one is English dub in 5.1.
+You can set an audio extractor with :py:meth:`~svsfunc.tooling.audio.AudioTooling.audio_extracter` to demux audio from the input file and an audio cutter with :py:meth:`~svsfunc.tooling.audio.AudioTooling.audio_cutter` if you need to trim the audio.
+To encode the audio file, you can use the :py:meth:`~svsfunc.tooling.audio.AudioTooling.audio_encoder` method with your favorite audio encoder.
+
+If one or more method is not called, the file produced by the last method (in this order: :py:meth:`~svsfunc.tooling.audio.AudioTooling.audio_encoder` > :py:meth:`~svsfunc.tooling.audio.AudioTooling.audio_cutter` > :py:meth:`~svsfunc.tooling.audio.AudioTooling.audio_extracter`) will be used during muxing.
 
 .. note:: 
-    If you are using ``FileInfo2``, you don't need to call ``audio_extracter`` and ``audio_cutter``.
+    If you are using ``FileInfo2``, you don't need to call :py:meth:`~svsfunc.tooling.audio.AudioTooling.audio_extracter` and :py:meth:`~svsfunc.tooling.audio.AudioTooling.audio_cutter`.
+
+In this example, the source file has 2 audio tracks: the first one is the Japanese dub, 2.0 ch and the second one is the English dub, 5.1 ch.
+
 
 .. code:: python
 
@@ -61,7 +63,7 @@ In this exemple, we assume that the source file has 2 audio tracks: the first on
 
 Chapters
 --------
-If you are working with Blu-Ray files, you can extract the chapters using vardautomation's ``MplsReader``.
+If you are working with Blu-Ray files, you can extract the chapters using vardautomation's ``MplsReader`` or with :py:class:`svsfunc.parse.ParseBD`.
 Otherwise, you can use a list of integers where each number represent the first frame of a chapter.
 
 .. code:: python
@@ -78,7 +80,7 @@ Otherwise, you can use a list of integers where each number represent the first 
 
 Muxing
 ------
-You can set the language and title of each audio track. You can also import exteral audio tracks. If just the path is given, the track will have no title and the language will be undefined.
+You can set the language and title of each audio track. You can also import external audio tracks. If just the path is given, the track will have no title and the language will be undefined.
 
 .. code:: python
 
@@ -94,7 +96,7 @@ You can set the language and title of each audio track. You can also import exte
 
 Running the encode
 ------------------
-You can now run the encoder. You can use the ``clean_up`` method to delete all of the temp files generated during the encode.
+You can now run the encoder by calling the :py:meth:`~svsfunc.encode.Encoder.run` method. You can use the :py:meth:`~svsfunc.encode.Encoder.clean_up` method to delete all of the temp files generated during the encode.
 
 .. code:: python
 
@@ -104,9 +106,13 @@ You can now run the encoder. You can use the ``clean_up`` method to delete all o
 
 Utilities
 ---------
-Theses functions can be run whenever you want but make sure they have the required files available.
+Theses functions can be run whenever you want but make sure they have the required files available:
+
+* :py:meth:`~svsfunc.tooling.utils.UtilsTooling.make_comp` requires source file, the filtered file (will use lossless encode if set) and the final file (``file.name_file_final``).
+
+* :py:meth:`~svsfunc.tooling.utils.UtilsTooling.generate_keyframes` can be run without the final file but it will fallback on the clip passed to the encoder. This may heavily impact performance depending on your filterchain.
 
 .. code:: python
 
-    encoder.make_comp(num_frames=50)  # requires file.name_file_final
+    encoder.make_comp(num_frames=50)
     encoder.generate_keyframes()
