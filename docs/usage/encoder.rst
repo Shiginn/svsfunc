@@ -23,6 +23,9 @@ Video
 -----
 Calling ``video_encoder()`` is required.
 
+.. note:: 
+    Resumable encodes do not support shifting zones when encode is resumed. This will create invalid zones. It is recommended to disable resumable encode if you are using zones.
+
 .. code:: python
 
     from vardautomation import X265, FFV1Encoder
@@ -33,14 +36,16 @@ Calling ``video_encoder()`` is required.
 
 Audio
 -----
-In this exemple, we assume that our source has 2 audio tracks, the first one is 2.0 and the second one is 5.1.
-If you are using ``FileInfo2``, you don't need to call ``audio_extracter`` and ``audio_cutter``.
+In this exemple, we assume that the source file has 2 audio tracks: the first one is Japanese dub in 2.0 and the second one is English dub in 5.1.
+
+.. note:: 
+    If you are using ``FileInfo2``, you don't need to call ``audio_extracter`` and ``audio_cutter``.
 
 .. code:: python
 
     from vardautomation import Eac3toAudioExtracter, EztrimCutter, OpusEncoder
 
-    encoder.set_tracks([1, 2])
+    encoder.set_audio_tracks([1, 2])
 
     # if file is FileInfo
     encoder.audio_extracter(Eac3toAudioExtracter)
@@ -49,7 +54,7 @@ If you are using ``FileInfo2``, you don't need to call ``audio_extracter`` and `
     encoder.audio_encoder(
         OpusEncoder,
         global_settings=dict(bitrate=2 * 96),
-        overrides=(2, dict(bitrate=6 * 96))
+        overrides={2: dict(bitrate=6 * 96)}
     )
 
 
@@ -77,13 +82,13 @@ You can set the language and title of each audio track. You can also import exte
 
 .. code:: python
 
-    from vardautomation import ENGLISH, JAPANESE, FRENCH
+    from vardautomation import ENGLISH, JAPANESE, FRENCH, AudioTrack
 
     encoder.muxer(
         v_title="X265 BD by Encoder@Team",
         a_title=["Opus 2.0", "Opus 5.1"],
         a_lang=[JAPANESE, ENGLISH],
-        external_audio=[("my/encoded/audio.opus", "Opus 5.1", FRENCH)]
+        external_audio=[AudioTrack("my/encoded/audio.opus", "Opus 5.1", FRENCH)]
     )
 
 
