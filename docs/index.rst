@@ -6,7 +6,7 @@ svsfunc's Documentation
     todo: switch to pypi version
 
 
-.. image:: https://img.shields.io/github/workflow/status/Shiginn/svsfunc/lint?label=lint
+.. image:: https://img.shields.io/github/actions/workflow/status/Shiginn/svsfunc/lint.yml?branch=master&label=lint
 
 .. image:: https://img.shields.io/readthedocs/svsfunc
 
