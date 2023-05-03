@@ -135,7 +135,7 @@ def get_lsmas_cachefile(source: str | Path, indexer: Indexer[vs.VideoNode] | Non
         case _: raise ValueError("get_lsmas_cache: Invalid cache directory found")
 
 
-def normalize_list(val: list[T] | T, max_size: int, padding: Any, source: str) -> NoReturn | list[T]:
+def normalize_list(val: list[T] | T, max_size: int, padding: T, source: str) -> NoReturn | list[T]:
     """
     Normalize a list to match the given length
 
