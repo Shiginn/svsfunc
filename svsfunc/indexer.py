@@ -204,7 +204,7 @@ class Indexer(Generic[IndexedT]):
                     "DGIndexNV", "-i", str(input_path), "-o", str(dgi_path), "-h"
                 ])
 
-            return core.lazy.dgdecodenv.DGSource(dgi_path, *args, **kwargs)
+            return core.dgdecodenv.DGSource(dgi_path, *args, **kwargs)
 
         return cls(
             _index_file, i420=i420, deinterlace=deinterlace, use_top_field=use_top_field, use_pf=use_pf, ct=ct, cb=cb,  # type: ignore  # noqa: E501
