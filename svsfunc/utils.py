@@ -4,11 +4,11 @@ import os
 import re
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, NoReturn, TypeVar, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, NoReturn, TypeVar
 
 from vstools import (
-    ChromaLocation, ColorRange, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, VSMapValue, core, get_prop,
-    normalize_ranges, to_arr, vs, DataType
+    ChromaLocation, ColorRange, DataType, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, core, get_prop,
+    normalize_ranges, to_arr, vs
 )
 
 from .custom_types import FramePropKey
@@ -59,20 +59,20 @@ def write_props(
     :param clip:        Clip to get frame props from
     :param props:       Frame props to write, defaults to "_PictType"
     :param clip_name:   Name of the clip, defaults to None
-    :param alignment:   Where to write props on the clip (see .text.Text), defaults to 7
-    :param scale:       Scale of the text (see .text.Text), defaults to 1
+    :param alignment:   Where to write props on the clip (see text plugin), defaults to 7
+    :param scale:       Scale of the text (see text plugin), defaults to 1
 
-    :raises KeyError:   If requested prop is not supported
+    :raises KeyError:   If requested prop is not supported or not found.
 
     :return:            Clip with frame props
     """
-    prop_map: dict[FramePropKey, tuple[str, type[VSMapValue], Callable[[Any], str]]] = {
-        "_PictType": ("Picture Type", bytes, lambda x: x.decode()),  # type: ignore
-        "_ChromaLocation": ("Chroma Location", int, lambda x: ChromaLocation(x).pretty_string),
-        "_Primaries": ("Primaries", int, lambda x: Primaries(x).pretty_string),
-        "_Transfer": ("Transfer", int, lambda x: Transfer(x).pretty_string),
-        "_Matrix": ("Matrix", int, lambda x: Matrix(x).pretty_string),
-        "_ColorRange": ("Color Range", int, lambda x: ColorRange(x).pretty_string)
+    prop_map: dict[FramePropKey, tuple[str, Callable[[Any], str]]] = {
+        "_PictType": ("Picture Type", lambda x: x.decode()),  # type: ignore
+        "_ChromaLocation": ("Chroma Location", lambda x: ChromaLocation(x).pretty_string),
+        "_Primaries": ("Primaries", lambda x: Primaries(x).pretty_string),
+        "_Transfer": ("Transfer", lambda x: Transfer(x).pretty_string),
+        "_Matrix": ("Matrix", lambda x: Matrix(x).pretty_string),
+        "_ColorRange": ("Color Range", lambda x: ColorRange(x).pretty_string)
     }
 
     def _get_props(n: int, f: vs.VideoFrame, clip: vs.VideoNode, props: list[FramePropKey]) -> vs.VideoNode:
@@ -80,10 +80,12 @@ def write_props(
 
         for prop in props:
             if prop not in prop_map:
-                raise KeyError(f"write_props: unable to find prop \"{prop}\"")
+                raise KeyError(f"write_props: unsupported prop \"{prop}\".")
+            if prop not in f.props:
+                raise KeyError(f"write_props: prop \"{prop}\" not found in frame {n}.")
 
-            prop_name, prop_type, convert_func = prop_map[prop]
-            prop_value = get_prop(f, prop, prop_type)
+            prop_name, convert_func = prop_map[prop]
+            prop_value: bytes | int = get_prop(f, prop, bytes if prop == "_PictType" else int)
 
             txt += f"\n{prop_name}: {convert_func(prop_value)}"
 
