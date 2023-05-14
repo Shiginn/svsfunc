@@ -222,19 +222,25 @@ class EpisodeInfo(Generic[IndexedT]):
     ep_num: int
     op_range: tuple[int, int] | None = None
     ed_range: tuple[int, int] | None = None
+    ncop: vs.VideoNode | None
+    nced: vs.VideoNode | None
 
 
     def __init__(
         self: "EpisodeInfo[IndexedT]", path: str | Path, ep_num: int = -1, op_range: tuple[int, int] | None = None,
-        ed_range: tuple[int, int] | None = None, indexer: Indexer[IndexedT] = Indexer.lsmas(), **indexer_overrides: Any  # type: ignore  # noqa: E501
+        ed_range: tuple[int, int] | None = None, ncop: str | Path | vs.VideoNode | None = None,
+        nced: str | Path | vs.VideoNode | None = None, indexer: Indexer[IndexedT] = Indexer.lsmas(),   # type: ignore
+        **indexer_overrides: Any
     ) -> None:
         """
-        Index a file and set episode number + OP/ED range.
+        Index a file and set episode number, OP/ED range and NCOP/NCED.
 
         :param path:                Input file path
         :param ep_num:              Episode number, defaults to -1
         :param op_range:            Range of the opening, defaults to None
         :param ed_range:            Range of the ending, defaults to None
+        :param ncop:                NCOP path or clip, defaults to None
+        :param nced:                NCED path or clip, defaults to None
         :param indexer:             Indexer used to index given file, defaults to :py:meth:`Indexer.lsmas`
         :param indexer_overrides:   Overrdide indexer settings (keyword arguments only)
         """
@@ -242,6 +248,17 @@ class EpisodeInfo(Generic[IndexedT]):
         self.ep_num = ep_num
         self.op_range = op_range
         self.ed_range = ed_range
+        self.ncop = self._index_nc(ncop, indexer)
+        self.nced = self._index_nc(nced, indexer)
+
+
+    @staticmethod
+    def _index_nc(nc: str | Path | vs.VideoNode | None, indexer: Indexer[IndexedT]) -> vs.VideoNode | None:
+        nc_clip = indexer.index(nc) if isinstance(nc, str | Path) else nc
+        if isinstance(nc_clip, FileInfo):
+            return nc_clip.clip
+
+        return nc_clip
 
 
     def get_op(self, clip: vs.VideoNode | None = None) -> vs.VideoNode:
@@ -274,6 +291,34 @@ class EpisodeInfo(Generic[IndexedT]):
             raise ValueError("EpisodeInfo.get_ed: cannot get ED clip if ed_range is None.")
 
         return trim(clip or self.clip, self.ed_range)
+
+
+    def get_ncop(self) -> vs.VideoNode:
+        """
+        Get NCOP and raise an exception if it is not set.
+
+        :raises ValueError:     If NCOP is not set.
+
+        :return:                NCOP clip
+        """
+        if self.ncop is None:
+            raise ValueError("EpiosdeInfo.get_ncop: no NCOP set.")
+
+        return self.ncop
+
+
+    def get_nced(self) -> vs.VideoNode:
+        """
+        Get NCED and raise an exception if it is not set.
+
+        :raises ValueError:     If NCED is not set.
+
+        :return:                NCED clip
+        """
+        if self.nced is None:
+            raise ValueError("EpiosdeInfo.get_nced: no NCED set.")
+
+        return self.nced
 
 
     def ep_num_str(self, padding: int = 2) -> str:

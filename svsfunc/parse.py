@@ -8,14 +8,52 @@ from typing import Any, Generic, Sequence
 from vardautomation import Chapter, MplsChapters, MplsReader, VPath
 from vstools import to_arr
 
-from .custom_types import IndexedT
+from .custom_types import IndexedT, NCRange
 from .indexer import EpisodeInfo, Indexer
 from .utils import normalize_list
 
 __all__ = ["ParseFolder", "ParseBD"]
 
 
-class HasEpisode(Generic[IndexedT], ABC):
+class HasNCs(Generic[IndexedT]):
+    ncops: dict[int, VPath | None]
+    nceds: dict[int, VPath | None]
+
+    @staticmethod
+    def _parse_nc_ranges(ncs: NCRange | None = None) -> dict[int, VPath | None]:
+        ncs_dict = dict[int, VPath | None]()
+
+        if ncs is None:
+            return ncs_dict
+
+        for ep_range, path in ncs.items():
+            if isinstance(path, str):
+                path = VPath(path)
+
+            if isinstance(ep_range, int):
+                ncs_dict[ep_range] = path
+            else:
+                start, end = ep_range
+                for i in range(start, end + 1):
+                    ncs_dict[i] = path
+
+        return ncs_dict
+
+
+    def set_ncs(self, ncops: NCRange | None = None, nceds: NCRange | None = None) -> None:
+        """
+        Set the NCOP/NCED for an episode or a range of episodes. The input is a dictionary where the key is the range
+        of episodes and the value is the path to the NCOP/NCED of theses episodes. If the key is a tuple, it will be
+        parsed an inclusive range of episodes.
+
+        :param ncops: Episodes ranges with matching NCOPs, defaults to None
+        :param nceds: Episodes ranges with matching NCEDs, defaults to None
+        """
+        self.ncops = self._parse_nc_ranges(ncops)
+        self.nceds = self._parse_nc_ranges(nceds)
+
+
+class HasEpisode(HasNCs, ABC, Generic[IndexedT]):
     episodes: list[VPath]
     indexer: Indexer[IndexedT]
     op_ranges: list[tuple[int, int] | None]
@@ -27,8 +65,8 @@ class HasEpisode(Generic[IndexedT], ABC):
 
     def _get_episode(self, ep_num: int, **indexer_overrides: Any) -> EpisodeInfo[IndexedT]:
         return EpisodeInfo(
-            self.episodes[ep_num - 1], ep_num, self.op_ranges[ep_num - 1], self.ed_ranges[ep_num - 1], self.indexer,
-            **indexer_overrides
+            self.episodes[ep_num - 1], ep_num, self.op_ranges[ep_num - 1], self.ed_ranges[ep_num - 1],
+            self.ncops.get(ep_num), self.nceds.get(ep_num), self.indexer, **indexer_overrides
         )
 
     def set_op_ed_ranges(
@@ -51,7 +89,7 @@ class HasEpisode(Generic[IndexedT], ABC):
         self.ed_ranges = normalize_list(ed_ranges, eps_num, None, func_name)
 
 
-class ParseFolder(HasEpisode, Generic[IndexedT]):
+class ParseFolder(HasEpisode, HasNCs, Generic[IndexedT]):
     """
     Folder parser that uses pattern mathching to get episode list.
     """
@@ -89,6 +127,7 @@ class ParseFolder(HasEpisode, Generic[IndexedT]):
             raise ValueError("ParseFolder: No episode found, check episode folder and/or pattern.")
 
         self.set_op_ed_ranges()
+        self.set_ncs()
 
 
     def get_episode(self, ep_num: int, **indexer_overrides: Any) -> EpisodeInfo[IndexedT]:
@@ -103,7 +142,7 @@ class ParseFolder(HasEpisode, Generic[IndexedT]):
         return super()._get_episode(ep_num, **indexer_overrides)
 
 
-class ParseBD(HasEpisode, Generic[IndexedT]):
+class ParseBD(HasEpisode, HasNCs, Generic[IndexedT]):
     """
     BDMV parser that uses playlist files to get episodes and chapters
     """
@@ -165,6 +204,7 @@ class ParseBD(HasEpisode, Generic[IndexedT]):
 
         self.episode_number = len(self.episodes)
         self.set_op_ed_ranges()
+        self.set_ncs()
 
 
     def _find_vol_path(self, root_dir: Path) -> Path | None:

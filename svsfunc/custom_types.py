@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Callable, TypeAlias, TypeVar, Literal, Union
+from typing import Callable, Literal, TypeAlias, TypeVar, Union
 
 from vardautomation import (
     FFV1, X264, X265, Eac3toAudioExtracter, EztrimCutter, FFmpegAudioExtracter, FileInfo, FileInfo2, FlacEncoder,
     MatroskaXMLChapters, MKVAudioExtracter, NVEncCLossless, OGMChapters, OpusEncoder, PassthroughAudioEncoder,
-    PassthroughCutter, QAACEncoder, ScipyCutter, SoxCutter
+    PassthroughCutter, QAACEncoder, ScipyCutter, SoxCutter, VPath
 )
 from vstools import vs
 
 __all__ = [
     "FileInfoT", "IndexedT", "VSIdxFunc",
+    "NCRange",
     "EncoderTypes",
 ]
 
@@ -21,6 +22,8 @@ IndexedT = TypeVar("IndexedT", vs.VideoNode, FileInfo, FileInfo2)
 VSIdxFunc: TypeAlias = Callable[[str | Path], vs.VideoNode]
 
 FramePropKey: TypeAlias = Literal["_PictType", "_ChromaLocation", "_Primaries", "_Transfer", "_Matrix", "_ColorRange"]
+
+NCRange: TypeAlias = dict[Union[int, tuple[int, int]], Union[str, VPath, None]]
 
 
 class EncoderTypes:
