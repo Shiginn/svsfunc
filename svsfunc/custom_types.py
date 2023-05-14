@@ -6,7 +6,7 @@ from typing import Callable, Literal, TypeAlias, TypeVar, Union
 from vardautomation import (
     FFV1, X264, X265, Eac3toAudioExtracter, EztrimCutter, FFmpegAudioExtracter, FileInfo, FileInfo2, FlacEncoder,
     MatroskaXMLChapters, MKVAudioExtracter, NVEncCLossless, OGMChapters, OpusEncoder, PassthroughAudioEncoder,
-    PassthroughCutter, QAACEncoder, ScipyCutter, SoxCutter, VPath
+    PassthroughCutter, QAACEncoder, ScipyCutter, SoxCutter
 )
 from vstools import vs
 
@@ -23,7 +23,7 @@ VSIdxFunc: TypeAlias = Callable[[str | Path], vs.VideoNode]
 
 FramePropKey: TypeAlias = Literal["_PictType", "_ChromaLocation", "_Primaries", "_Transfer", "_Matrix", "_ColorRange"]
 
-NCRange: TypeAlias = dict[Union[int, tuple[int, int]], Union[str, VPath, None]]
+NCRange: TypeAlias = dict[Union[int, tuple[int, int]], Union[str, Path, None]]
 
 
 class EncoderTypes:
