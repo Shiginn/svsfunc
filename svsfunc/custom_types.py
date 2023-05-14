@@ -12,7 +12,7 @@ from vstools import vs
 
 __all__ = [
     "FileInfoT", "IndexedT", "VSIdxFunc",
-    "NCRange",
+    "FramePropKey", "NCRange",
     "EncoderTypes",
 ]
 
