@@ -203,6 +203,7 @@ class Indexer(Generic[IndexedT]):
                 check_call([
                     "DGIndexNV", "-i", str(input_path), "-o", str(dgi_path), "-h"
                 ])
+                VPath(dgi_path.with_suffix(".log")).rm(True)
 
             return core.dgdecodenv.DGSource(dgi_path, *args, **kwargs)
 
