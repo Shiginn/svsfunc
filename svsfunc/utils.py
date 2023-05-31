@@ -92,7 +92,9 @@ def write_props(
         return clip.text.Text(txt, alignment=alignment, scale=scale)
 
     f = partial(_get_props, clip=clip, props=to_arr(props))
-    return clip.std.FrameEval(f, prop_src=clip)
+    out = clip.std.FrameEval(f, prop_src=clip)
+
+    return out.std.SetFrameProp("Name", data=clip_name) if clip_name else out
 
 
 def get_lsmas_cachefile(source: str | Path, indexer: Indexer[vs.VideoNode] | None = None) -> Path:
