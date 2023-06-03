@@ -123,7 +123,9 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
         self.runner.run()
 
         # bug in vardautomation cause work files be inacurrate (can miss some files or have unwanted files)
-        self.runner.work_files = CleanupSet([self.file.name_clip_output, self.file.chapter])
+        self.runner.work_files = CleanupSet([self.file.name_clip_output])
+        if self.file.chapter:
+            self.runner.work_files.add(self.file.chapter)
 
         if self.a_extracter:
             assert self.file.a_src
