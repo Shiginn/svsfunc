@@ -8,6 +8,7 @@ from vardautomation import (
     UNDEFINED, AnyPath, AudioTrack, ChaptersTrack, Eac3toAudioExtracter, FileInfo2, Lang, MatroskaFile, RunnerConfig,
     SelfRunner, Track, VideoTrack, VPath, logger
 )
+from vardautomation.vpathlib import CleanupSet
 from vstools import to_arr
 
 from .tooling.audio import AudioTooling
@@ -54,9 +55,9 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
         a_tracks = list[AudioTrack]()
 
         # tracks extracted/cut/encoded from input file
-        if self.output_tracks:
+        if self.input_tracks:
             file_track = self._select_a_track()
-            for idx, name, lang in zip(self.output_tracks, a_title, a_lang):
+            for idx, name, lang in zip(self.input_tracks, a_title, a_lang):
                 logger.info(f"Muxing audio track {idx} (track name: {name}, track lang: {lang.name}-{lang.iso639})")
                 a_tracks.append(AudioTrack(file_track.set_track(idx), name, lang))
 
@@ -69,23 +70,20 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
                 raise ValueError(f"Encoder.muxer: external audio file {track.path.to_str()} does not exist.")
 
             self.track_number += 1
-            self.input_tracks.append(max(self.input_tracks) + 1 if self.input_tracks else 1)  # [2, 4] ->  [2, 4, 5]
-            self.output_tracks.append(max(self.output_tracks) + 1 if self.output_tracks else 1)
-
             a_tracks.append(track)
             self.external_audio.append(track.path)
 
             logger.info(f"Muxing audio file {track.path} (track name: {track.name}, track lang: {track.lang.name}-{track.lang.iso639})")  # noqa: E501
 
         # reordering tracks
+        default_audio_order = list(range(1, self.track_number + 1))
         if audio_tracks_order is not None:
-            if len(audio_tracks_order) != self.track_number:
-                raise ValueError("Encoder.muxer: missing audio tracks in audio_tracks_order.")
+            if sorted(audio_tracks_order) != default_audio_order:
+                raise ValueError(f"Encoder.muxer: invalid audio track order given, must be list of indices between 1 and {self.track_number}")  # noqa: E501
 
             logger.info(f"Output track order : {audio_tracks_order}")
-            self.output_tracks = audio_tracks_order
 
-        tracks += [a_tracks[i - 1] for i in self.output_tracks]
+        tracks += [a_tracks[i - 1] for i in audio_tracks_order or default_audio_order]
 
         # chapter file
         if self.file.chapter is not None and self.file.chapter.exists():
@@ -116,17 +114,6 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
 
         self.runner = SelfRunner(self.clip, self.file, config)
 
-        input_file_tracks = self.input_tracks[:len(self.input_tracks) - len(self.external_audio)]
-
-        # add eac3to log files to work files
-        if self.file.a_src and self.a_extracter and isinstance(self.a_extracter[0], Eac3toAudioExtracter):
-            for i in input_file_tracks:
-                self.runner.work_files.add(self.file.a_src.set_track(i).append_stem(" - Log").with_suffix(".txt"))
-
-        if self.a_encoder and isinstance(self.file, FileInfo2):
-            for file in (self.file.a_src_cut.set_track(i) for i in input_file_tracks if self.file.a_src_cut):
-                self.runner.work_files.add(file)
-
         if self.post_filterchain_func is not None:
             self.runner.plp_function = self.post_filterchain_func
 
@@ -134,6 +121,29 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
             self.runner.inject_qpfile_params(self.qp_file)
 
         self.runner.run()
+
+        # bug in vardautomation cause work files be inacurrate (can miss some files or have unwanted files)
+        self.runner.work_files = CleanupSet([self.file.name_clip_output, self.file.chapter])
+
+        if self.a_extracter:
+            assert self.file.a_src
+
+            for i in self.input_tracks:
+                self.runner.work_files.add(self.file.a_src.set_track(i))
+
+            if isinstance(self.a_extracter[0], Eac3toAudioExtracter):
+                for i in self.input_tracks:
+                    self.runner.work_files.add(self.file.a_src.set_track(i).append_stem(" - Log").with_suffix(".txt"))
+
+        if self.a_cutter or (self.a_encoder and isinstance(self.file, FileInfo2)):
+            assert self.file.a_src_cut
+            for i in self.input_tracks:
+                self.runner.work_files.add(self.file.a_src_cut.set_track(i))
+
+        if self.a_encoder:
+            assert self.file.a_enc_cut
+            for i in self.input_tracks:
+                self.runner.work_files.add(self.file.a_enc_cut.set_track(i))
 
 
     def clean_up(

@@ -13,7 +13,6 @@ class AudioTooling(BaseEncoder):
 
     track_number: int = 0
     input_tracks: list[int] = []
-    output_tracks: list[int] = []
     a_extracter: list[EncoderTypes.Audio.Extracter] | None = None
     a_cutter: list[EncoderTypes.Audio.Cutter] | None = None
     a_encoder: list[EncoderTypes.Audio.Encoder] | None = None
@@ -27,7 +26,6 @@ class AudioTooling(BaseEncoder):
         :param tracks:  Tracks to process.
         """
         self.input_tracks = ([tracks] if isinstance(tracks, int) else sorted(tracks)) if tracks is not None else []
-        self.output_tracks = self.input_tracks.copy()
         self.track_number = len(self.input_tracks)
 
         logger.info(f"Processing audio tracks: {', '.join(str(t) for t in self.input_tracks)}")
@@ -57,7 +55,7 @@ class AudioTooling(BaseEncoder):
         settings = self._get_settings(global_settings, overrides, func_name)
 
         self.a_extracter = []
-        for ext_t, in_idx, out_idx, setting in zip(extracter_list, a_tracks, self.output_tracks, settings):
+        for ext_t, in_idx, out_idx, setting in zip(extracter_list, a_tracks, self.input_tracks, settings):
             self.a_extracter.append(ext_t(self.file, track_in=in_idx, track_out=out_idx, **setting))
 
         logger.info(f"Audio Extracter: {extracter.__name__}")
@@ -85,7 +83,7 @@ class AudioTooling(BaseEncoder):
         settings = self._get_settings(global_settings, overrides, func_name)
 
         self.a_cutter = []
-        for cutter_t, out_idx, setting in zip(cutter_list, self.output_tracks, settings):
+        for cutter_t, out_idx, setting in zip(cutter_list, self.input_tracks, settings):
             self.a_cutter.append(cutter_t(self.file, track=out_idx, **setting))
 
         logger.info(f"Audio Cutter: {cutter.__name__}")
@@ -117,7 +115,7 @@ class AudioTooling(BaseEncoder):
         settings = self._get_settings(global_settings, overrides, func_name)
 
         self.a_encoder = []
-        for encoder_t, out_idx, setting in zip(encoder_list, self.output_tracks, settings):
+        for encoder_t, out_idx, setting in zip(encoder_list, self.input_tracks, settings):
             self.a_encoder.append(encoder_t(self.file, track=out_idx, **setting))
 
         logger.info(f"Audio Encoder: {encoder.__name__}")
