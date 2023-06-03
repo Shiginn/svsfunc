@@ -10,7 +10,7 @@ from vardautomation import (
 from vstools import DataType, core, vs
 
 from .custom_types import FileInfoT, IndexedT, VSIdxFunc
-from .utils import trim
+from .utils import trim, clip_from_indexer
 
 __all__ = ["Indexer", "EpisodeInfo"]
 
@@ -249,17 +249,8 @@ class EpisodeInfo(Generic[IndexedT]):
         self.ep_num = ep_num
         self.op_range = op_range
         self.ed_range = ed_range
-        self.ncop = self._index_nc(ncop, indexer)
-        self.nced = self._index_nc(nced, indexer)
-
-
-    @staticmethod
-    def _index_nc(nc: str | Path | vs.VideoNode | None, indexer: Indexer[IndexedT]) -> vs.VideoNode | None:
-        nc_clip = indexer.index(nc) if isinstance(nc, str | Path) else nc
-        if isinstance(nc_clip, FileInfo):
-            return nc_clip.clip
-
-        return nc_clip
+        self.ncop = clip_from_indexer(ncop, indexer, True) if isinstance(ncop, str | Path) else ncop
+        self.nced = clip_from_indexer(nced, indexer, True) if isinstance(nced, str | Path) else nced
 
 
     def get_op(self, clip: vs.VideoNode | None = None) -> vs.VideoNode:

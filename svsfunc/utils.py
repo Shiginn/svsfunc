@@ -5,6 +5,7 @@ import re
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, NoReturn, TypeVar
+from vardautomation import FileInfo, FileInfo2
 
 from vstools import (
     ChromaLocation, ColorRange, DataType, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, core, get_prop,
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
     from .indexer import Indexer
 
 __all__ = [
-    "trim", "write_props",
+    "trim", "write_props", "clip_from_indexer",
     "get_lsmas_cachefile",
     "normalize_list"
 ]
@@ -95,6 +96,26 @@ def write_props(
     out = clip.std.FrameEval(f, prop_src=clip)
 
     return out.std.SetFrameProp("Name", data=clip_name) if clip_name else out
+
+
+
+def clip_from_indexer(
+    source: str | Path, indexer: Indexer[vs.VideoNode] | Indexer[FileInfo] | Indexer[FileInfo2], ignore_trims: bool
+) -> vs.VideoNode:
+    """
+    Get the indexed clip from any indexer
+
+    :param source:          Source file path
+    :param indexer:         Indexer to tuser
+    :param ignore_trims:    Get untrimmed clip even if the indexer has trims
+
+    :return: Indexed clip
+    """
+    clip = indexer(source)
+    if isinstance(clip, FileInfo):
+        clip = clip.clip if ignore_trims else clip.clip_cut
+
+    return clip
 
 
 def get_lsmas_cachefile(source: str | Path, indexer: Indexer[vs.VideoNode] | None = None) -> Path:
