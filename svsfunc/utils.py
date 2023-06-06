@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 __all__ = [
     "trim", "write_props", "clip_from_indexer",
     "get_lsmas_cachefile",
-    "normalize_list"
+    "ensure_path", "normalize_list"
 ]
 
 T = TypeVar("T")
@@ -158,6 +158,16 @@ def get_lsmas_cachefile(source: str | Path, indexer: Indexer[vs.VideoNode] | Non
         case "getenv(\"TMPDIR\")": return _from_getenv("TMPDIR")
         case "getenv(\"TEMP\")": return _from_getenv("TEMP")
         case _: raise ValueError("get_lsmas_cache: Invalid cache directory found")
+
+
+def ensure_path(path: str | Path, source: str = "ensure_path") -> Path:
+    if isinstance(path, str):
+        path = Path(path)
+
+    if not path.exists():
+        raise ValueError(f"{source}: path \"{path}\" does not exist.")
+
+    return path.resolve()
 
 
 def normalize_list(val: list[T] | T, max_size: int, padding: T, source: str) -> NoReturn | list[T]:
