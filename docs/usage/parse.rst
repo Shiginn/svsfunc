@@ -3,8 +3,8 @@ Using svsfunc.parse
 
 ParseBD
 -------
-ParseBD will try to parse the .mpls files in the BDMV to extract the list of the episodes in the correct order. To do so, you can specify the path to each BD volume or leave ``bd_volumes=None`` to try to find them automatically (they need to be in ``bdmv_folder`` directory).
-The ``ep_playlist`` parameters can be used to change the playlist file to parse. In most BD, the correct playlist file is ``00001.mpls``. In this exemple, it will use the playlist file ``00000.mpls``.
+ParseBD will try to parse the .mpls files in the BDMV to extract the list of the episodes in the correct order. To do so, you can specify the path to the BDMV folder (it will try to find every volumes present in this folder and subfolders) or give the path to every BD volume.
+Use the ``ep_playlist`` parameters to select the playlist file to parse. In most BD, the correct playlist file is ``00000.mpls`` or ``00001.mpls``. In this exemple, it will use the playlist file ``00000.mpls`` (``ep_playlist=0``).
 
 The indexer used can be configured using :py:class:`svsfunc.indexer.Indexer`.
 
@@ -40,15 +40,32 @@ You can set the range of the OP/ED of each episode with the ``set_op_ed_ranges``
         ]
     )
 
+You can also set the NCOP and NCED of each episode with ``set_ncs``. Use a tuple for a range of episode or an int for a specific episode. Can be a path or a clip or ``None``.
+
+.. code:: python
+
+    BDMV.set_ncs(
+        ncops={
+            (1, 12): "/path/to/ncop1.m2ts",
+            (13, 24): "/path/to/ncop2.m2ts"
+        },
+        nceds={
+            (1, 12): "/path/to/nced1.m2ts",
+            13: None,
+            (14, 24): Indexer.lsmas("/path/to/nced2.m2ts")[24:]
+        }
+    )
+
+
 To get an episode, use the ``get_episode`` method. The index start at 1, so doing ``BDMV.get_episode(1)`` will return episode 1.
-``get_episode`` will return an :py:class:`svsfunc.indexer.EpisodeInfo` object with the corresponding episode number and OP/ED ranges (if set).
+``get_episode`` will return an :py:class:`svsfunc.indexer.EpisodeInfo` object with the corresponding episode number, OP/ED ranges (if set) and NCOP/NCED (if set).
 
 To get the list of chapters of an episode, use the ``get_chapter`` method.
 
 .. code:: 
 
     ep_01 = BDMV.get_episode(1)  # type -> EpisodeInfo[FileInfo2]
-    ep_01_chapters = BDMV.get_chapter(1)  # type -> list[Chapter]
+    ep_01_chapters = BDMV.get_chapter(1)  # type -> list[int]
 
 
 ParseFolder
@@ -72,7 +89,7 @@ The episodes will be in the same order as the files in folder (sorted by name). 
 This will take the 4 last episodes and place them at the beginning of the list.
 
 
-Just like ParseBD, you can get an episode with ``get_episode`` and set the OP/ED ranges with ``set_op_ed_ranges``.
+Just like ParseBD, you can get an episode with ``get_episode`` and set the OP/ED ranges with ``set_op_ed_ranges`` and NCOP/NCED with ``set_ncs``.
 
 .. code:: 
 

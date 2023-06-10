@@ -23,7 +23,7 @@ VSIdxFunc: TypeAlias = Callable[[str | Path], vs.VideoNode]
 
 FramePropKey: TypeAlias = Literal["_PictType", "_ChromaLocation", "_Primaries", "_Transfer", "_Matrix", "_ColorRange"]
 
-NCRange: TypeAlias = dict[Union[int, tuple[int, int]], Union[str, Path, None]]
+NCRange: TypeAlias = dict[Union[int, tuple[int, int]], Union[str, Path, vs.VideoNode, None]]
 
 
 class EncoderTypes:
