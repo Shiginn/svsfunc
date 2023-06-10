@@ -1,7 +1,7 @@
 svsfunc.bdmv
 ============
 
-Vardautomation wrapper for parsing BDMV and folders.
+Collection of classes to represent the content of a BDMV.
 
 .. autosummary::
     svsfunc.bdmv.BDMV
