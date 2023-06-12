@@ -7,6 +7,8 @@ from vstools import DataType, core, vs
 
 from .abstract import Indexer, IndexerCache
 
+__all__ = ["AudioIndexer", "BestSourceAudio"]
+
 
 @dataclass
 class AudioIndexer(Indexer[vs.AudioNode]):

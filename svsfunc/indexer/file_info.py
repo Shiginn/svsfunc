@@ -10,6 +10,7 @@ from vardautomation import AnyPath, DuplicateFrame, Preset, PresetBD, PresetBDWA
 from .abstract import Indexer
 from .video import VideoIndexer
 
+__all__ = ["FileInfoIndexer", "FileInfo", "FileInfo2"]
 
 FileInfoIndexer = Union[Indexer[FI], Indexer[FI2]]
 
