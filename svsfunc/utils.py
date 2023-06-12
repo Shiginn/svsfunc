@@ -15,7 +15,7 @@ from vstools import (
 from .custom_types import FramePropKey, PathLike
 
 if TYPE_CHECKING:
-    from .indexer import VideoIndexer, FileInfoIndexer
+    from .indexer import Indexer, FileInfoIndexer
 
 __all__ = [
     "trim", "write_props", "clip_from_indexer",
@@ -99,7 +99,9 @@ def write_props(
 
 
 
-def clip_from_indexer(source: PathLike, indexer: VideoIndexer | FileInfoIndexer, ignore_trims: bool) -> vs.VideoNode:
+def clip_from_indexer(
+    source: PathLike, indexer: Indexer[vs.VideoNode] | FileInfoIndexer, ignore_trims: bool
+) -> vs.VideoNode:
     """
     Get the indexed clip from any indexer
 

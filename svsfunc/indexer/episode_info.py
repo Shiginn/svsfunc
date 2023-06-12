@@ -1,20 +1,22 @@
 from __future__ import annotations
 
-from typing import Any, Generic
 from pathlib import Path
+from typing import Any, Generic
 
 from vardautomation import FileInfo
 from vstools import vs
 
-from ..custom_types import FileInfoT
-from ..utils import clip_from_indexer, trim, ensure_path
-from .abstract import IndexedT, Indexer, PathLike
+from ..custom_types import FileInfoT, HoldsVideoNodeT
+from ..utils import clip_from_indexer, ensure_path, trim
+from .abstract import Indexer, PathLike
 from .video import LSMAS
 
+__all__ = ["EpisodeInfo"]
 
-class EpisodeInfo(Generic[IndexedT]):
+
+class EpisodeInfo(Generic[HoldsVideoNodeT]):
     """Class that represent an indexed episode with episode number and optional OP/ED ranges."""
-    indexed: IndexedT
+    indexed: HoldsVideoNodeT
 
     path: Path
     ep_num: int
@@ -25,10 +27,10 @@ class EpisodeInfo(Generic[IndexedT]):
 
 
     def __init__(
-        self: "EpisodeInfo[IndexedT]", path: PathLike | vs.VideoNode, ep_num: int = -1,
+        self: "EpisodeInfo[HoldsVideoNodeT]", path: PathLike, ep_num: int = -1,
         op_range: tuple[int, int] | None = None, ed_range: tuple[int, int] | None = None,
         ncop: PathLike | vs.VideoNode | None = None, nced: PathLike | vs.VideoNode | None = None,
-        indexer: Indexer[IndexedT] = LSMAS(), **indexer_overrides: Any  # type: ignore
+        indexer: Indexer[HoldsVideoNodeT] = LSMAS(), **indexer_overrides: Any  # type: ignore
     ) -> None:
         self.path = ensure_path(path, "EpisodeInfo")
         self.indexed = indexer.index(self.path, **indexer_overrides)
@@ -36,8 +38,8 @@ class EpisodeInfo(Generic[IndexedT]):
         self.ep_num = ep_num
         self.op_range = op_range
         self.ed_range = ed_range
-        self.ncop = clip_from_indexer(ncop, indexer, True) if isinstance(ncop, PathLike) else ncop
-        self.nced = clip_from_indexer(nced, indexer, True) if isinstance(nced, PathLike) else nced
+        self.ncop = clip_from_indexer(ncop, indexer, True) if isinstance(ncop, str | Path) else ncop
+        self.nced = clip_from_indexer(nced, indexer, True) if isinstance(nced, str | Path) else nced
 
 
     def get_op(self, clip: vs.VideoNode | None = None) -> vs.VideoNode:
