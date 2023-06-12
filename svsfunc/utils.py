@@ -5,17 +5,17 @@ import re
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, NoReturn, TypeVar
-from vardautomation import FileInfo, FileInfo2
+from vardautomation import FileInfo
 
 from vstools import (
-    ChromaLocation, ColorRange, DataType, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, core, get_prop,
+    ChromaLocation, ColorRange, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, core, get_prop,
     normalize_ranges, to_arr, vs
 )
 
-from .custom_types import FramePropKey
+from .custom_types import FramePropKey, PathLike
 
 if TYPE_CHECKING:
-    from .indexer import Indexer
+    from .indexer import VideoIndexer, FileInfoIndexer
 
 __all__ = [
     "trim", "write_props", "clip_from_indexer",
@@ -99,14 +99,12 @@ def write_props(
 
 
 
-def clip_from_indexer(
-    source: str | Path, indexer: Indexer[vs.VideoNode] | Indexer[FileInfo] | Indexer[FileInfo2], ignore_trims: bool
-) -> vs.VideoNode:
+def clip_from_indexer(source: PathLike, indexer: VideoIndexer | FileInfoIndexer, ignore_trims: bool) -> vs.VideoNode:
     """
     Get the indexed clip from any indexer
 
     :param source:          Source file path
-    :param indexer:         Indexer to tuser
+    :param indexer:         Indexer to use
     :param ignore_trims:    Get untrimmed clip even if the indexer has trims
 
     :return: Indexed clip
@@ -118,32 +116,29 @@ def clip_from_indexer(
     return clip
 
 
-def get_lsmas_cachefile(source: str | Path, indexer: Indexer[vs.VideoNode] | None = None) -> Path:
+def get_lsmas_cachefile(source: PathLike) -> Path:
     """
-    Guess lsmas cache file path based on input path, indexer settings and lsmas build options.
+    Guess lsmas cache file path based on input path and lsmas build options.
 
     :param source:          Input file path
-    :param indexer:         Indexer used (must be keyword arguments), defaults to None
+    :param indexer:         Indexer used, defaults to None
 
     :raises ValueError:     If cache directory cannot be guessed or is invalid
 
     :return:                lsmas cache file path
     """
-    source = Path(source) if isinstance(source, str) else source
+    source = ensure_path(source, "get_lsmas_cachefile")
+
     source_lwi = str(
         source.resolve().with_suffix(source.suffix + ".lwi")
     ).replace(":", "_").replace("/", "_").replace("\\", "_")
 
-    cachedir: DataType | None = indexer.kwargs.get("cachedir", None) if indexer is not None else None
-    cachedir = str(cachedir, "utf8") if cachedir is not None else cachedir  # type: ignore
+    config: bytes = core.lsmas.Version()["config"]  # type: ignore
+    regex = re.match("-Dcachedir=\"(.*)\"", config.decode())
+    if regex is None:
+        raise ValueError("get_lsmas_cache: Could not find cache directory")
 
-    if cachedir is None:
-        config: bytes = core.lazy.lsmas.Version()["config"]  # type: ignore
-        regex = re.match("-Dcachedir=\"(.*)\"", config.decode())
-        if regex is None:
-            raise ValueError("get_lsmas_cache: Could not find cache directory")
-
-        cachedir = regex.group(1)
+    cachedir = regex.group(1)
 
     def _from_getenv(env: str) -> Path | NoReturn:
         env_dir = os.getenv(env)

@@ -4,56 +4,65 @@ Using svsfunc.indexer
 Indexer
 -------
 
-The indexer class represent a pre-configured indexer that can be passed to other functions for easy use.
-To index a file you can use the ``index`` method. Indexers are also callable.
+The available indexers are :
 
-.. code:: python
+* `L-SMASH-Works <https://github.com/AkarinVS/L-SMASH-Works>`_
+* `DGIndexNV <https://www.rationalqm.us/dgdecnv/dgdecnv.html>`_
+* `ffms2 <https://github.com/FFMS/ffms2>`_
+* `BestSource <https://github.com/vapoursynth/bestsource>`_ (audio and video)
+* `FileInfo/FileInfo2 <https://github.com/Ichunjo/vardautomation>`_
 
-    idx = ...
-    clip = idx.index("/path/to/file.ext")
-    clip2 = idx("/path/to/file2.ext")
 
-
-To configure an indexer, you can use the corresponding classmethod. The method will list all of the parameters of the indexer (except for file path)
+To configure an indexer, you use the parameters of the :py:meth:`~svsfunc.indexer.Indexer.__init__` method.
 
 .. code:: python
 
     from vardautomation import PresetWEB, PresetAAC
 
-    idx = Indexer.lsmas()  # lsmas with default settings
-    idx = Indexer.file_info(
+    idx = LSMAS()  # lsmas with default settings
+
+    idx = FileInfo(
         trims_or_dfs=(24, -24),
         preset=[PresetWEB, PresetAAC],
-        idx=Indexer.lsmas()  # indexers are callable so they can replace standard indexing functions
+        idx=DGIndexNV()
     )
 
-The available indexers are :
+To index a file, you just to call the :py:meth:`~svsfunc.indexer.Indexer.index` method with the path of the file. Indexers are also callable.
+You can also override the default settings of the indexer.
 
-* `LSMAS <https://github.com/AkarinVS/L-SMASH-Works>`_
-* `ffms2 <https://github.com/FFMS/ffms2>`_
-* `BestSource <https://github.com/vapoursynth/bestsource>`_
-* `DGIndexNV <https://www.rationalqm.us/dgdecnv/dgdecnv.html>`_
-* `FileInfo/FileInfo2 <https://github.com/Ichunjo/vardautomation>`_
+.. code:: python
+
+    idx = LSMAS()
+    clip = idx.index("/path/to/file.ext")
+    clip2 = idx("/path/to/file2.ext", cache=False)
 
 
 EpisodeInfo
 -----------
 
-``EpisodeInfo`` is a class that is useful to represent an episode with its number and its OP/ED ranges.
+``EpisodeInfo`` is a class that is useful to represent an episode with its number, its OP/ED ranges and its NCOP/NCED.
 
-To index a file with ``EpisodeInfo``, you need to provide the path to the file and the number of the episode. OP and ED ranges are optional since some episode do not have OP/ED.
-You can also configure the indexer using the ``Indexer`` class. The default indexer is :py:meth:`svsfunc.indexer.Indexer.lsmas`
+To index a file with ``EpisodeInfo``, you need to provide the path to the file and the number of the episode. OP/ED ranges and NCOP/NCED are optional since some episode do not have OP/ED.
+You can also configure the indexer with the ``indexer`` parameter (the default is :py:class:`~svsfunc.indexer.LSMAS`).
 
 .. code:: python
 
-    ep = EpisodeInfo("/path/to/file", ep_num=1, op_range=None, ed_range=(30000, 32000), indexer=idx)
+    ep = EpisodeInfo(
+        "/path/to/file",
+        ep_num=1,
+        op_range=None,
+        ed_range=(30000, 32000),
+        ncop=None,
+        nced=idx("path/to/nced")[24:-24],
+        indexer=idx
+    )
 
 ``EpisodeInfo`` will determine the type of the indexer object from the indexer used.
 The instance has two property that allows you to access the indexed object : 
 
-* ``file``: to access the FileInfo object (will error if you don't use :py:meth:`svsfunc.indexer.Indexer.file_info` or :py:meth:`svsfunc.indexer.Indexer.file_info2`)
+* ``file``: to access the FileInfo object (will error if you don't use :py:class:`~svsfunc.indexer.FileInfo` or :py:class:`~svsfunc.indexer.FileInfo2`)
 
-* ``clip``: to access the VideoNode object (returns ``clip_cut`` if you use :py:meth:`svsfunc.indexer.Indexer.file_info` or :py:meth:`svsfunc.indexer.Indexer.file_info2`)
+* ``clip``: to access the VideoNode object (returns ``clip_cut`` if you use :py:class:`~svsfunc.indexer.FileInfo` or :py:class:`~svsfunc.indexer.FileInfo2`)
 
 You can also access the OP and ED with the ``get_op`` and ``get_ed`` methods. If the range is ``None``, theses methods will raise an exception.
 These methods can take a ``vs.VideoNode`` as an argument and will trim the given clip instead of the indexed clip.

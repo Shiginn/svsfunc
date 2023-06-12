@@ -7,15 +7,15 @@ from typing import Any, Generic, Iterator, Sequence
 from vstools import to_arr, vs
 
 from .bdmv import BDMV, MplsItem
-from .custom_types import IndexedT, NCRange
-from .indexer import EpisodeInfo, Indexer
+from .custom_types import HoldsVideoNodeT, NCRange, PathLike
+from .indexer import LSMAS, EpisodeInfo, Indexer
 from .utils import clip_from_indexer, normalize_list
 
 __all__ = ["ParseFolder", "ParseBD"]
 
 
-class HasNCs(Generic[IndexedT]):
-    indexer: Indexer[IndexedT]
+class HasNCs(Generic[HoldsVideoNodeT]):
+    indexer: Indexer[HoldsVideoNodeT]
     _ncops: dict[int, vs.VideoNode | Path | None] = {}
     _nceds: dict[int, vs.VideoNode | Path | None] = {}
 
@@ -101,15 +101,15 @@ class HasNCs(Generic[IndexedT]):
 
 
 
-class HasEpisode(HasNCs[IndexedT], Generic[IndexedT]):
+class HasEpisode(HasNCs[HoldsVideoNodeT], Generic[HoldsVideoNodeT]):
     episodes: list[Path]
     episode_number: int
-    indexer: Indexer[IndexedT]
+    indexer: Indexer[HoldsVideoNodeT]
     op_ranges: list[tuple[int, int] | None]
     ed_ranges: list[tuple[int, int] | None]
 
     _idx: int = 1
-    _ep_cache = dict[int, EpisodeInfo[IndexedT]]()
+    _ep_cache = dict[int, EpisodeInfo[HoldsVideoNodeT]]()
 
 
     def _set_episodes(self, eps: Sequence[Path]) -> None:
@@ -126,7 +126,9 @@ class HasEpisode(HasNCs[IndexedT], Generic[IndexedT]):
         self.set_op_ed_ranges()
 
 
-    def get_episode(self, ep_num: int, force_reindex: bool = False, **indexer_overrides: Any) -> EpisodeInfo[IndexedT]:
+    def get_episode(
+        self, ep_num: int, force_reindex: bool = False, **indexer_overrides: Any
+    ) -> EpisodeInfo[HoldsVideoNodeT]:
         """
         Get indexed episode
 
@@ -166,10 +168,10 @@ class HasEpisode(HasNCs[IndexedT], Generic[IndexedT]):
         self.ed_ranges = normalize_list(ed_ranges, self.episode_number, None, func_name)
 
 
-    def __iter__(self) -> Iterator[EpisodeInfo[IndexedT]]:
+    def __iter__(self) -> Iterator[EpisodeInfo[HoldsVideoNodeT]]:
         return self
 
-    def __next__(self) -> EpisodeInfo[IndexedT]:
+    def __next__(self) -> EpisodeInfo[HoldsVideoNodeT]:
         try:
             episode = self.get_episode(self._idx)
         except IndexError:
@@ -180,15 +182,16 @@ class HasEpisode(HasNCs[IndexedT], Generic[IndexedT]):
 
 
 
-class ParseFolder(HasEpisode[IndexedT], HasNCs[IndexedT]):
+class ParseFolder(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
     """
     Folder parser that uses pattern mathching to get episode list.
     """
     folder: Path
 
     def __init__(
-        self: "ParseFolder[IndexedT]", folder: str | Path, pattern: str | None = None, recursive: bool = False,
-        indexer: Indexer[IndexedT] = Indexer.lsmas()  # type: ignore
+        self: "ParseFolder[HoldsVideoNodeT]",
+        folder: PathLike, pattern: str | None = None, recursive: bool = False,
+        indexer: Indexer[HoldsVideoNodeT] = LSMAS()  # type: ignore
     ) -> None:
         """
         Parse folder and list every file that matches given pattern.
@@ -212,7 +215,7 @@ class ParseFolder(HasEpisode[IndexedT], HasNCs[IndexedT]):
         self._set_episodes(sorted(eps, key=lambda x: x.name))
 
 
-class ParseBD(HasEpisode[IndexedT], HasNCs[IndexedT]):
+class ParseBD(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
     """
     BDMV parser that uses playlist files to get episodes and chapters
     """
@@ -220,8 +223,9 @@ class ParseBD(HasEpisode[IndexedT], HasNCs[IndexedT]):
     items: list[MplsItem]
 
     def __init__(
-        self: "ParseBD[IndexedT]", bdmv_path: str | Path | list[str | Path] | tuple[str | Path, list[str | Path]],
-        ep_playlist: int | Sequence[int], indexer: Indexer[IndexedT] = Indexer.lsmas()  # type: ignore
+        self: "ParseBD[HoldsVideoNodeT]",
+        bdmv_path: PathLike | list[PathLike] | tuple[PathLike, list[PathLike]],
+        ep_playlist: int | Sequence[int], indexer: Indexer[HoldsVideoNodeT] = LSMAS()  # type: ignore
     ) -> None:
         """
         Parse BDMV and list every file in matching episode playlist(s).
