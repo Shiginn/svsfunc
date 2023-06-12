@@ -16,8 +16,12 @@ __all__ = ["ParseFolder", "ParseBD"]
 
 class HasNCs(Generic[HoldsVideoNodeT]):
     indexer: Indexer[HoldsVideoNodeT]
-    _ncops: dict[int, vs.VideoNode | Path | None] = {}
-    _nceds: dict[int, vs.VideoNode | Path | None] = {}
+    _ncops: dict[int, vs.VideoNode | Path | None]
+    _nceds: dict[int, vs.VideoNode | Path | None]
+
+    def __init__(self) -> None:
+        self._ncops = {}
+        self._nceds = {}
 
     @staticmethod
     def _parse_nc_ranges(ncs: NCRange | None = None) -> dict[int, vs.VideoNode | Path | None]:
@@ -109,10 +113,11 @@ class HasEpisode(HasNCs[HoldsVideoNodeT], Generic[HoldsVideoNodeT]):
     ed_ranges: list[tuple[int, int] | None]
 
     _idx: int = 1
-    _ep_cache = dict[int, EpisodeInfo[HoldsVideoNodeT]]()
+    _ep_cache: dict[int, EpisodeInfo[HoldsVideoNodeT]]
 
+    def __init__(self, eps: Sequence[Path]) -> None:
+        super().__init__()
 
-    def _set_episodes(self, eps: Sequence[Path]) -> None:
         if not eps:
             raise ValueError(f"{self.__class__.__name__}._set_episodes: input file list is empty.")
 
@@ -121,6 +126,7 @@ class HasEpisode(HasNCs[HoldsVideoNodeT], Generic[HoldsVideoNodeT]):
             if not ep.exists():
                 raise ValueError(f"{self.__class__.__name__}._set_episodes: file with path \"{ep}\" does not exist.")
 
+        self._ep_cache = {}
         self.episodes = sorted(eps, key=lambda x: x.name)
         self.episode_number = len(self.episodes)
         self.set_op_ed_ranges()
@@ -212,7 +218,7 @@ class ParseFolder(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
             pattern = "**" if recursive else "*"
 
         eps = [Path(self.folder / ep) for ep in glob(pattern, root_dir=self.folder, recursive=recursive)]
-        self._set_episodes(sorted(eps, key=lambda x: x.name))
+        super().__init__(eps)
 
 
 class ParseBD(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
@@ -261,7 +267,7 @@ class ParseBD(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
         for bd_vol, p in zip(bdmv.bd_volumes, ep_playlist):
             self.items += bd_vol.get_playlist(p).items
 
-        self._set_episodes([item.m2ts_file for item in self.items])
+        super().__init__([item.m2ts_file for item in self.items])
 
 
     def get_chapter(self, ep_num: int) -> list[int]:
