@@ -225,7 +225,7 @@ class ParseBD(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
     """
     BDMV parser that uses playlist files to get episodes and chapters
     """
-    bdmv_folder: Path
+    bdmv: BDMV
     items: list[MplsItem]
 
     def __init__(
@@ -257,14 +257,13 @@ class ParseBD(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
         else:
             bdmv = BDMV.from_path(bdmv_path)
 
-        self.bdmv_folder = bdmv.bdmv_folder
+        self.bdmv = bdmv
 
-        vol_num = len(bdmv.bd_volumes)
         ep_playlist = to_arr(ep_playlist)
-        ep_playlist = normalize_list(ep_playlist, vol_num, ep_playlist[-1], "ParseBD")
+        ep_playlist = normalize_list(ep_playlist, len(self.bdmv.bd_volumes), ep_playlist[-1], "ParseBD")
 
         self.items = []
-        for bd_vol, p in zip(bdmv.bd_volumes, ep_playlist):
+        for bd_vol, p in zip(self.bdmv.bd_volumes, ep_playlist):
             self.items += bd_vol.get_playlist(p).items
 
         super().__init__([item.m2ts_file for item in self.items])
