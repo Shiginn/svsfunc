@@ -168,8 +168,8 @@ class Encoder(VideoTooling, AudioTooling, ChapterTooling, UtilsTooling):
         add_file = to_arr(add_file) if add_file is not None else []
         ignore_file = to_arr(ignore_file) if ignore_file is not None else []
 
-        if keep_external_audio:
-            ignore_file += self.external_audio
+        if not keep_external_audio:
+            self.runner.work_files.update(self.external_audio)
 
         for add in add_file:
             self.runner.work_files.add(add)
