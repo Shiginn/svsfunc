@@ -17,6 +17,9 @@ class BaseEncoder:
         :param file: FileInfo object.
         :param clip: Clip to encode.
         """
+        import warnings
+        warnings.warn("Encoder is deprecated and will be removed in future versions. Use vs-muxtools instead.")
+
         self.file = file
         self.clip = clip
 
