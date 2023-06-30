@@ -1,6 +1,6 @@
 """Shigin's VapourSynth functions"""
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 __author_name__ = "Shigin"
 __author_email__ = "shigin.contact@gmail.com"
