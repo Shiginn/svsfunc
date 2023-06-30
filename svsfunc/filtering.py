@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import Callable, Dict
 
-from vstools import vs
+from vstools import set_output, vs
 
 __all__ = ["BaseFiltering"]
 
@@ -53,7 +53,7 @@ class BaseFiltering(ABC):
         if self.preview_clips is None:
             raise ValueError(f"{self.__class__.__name__}.set_outputs: no output set.")
 
-        for i, (output_name, output) in enumerate(self.preview_clips.items()):
+        for output_name, output in self.preview_clips.items():
             if preview_func is not None:
                 output = preview_func(output)
 
@@ -63,8 +63,7 @@ class BaseFiltering(ABC):
             if name_pos:
                 output = output.text.Text(output_name, name_pos, font_scaling)
 
-            output = output.std.SetFrameProp("Name", data=output_name)
-            output.set_output(i)
+            set_output(output, output_name)
 
 
     def get_clip(self, clip_name: str | int) -> vs.VideoNode:
