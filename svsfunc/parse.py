@@ -119,15 +119,15 @@ class HasEpisode(HasNCs[HoldsVideoNodeT], Generic[HoldsVideoNodeT]):
         super().__init__()
 
         if not eps:
-            raise ValueError(f"{self.__class__.__name__}._set_episodes: input file list is empty.")
+            raise ValueError(f"{self.__class__.__name__}: input file list is empty.")
 
         self.episodes = []
         for ep in eps:
             if not ep.exists():
-                raise ValueError(f"{self.__class__.__name__}._set_episodes: file with path \"{ep}\" does not exist.")
+                raise ValueError(f"{self.__class__.__name__}: file with path \"{ep}\" does not exist.")
+            self.episodes.append(ep)
 
         self._ep_cache = {}
-        self.episodes = sorted(eps, key=lambda x: x.name)
         self.episode_number = len(self.episodes)
         self.set_op_ed_ranges()
 
@@ -195,9 +195,8 @@ class ParseFolder(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
     folder: Path
 
     def __init__(
-        self: "ParseFolder[HoldsVideoNodeT]",
-        folder: PathLike, pattern: str | None = None, recursive: bool = False,
-        indexer: Indexer[HoldsVideoNodeT] = LSMAS()  # type: ignore
+        self: "ParseFolder[HoldsVideoNodeT]", folder: PathLike, pattern: str | None = None, recursive: bool = False,
+        sort: bool = True, indexer: Indexer[HoldsVideoNodeT] = LSMAS()  # type: ignore
     ) -> None:
         """
         Parse folder and list every file that matches given pattern.
@@ -206,6 +205,7 @@ class ParseFolder(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
         :param pattern:     Pattern that files must match (uses glob syntax). If None, will match every file.
         :param recursive:   If true, the pattern '**' will match any files and zero or more directories and
                             subdirectories.
+        :param sort:        Sort matched files by name.
         :param indexer:     Indexer used to index the files. Defaults to :py:meth:`svsfunc.indexer.Indexer.lsmas`
         """
         self.indexer = indexer
@@ -218,7 +218,7 @@ class ParseFolder(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
             pattern = "**" if recursive else "*"
 
         eps = [Path(self.folder / ep) for ep in glob(pattern, root_dir=self.folder, recursive=recursive)]
-        super().__init__(eps)
+        super().__init__(sorted(eps, key=lambda x: x.name) if sort else eps)
 
 
 class ParseBD(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
