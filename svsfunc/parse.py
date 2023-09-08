@@ -112,8 +112,8 @@ class HasEpisode(HasNCs[HoldsVideoNodeT], Generic[HoldsVideoNodeT]):
     op_ranges: list[tuple[int, int] | None]
     ed_ranges: list[tuple[int, int] | None]
 
-    _idx: int = 1
     _ep_cache: dict[int, EpisodeInfo[HoldsVideoNodeT]]
+    _idx: int
 
     def __init__(self, eps: Sequence[Path]) -> None:
         super().__init__()
@@ -128,9 +128,11 @@ class HasEpisode(HasNCs[HoldsVideoNodeT], Generic[HoldsVideoNodeT]):
             self.episodes.append(ep)
 
         self._ep_cache = {}
-        self.episode_number = len(self.episodes)
         self.set_op_ed_ranges()
 
+    @property
+    def episode_number(self) -> int:
+        return len(self.episodes)
 
     def get_episode(
         self, ep_num: int, force_reindex: bool = False, **indexer_overrides: Any
@@ -175,12 +177,14 @@ class HasEpisode(HasNCs[HoldsVideoNodeT], Generic[HoldsVideoNodeT]):
 
 
     def __iter__(self) -> Iterator[EpisodeInfo[HoldsVideoNodeT]]:
+        self._idx = 1
         return self
 
     def __next__(self) -> EpisodeInfo[HoldsVideoNodeT]:
         try:
             episode = self.get_episode(self._idx)
         except IndexError:
+            self._idx = 1
             raise StopIteration
 
         self._idx += 1
