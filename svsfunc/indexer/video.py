@@ -73,7 +73,7 @@ class DGIndexNV(VideoIndexer):
 
         if not cache_path.exists():
             check_call(["DGIndexNV", "-i", str(path), "-o", str(cache_path), "-h"])
-            Path(cache_path.with_suffix(".log")).unlink(True)
+            cache_path.with_suffix(".log").unlink(True)
 
         return core.dgdecodenv.DGSource(cache_path, *args, **kwargs)
 
