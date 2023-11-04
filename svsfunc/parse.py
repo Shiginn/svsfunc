@@ -10,30 +10,27 @@ from vstools import to_arr, vs
 from .bdmv import BDMV, MplsItem
 from .custom_types import HoldsVideoNodeT, NCRange, PathLike
 from .indexer import LSMAS, EpisodeInfo, Indexer
-from .utils import clip_from_indexer, normalize_list
+from .utils import normalize_list
 
 __all__ = ["ParseFolder", "ParseBD"]
 
 
-class HasNCs(Generic[HoldsVideoNodeT]):
-    indexer: Indexer[HoldsVideoNodeT]
-    _ncops: dict[int, vs.VideoNode | Path | None]
-    _nceds: dict[int, vs.VideoNode | Path | None]
+class HasNCs:
+    _ncops: dict[int, vs.VideoNode | None]
+    _nceds: dict[int, vs.VideoNode | None]
 
     def __init__(self) -> None:
         self._ncops = {}
         self._nceds = {}
 
     @staticmethod
-    def _parse_nc_ranges(ncs: NCRange | None = None) -> dict[int, vs.VideoNode | Path | None]:
+    def _parse_nc_ranges(ncs: NCRange | None = None) -> dict[int, vs.VideoNode | None]:
         ncs_dict = dict[int, vs.VideoNode | Path | None]()
 
         if ncs is None:
             return ncs_dict
 
         for ep_range, nc in ncs.items():
-            if isinstance(nc, str):
-                nc = Path(nc)
 
             if isinstance(ep_range, int):
                 ncs_dict[ep_range] = nc
@@ -57,37 +54,8 @@ class HasNCs(Generic[HoldsVideoNodeT]):
         self._ncops = self._parse_nc_ranges(ncops)
         self._nceds = self._parse_nc_ranges(nceds)
 
-
-    def _get_nc(self, ncs: list[Path | vs.VideoNode], nc_idx: int) -> vs.VideoNode:
-        nc = ncs[nc_idx - 1]
-
-        if isinstance(nc, Path):
-            nc = clip_from_indexer(nc, self.indexer, True)
-
-        return nc
-
-    def get_ncop(self, nc_idx: int) -> vs.VideoNode:
-        """
-        Get a NCOP and index it if necessary. Ignores the NCOPs set to None.
-
-        :param nc_idx:  Index of the NCOP to get (one-based)
-
-        :return:        Indexed NCOP
-        """
-        return self._get_nc(self.ncops, nc_idx)
-
-    def get_nced(self, nc_idx: int) -> vs.VideoNode:
-        """
-        Get a NCED and index it if necessary. Ignores the NCEDs set to None.
-
-        :param nc_idx:  Index of the NCED to get (one-based)
-
-        :return:        Indexed NCED
-        """
-        return self._get_nc(self.nceds, nc_idx)
-
     @property
-    def ncops(self) -> list[vs.VideoNode | Path]:
+    def ncops(self) -> list[vs.VideoNode]:
         """
         List of all of the NCOPs set.
 
@@ -96,7 +64,7 @@ class HasNCs(Generic[HoldsVideoNodeT]):
         return [nc for nc in self._ncops.values() if nc is not None]
 
     @property
-    def nceds(self) -> list[vs.VideoNode | Path]:
+    def nceds(self) -> list[vs.VideoNode]:
         """
         List of all of the NCEDs set.
 
@@ -106,7 +74,7 @@ class HasNCs(Generic[HoldsVideoNodeT]):
 
 
 
-class HasEpisode(HasNCs[HoldsVideoNodeT], Generic[HoldsVideoNodeT]):
+class HasEpisode(HasNCs, Generic[HoldsVideoNodeT]):
     episodes: list[Path]
     indexer: Indexer[HoldsVideoNodeT]
     op_ranges: list[tuple[int, int] | None]
@@ -192,7 +160,7 @@ class HasEpisode(HasNCs[HoldsVideoNodeT], Generic[HoldsVideoNodeT]):
 
 
 
-class ParseFolder(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
+class ParseFolder(HasEpisode[HoldsVideoNodeT], HasNCs):
     """
     Folder parser that uses pattern mathching to get episode list.
     """
