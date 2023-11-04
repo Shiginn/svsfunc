@@ -193,7 +193,7 @@ class ParseFolder(HasEpisode[HoldsVideoNodeT], HasNCs):
         super().__init__(sorted(eps, key=lambda x: x.name) if sort else eps)
 
 
-class ParseBD(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
+class ParseBD(HasEpisode[HoldsVideoNodeT], HasNCs):
     """
     BDMV parser that uses playlist files to get episodes and chapters
     """
