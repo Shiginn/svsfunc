@@ -6,7 +6,7 @@ from typing import Any, Callable, NoReturn, TypeVar
 
 from vstools import (
     ChromaLocation, ColorRange, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, get_prop, normalize_ranges,
-    to_arr, vs
+    to_arr, vs, remap_frames
 )
 
 from .custom_types import FramePropKey
@@ -34,13 +34,7 @@ def trim(clip: vs.VideoNode, frame_range: FrameRangeN | FrameRangesN) -> vs.Vide
     if not ranges:
         raise ValueError("trim: Cannot trim clip with empty range")
 
-    s, e = ranges.pop(0)
-    trim_clip = clip[s:e + 1]
-
-    for (s, e) in ranges:
-        trim_clip += clip[s:e + 1]
-
-    return trim_clip
+    return remap_frames(clip, ranges)
 
 
 def write_props(
