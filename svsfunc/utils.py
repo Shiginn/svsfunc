@@ -1,25 +1,18 @@
 from __future__ import annotations
 
-import os
-import re
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, NoReturn, TypeVar
-from vsmuxtools import src_file
+from typing import Any, Callable, NoReturn, TypeVar
 
 from vstools import (
-    ChromaLocation, ColorRange, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, core, get_prop,
-    normalize_ranges, to_arr, vs
+    ChromaLocation, ColorRange, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, get_prop, normalize_ranges,
+    to_arr, vs
 )
 
-from .custom_types import FramePropKey, PathLike
-
-if TYPE_CHECKING:
-    from .indexer import Indexer
+from .custom_types import FramePropKey
 
 __all__ = [
-    "trim", "write_props", "clip_from_indexer",
-    "get_lsmas_cachefile",
+    "trim", "write_props",
     "ensure_path", "normalize_list"
 ]
 
@@ -96,65 +89,6 @@ def write_props(
     out = clip.std.FrameEval(f, prop_src=clip)
 
     return out.std.SetFrameProp("Name", data=clip_name) if clip_name else out
-
-
-
-def clip_from_indexer(
-    source: PathLike, indexer: Indexer[vs.VideoNode] | Indexer[src_file], ignore_trims: bool
-) -> vs.VideoNode:
-    """
-    Get the indexed clip from any indexer
-
-    :param source:          Source file path
-    :param indexer:         Indexer to use
-    :param ignore_trims:    Get untrimmed clip even if the indexer has trims
-
-    :return: Indexed clip
-    """
-    clip = indexer(source)
-    if isinstance(clip, src_file):
-        clip = clip.src if ignore_trims else clip.src_cut
-
-    return clip
-
-
-def get_lsmas_cachefile(source: PathLike) -> Path:
-    """
-    Guess lsmas cache file path based on input path and lsmas build options.
-
-    :param source:          Input file path
-    :param indexer:         Indexer used, defaults to None
-
-    :raises ValueError:     If cache directory cannot be guessed or is invalid
-
-    :return:                lsmas cache file path
-    """
-    source = ensure_path(source, "get_lsmas_cachefile")
-
-    source_lwi = str(
-        source.resolve().with_suffix(source.suffix + ".lwi")
-    ).replace(":", "_").replace("/", "_").replace("\\", "_")
-
-    config: bytes = core.lsmas.Version()["config"]  # type: ignore
-    regex = re.match("-Dcachedir=\"(.*)\"", config.decode())
-    if regex is None:
-        raise ValueError("get_lsmas_cache: Could not find cache directory")
-
-    cachedir = regex.group(1)
-
-    def _from_getenv(env: str) -> Path | NoReturn:
-        env_dir = os.getenv(env)
-        if env_dir is None:
-            raise ValueError(f"get_lsmas_cache: Environment variable \"{env}\" is missing")
-        return Path(env_dir) / source_lwi
-
-    match cachedir:
-        case '""' | "": return source.with_suffix(source.suffix + ".lwi")
-        case ".": return Path.cwd() / source_lwi
-        case "/tmp": return Path("/tmp") / source_lwi
-        case "getenv(\"TMPDIR\")": return _from_getenv("TMPDIR")
-        case "getenv(\"TEMP\")": return _from_getenv("TEMP")
-        case _: raise ValueError("get_lsmas_cache: Invalid cache directory found")
 
 
 def ensure_path(path: str | Path, source: str = "ensure_path") -> Path:
