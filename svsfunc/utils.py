@@ -44,7 +44,7 @@ def trim(clip: vs.VideoNode, frame_range: FrameRangeN | FrameRangesN) -> vs.Vide
 
 
 def write_props(
-    clip: vs.VideoNode, props: FramePropKey | list[FramePropKey] = "_PictType", clip_name: str | None = None,
+    clip: vs.VideoNode, props: FramePropKey | list[FramePropKey] | None = None, clip_name: str | None = None,
     alignment: int = 7, scale: int = 1
 ) -> vs.VideoNode:
     """
@@ -61,7 +61,7 @@ def write_props(
     :return:            Clip with frame props
     """
     prop_map: dict[FramePropKey, tuple[str, Callable[[Any], str]]] = {
-        "_PictType": ("Picture Type", lambda x: x.decode()),  # type: ignore
+        "_PictType": ("Picture Type", lambda x: x.decode()),
         "_ChromaLocation": ("Chroma Location", lambda x: ChromaLocation(x).pretty_string),
         "_Primaries": ("Primaries", lambda x: Primaries(x).pretty_string),
         "_Transfer": ("Transfer", lambda x: Transfer(x).pretty_string),
@@ -85,7 +85,7 @@ def write_props(
 
         return clip.text.Text(txt, alignment=alignment, scale=scale)
 
-    f = partial(_get_props, clip=clip, props=to_arr(props))
+    f = partial(_get_props, clip=clip, props=to_arr(props or "_PictType"))
     out = clip.std.FrameEval(f, prop_src=clip)
 
     return out.std.SetFrameProp("Name", data=clip_name) if clip_name else out

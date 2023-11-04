@@ -25,7 +25,7 @@ class HasNCs:
 
     @staticmethod
     def _parse_nc_ranges(ncs: NCRange | None = None) -> dict[int, vs.VideoNode | None]:
-        ncs_dict = dict[int, vs.VideoNode | Path | None]()
+        ncs_dict = dict[int, vs.VideoNode | None]()
 
         if ncs is None:
             return ncs_dict

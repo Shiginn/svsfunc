@@ -19,4 +19,4 @@ PathLike: TypeAlias = Union[str, Path]
 
 FramePropKey: TypeAlias = Literal["_PictType", "_ChromaLocation", "_Primaries", "_Transfer", "_Matrix", "_ColorRange"]
 
-NCRange: TypeAlias = dict[Union[int, tuple[int, int]], Union[PathLike, vs.VideoNode, None]]
+NCRange: TypeAlias = dict[Union[int, tuple[int, int]], Union[vs.VideoNode, None]]
