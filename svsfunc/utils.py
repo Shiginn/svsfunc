@@ -5,7 +5,7 @@ import re
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, NoReturn, TypeVar
-from vardautomation import FileInfo
+from vsmuxtools import src_file
 
 from vstools import (
     ChromaLocation, ColorRange, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, core, get_prop,
@@ -15,7 +15,7 @@ from vstools import (
 from .custom_types import FramePropKey, PathLike
 
 if TYPE_CHECKING:
-    from .indexer import Indexer, FileInfoIndexer
+    from .indexer import Indexer
 
 __all__ = [
     "trim", "write_props", "clip_from_indexer",
@@ -100,7 +100,7 @@ def write_props(
 
 
 def clip_from_indexer(
-    source: PathLike, indexer: Indexer[vs.VideoNode] | FileInfoIndexer, ignore_trims: bool
+    source: PathLike, indexer: Indexer[vs.VideoNode] | Indexer[src_file], ignore_trims: bool
 ) -> vs.VideoNode:
     """
     Get the indexed clip from any indexer
@@ -112,8 +112,8 @@ def clip_from_indexer(
     :return: Indexed clip
     """
     clip = indexer(source)
-    if isinstance(clip, FileInfo):
-        clip = clip.clip if ignore_trims else clip.clip_cut
+    if isinstance(clip, src_file):
+        clip = clip.src if ignore_trims else clip.src_cut
 
     return clip
 

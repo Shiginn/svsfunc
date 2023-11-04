@@ -8,6 +8,7 @@ from vardautomation import (
     MatroskaXMLChapters, MKVAudioExtracter, NVEncCLossless, OGMChapters, OpusEncoder, PassthroughAudioEncoder,
     PassthroughCutter, QAACEncoder, ScipyCutter, SoxCutter
 )
+from vsmuxtools import src_file
 from vstools import vs
 
 __all__ = [
@@ -18,8 +19,8 @@ __all__ = [
 
 
 FileInfoT = TypeVar("FileInfoT", FileInfo, FileInfo2)
-IndexedT = TypeVar("IndexedT", vs.VideoNode, vs.AudioNode, FileInfo, FileInfo2)
-HoldsVideoNodeT = TypeVar("HoldsVideoNodeT", vs.VideoNode, FileInfo, FileInfo2)
+IndexedT = TypeVar("IndexedT", vs.VideoNode, vs.AudioNode, src_file)
+HoldsVideoNodeT = TypeVar("HoldsVideoNodeT", vs.VideoNode, src_file)
 
 PathLike: TypeAlias = Union[str, Path]
 
