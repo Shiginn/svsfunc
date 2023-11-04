@@ -1,10 +1,7 @@
 svsfunc's Documentation
 ===================================
 
-.. image:: https://img.shields.io/badge/python-3.10-blue
-..
-    todo: switch to pypi version
-
+.. image:: https://img.shields.io/badge/python-3.11-blue
 
 .. image:: https://img.shields.io/github/actions/workflow/status/Shiginn/svsfunc/lint.yml?branch=master&label=lint
 

@@ -9,8 +9,7 @@ Collection of various indexer made for easier automation
     svsfunc.indexer.FFMS2
     svsfunc.indexer.BestSourceVideo
     svsfunc.indexer.BestSourceAudio
-    svsfunc.indexer.FileInfo
-    svsfunc.indexer.FileInfo2
+    svsfunc.indexer.SrcFile
     svsfunc.indexer.EpisodeInfo
 
 .. autoclass:: svsfunc.indexer.Indexer
@@ -45,14 +44,8 @@ Collection of various indexer made for easier automation
     :show-inheritance:
     :exclude-members: __init__
 
-.. autoclass:: svsfunc.indexer.FileInfo
+.. autoclass:: svsfunc.indexer.SrcFile
     :show-inheritance:
-    :inherited-members: svsfunc.indexer._FileInfoIndexer
-    :exclude-members: __init__, index
-
-.. autoclass:: svsfunc.indexer.FileInfo2
-    :show-inheritance:
-    :inherited-members: svsfunc.indexer._FileInfoIndexer
     :exclude-members: __init__, index
 
 .. autoclass:: svsfunc.indexer.EpisodeInfo

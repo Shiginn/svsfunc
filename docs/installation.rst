@@ -12,10 +12,15 @@ To install svsfunc, use the command:
 
 Dependencies
 ------------
-This module requires `VapourSynth <https://www.vapoursynth.com>`_ as well as the following python modules and their dependencies :
+This module requires `VapourSynth <https://www.vapoursynth.com>`_ and the following plugins:
 
-* `vardautomation <https://github.com/Ichunjo/vardautomation>`_
-* `vstools <https://github.com/Irrational-Encoding-Wizardry/vs-tools>`_
+* `L-SMASH-Works <https://github.com/AkarinVS/L-SMASH-Works>`_
+* `DGIndexNV <https://www.rationalqm.us/dgdecnv/dgdecnv.html>`_
+* `ffms2 <https://github.com/FFMS/ffms2>`_
+* `BestSource <https://github.com/vapoursynth/bestsource>`_
+* `BestAudioSource <https://github.com/vapoursynth/bestaudiosource>`_ (not required if you already have BestSource installed)
 
-.. warning:: 
-    Vardautomation might not install if you are using python 3.11 (or higher) and/or lvsfunc 0.7.0 (or higher).
+It also requires the following python modules and their dependencies:
+
+* `vstools <https://github.com/Jaded-Encoding-Thaumaturgy/vs-tools>`_
+* `vsmuxtools <https://github.com/Vodes/vs-muxtools>`_

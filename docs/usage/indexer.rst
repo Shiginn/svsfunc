@@ -17,20 +17,18 @@ To configure an indexer, you use the parameters of the :py:meth:`~svsfunc.indexe
 
 .. code:: python
 
-    from vardautomation import PresetWEB, PresetAAC
+    from svsfunc import LSMAS, SrcFile
 
     idx = LSMAS()  # lsmas with default settings
 
-    idx = FileInfo(
-        trims_or_dfs=(24, -24),
-        preset=[PresetWEB, PresetAAC],
-        idx=DGIndexNV()
-    )
+    idx = SrcFile(trims=(24, -24), idx=DGIndexNV())
 
 To index a file, you just to call the :py:meth:`~svsfunc.indexer.Indexer.index` method with the path of the file. Indexers are also callable.
 You can also override the default settings of the indexer.
 
 .. code:: python
+
+    from svsfunc import LSMAS()
 
     idx = LSMAS()
     clip = idx.index("/path/to/file.ext")
@@ -47,11 +45,15 @@ You can also configure the indexer with the ``indexer`` parameter (the default i
 
 .. code:: python
 
+    from svsfunc import EpisodeInfo, LSMAS
+
+    idx = LSMAS()
+
     ep = EpisodeInfo(
         "/path/to/file",
         ep_num=1,
         op_range=None,
-        ed_range=(30000, 32000),
+        ed_range=(30000, 32158),
         ncop=None,
         nced=idx("path/to/nced")[24:-24],
         indexer=idx
@@ -60,9 +62,9 @@ You can also configure the indexer with the ``indexer`` parameter (the default i
 ``EpisodeInfo`` will determine the type of the indexer object from the indexer used.
 The instance has two property that allows you to access the indexed object : 
 
-* ``file``: to access the FileInfo object (will error if you don't use :py:class:`~svsfunc.indexer.FileInfo` or :py:class:`~svsfunc.indexer.FileInfo2`)
+* ``src_file``: to access the SrcFile object (will error if you don't use :py:class:`~svsfunc.indexer.SrcFile`)
 
-* ``clip``: to access the VideoNode object (returns ``clip_cut`` if you use :py:class:`~svsfunc.indexer.FileInfo` or :py:class:`~svsfunc.indexer.FileInfo2`)
+* ``clip``: to access the VideoNode object (returns ``clip_cut`` if you use :py:class:`~svsfunc.indexer.SrcFile`)
 
 You can also access the OP and ED with the ``get_op`` and ``get_ed`` methods. If the range is ``None``, theses methods will raise an exception.
 These methods can take a ``vs.VideoNode`` as an argument and will trim the given clip instead of the indexed clip.

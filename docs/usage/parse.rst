@@ -10,18 +10,11 @@ The indexer used can be configured using :py:class:`svsfunc.indexer.Indexer`.
 
 .. code:: python
 
-    from vardautomation import PresetBDWAV64, PresetOpus
+    from svsfunc import SrcFile, LSMAS
 
-    idx = Indexer.file_info2(trims_or_dfs=(24, -24), idx=Indexer.lsmas(), preset=[PresetBDWAV64, PresetOpus])
+    idx = SrcFile(idx=LSMAS())
     BDMV = ParseBD("/path/to/BDMV", ep_playlist=0, indexer=idx)
 
-
-.. code:: python
-
-    from vardautomation import PresetBDWAV64, PresetOpus
-
-    idx = Indexer.file_info2(trims_or_dfs=(24, -24), idx=Indexer.lsmas(), preset=[PresetBDWAV64, PresetOpus])
-    BDMV = ParseBD("/path/to/BDMV", ep_playlist=0, indexer=idx)
 
 You can set the range of the OP/ED of each episode with the ``set_op_ed_ranges`` method. Use ``None`` if the episode does not have an OP/ED.
 
@@ -44,15 +37,17 @@ You can also set the NCOP and NCED of each episode with ``set_ncs``. Use a tuple
 
 .. code:: python
 
+    idx = LSMAS()
+
     BDMV.set_ncs(
         ncops={
-            (1, 12): "/path/to/ncop1.m2ts",
-            (13, 24): "/path/to/ncop2.m2ts"
+            (1, 12): idx("/path/to/ncop1.m2ts"),
+            (13, 24): idx("/path/to/ncop2.m2ts")
         },
         nceds={
-            (1, 12): "/path/to/nced1.m2ts",
+            (1, 12): idx("/path/to/nced1.m2ts")[:-24],
             13: None,
-            (14, 24): Indexer.lsmas("/path/to/nced2.m2ts")[24:]
+            (14, 24): idx("/path/to/nced2.m2ts")[24:]
         }
     )
 
@@ -60,12 +55,13 @@ You can also set the NCOP and NCED of each episode with ``set_ncs``. Use a tuple
 To get an episode, use the ``get_episode`` method. The index start at 1, so doing ``BDMV.get_episode(1)`` will return episode 1.
 ``get_episode`` will return an :py:class:`svsfunc.indexer.EpisodeInfo` object with the corresponding episode number, OP/ED ranges (if set) and NCOP/NCED (if set).
 
-To get the list of chapters of an episode, use the ``get_chapter`` method.
+To get the list of chapters of an episode, use the ``get_chapter`` method. A list of name can be passed to rename the chapters (default to Chapter 1, 2, 3...)
 
 .. code:: 
 
-    ep_01 = BDMV.get_episode(1)  # type -> EpisodeInfo[FileInfo2]
-    ep_01_chapters = BDMV.get_chapter(1)  # type -> list[int]
+    ep_01 = BDMV.get_episode(1)  # type -> EpisodeInfo[SrcFile]
+    ep_01_chapters = BDMV.get_chapter(1)
+    ep_01_chapters = BDMV.get_chapter(1, ["Intro", "OP", "Part A", "Part B", "ED"])
 
 
 ParseFolder
@@ -74,10 +70,8 @@ ParseFolder will try to get the list of files that matches an expression in the 
 
 .. code:: python
 
-    from vardautomation import PresetWEB, PresetAAC
-    
-    idx = Indexer.file_info(trims_or_dfs=(24, -24), idx=Indexer.lsmas(), preset=[PresetWEB, PresetAAC])
-    WEB = ParseFolder("/path/to/folder", episode_pattern="* Anime Name S??E?? *.mkv", indexer=idx)
+    from svsfunc import LSMAS
+    WEB = ParseFolder("/path/to/folder", pattern="* Anime Name S??E?? *.mkv", indexer=LSMAS())
 
 
 The episodes will be in the same order as the files in folder (sorted by name). So if your episodes don't have the same naming convention, it can impact the episode order. To fix this issue:
@@ -93,4 +87,4 @@ Just like ParseBD, you can get an episode with ``get_episode`` and set the OP/ED
 
 .. code:: 
 
-    ep_01 = WEB.get_episode(1)  # Type is EpisodeInfo[FileInfo2]
+    ep_01 = WEB.get_episode(1)  # Type is EpisodeInfo[VideoNode]

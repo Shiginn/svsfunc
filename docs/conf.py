@@ -82,7 +82,9 @@ autodoc_default_options = {
     'special-members': '__init__',
 }
 autodoc_typehints = "signature"
-autodoc_mock_imports = [re.split("[>=~]=", line.strip())[0].lower() for line in Path("../requirements.txt").open()]
+autodoc_mock_imports = [
+    re.split("[>=~]=", line.strip())[0].lower() for line in Path("../requirements.txt").open()
+] + ["vardautomation"]
 pygments_style = 'sphinx'
 
 

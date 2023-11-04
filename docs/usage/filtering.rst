@@ -11,11 +11,10 @@ You can also get a clip from the list of preview clips with the :py:meth:`~svsfu
 .. code:: python
 
     from svsfunc import EpisodeInfo, BaseFiltering
-    from vardautomation image FileInfo
-    from vstools import initilize_clip, fininalize_clip
+    from vstools import initilize_clip, fininalize_clip, vs
 
     class MyFilterchain(BaseFiltering):
-        def __init__(self, source: EpisodeInfo[FileInfo]):
+        def __init__(self, source: EpisodeInfo[vs.VideoNode]):
             self.source = source
         
         def filter(self) -> vs.VideoNode:

@@ -1,6 +1,10 @@
 Using svsfunc.encode
 =====================
 
+.. warning:: 
+    This module is deprecated and will be removed in future versions. Please use vs-muxtools instead.
+    This module requires Vardautomation.
+
 The :py:class:`~svsfunc.encode.Encoder` allows you to automate the encoding process. To do so, it uses Vardautomation and the various tools it provides to encode, mux and create chapters.
 
 The first step is to create an :py:class:`~svsfunc.encode.Encoder` object. You need a file (``FileInfo`` or ``FileInfo``) and a clip.
