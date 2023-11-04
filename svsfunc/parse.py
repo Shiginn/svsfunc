@@ -4,6 +4,7 @@ from glob import glob
 from pathlib import Path
 from typing import Any, Generic, Iterator, Sequence
 
+from vsmuxtools import Chapters
 from vstools import to_arr, vs
 
 from .bdmv import BDMV, MplsItem
@@ -107,7 +108,6 @@ class HasNCs(Generic[HoldsVideoNodeT]):
 
 class HasEpisode(HasNCs[HoldsVideoNodeT], Generic[HoldsVideoNodeT]):
     episodes: list[Path]
-    episode_number: int
     indexer: Indexer[HoldsVideoNodeT]
     op_ranges: list[tuple[int, int] | None]
     ed_ranges: list[tuple[int, int] | None]
@@ -200,7 +200,7 @@ class ParseFolder(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
 
     def __init__(
         self: "ParseFolder[HoldsVideoNodeT]", folder: PathLike, pattern: str | None = None, recursive: bool = False,
-        sort: bool = True, indexer: Indexer[HoldsVideoNodeT] = LSMAS()  # type: ignore
+        sort: bool = True, indexer: Indexer[HoldsVideoNodeT] = LSMAS()
     ) -> None:
         """
         Parse folder and list every file that matches given pattern.
@@ -235,7 +235,7 @@ class ParseBD(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
     def __init__(
         self: "ParseBD[HoldsVideoNodeT]",
         bdmv_path: PathLike | list[PathLike] | tuple[PathLike, list[PathLike]],
-        ep_playlist: int | Sequence[int], indexer: Indexer[HoldsVideoNodeT] = LSMAS()  # type: ignore
+        ep_playlist: int | Sequence[int], indexer: Indexer[HoldsVideoNodeT] = LSMAS()
     ) -> None:
         """
         Parse BDMV and list every file in matching episode playlist(s).
@@ -273,11 +273,24 @@ class ParseBD(HasEpisode[HoldsVideoNodeT], HasNCs[HoldsVideoNodeT]):
         super().__init__([item.m2ts_file for item in self.items])
 
 
-    def get_chapter(self, ep_num: int) -> list[int]:
+    def get_chapter(self, ep_num: int, chapters_names: list[str | None] | None = None) -> Chapters:
         """Get a list of chapters of an episode
 
         :param ep_num:      Number of the episode to get chapters from, one-based
 
         :return:            List of chapters
         """
-        return self.items[ep_num - 1].chapters
+        mpls_item = self.items[ep_num - 1]
+        chaps_frames = mpls_item.chapters
+        chap_num = len(chaps_frames)
+
+        if chapters_names is None:
+            chapters_names = [None] * chap_num
+
+        if (name_num := len(chapters_names)) != chap_num:
+            raise ValueError(
+                f"ParseBD.get_chapter: invalid number of chapters_names given, expected {chap_num}, got {name_num}. " +
+                f"Chapters frames: {', '.join([str(f) for f in chaps_frames])}"
+            )
+
+        return Chapters(list(zip(chaps_frames, chapters_names, strict=True)), fps=mpls_item.framerate)
