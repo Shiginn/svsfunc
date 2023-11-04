@@ -1,6 +1,5 @@
-VapourSynth>=63
-vardautomation>=1.2.4
-vstools>=2.3.0
+VapourSynth>=65
+vstools>=3.0.1
 pyparsebluray>=0.1.4
 pytimeconv>=0.0.2
 vsmuxtools>=0.0.9

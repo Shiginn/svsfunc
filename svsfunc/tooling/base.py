@@ -18,7 +18,10 @@ class BaseEncoder:
         :param clip: Clip to encode.
         """
         import warnings
-        warnings.warn("Encoder is deprecated and will be removed in future versions. Use vs-muxtools instead.")
+        warnings.warn(
+            "svsfunc.Encoder is deprecated and will be removed in future versions. Please use vs-muxtools instead.",
+            category=DeprecationWarning
+        )
 
         self.file = file
         self.clip = clip

@@ -2,27 +2,29 @@ from __future__ import annotations
 
 __all__ = ["VideoTooling"]
 
-from typing import Any, Callable
+from typing import Any, Callable, TypeAlias, Union
 
-from vardautomation import VPath, logger
+from vardautomation import FFV1, X264, X265, NVEncCLossless, VPath, logger
 from vstools import vs
 
-from ..custom_types import EncoderTypes
 from .base import BaseEncoder
+
+VideoEncoder: TypeAlias = Union[X264, X265]
+VideoLosslessEncoder: TypeAlias = Union[FFV1, NVEncCLossless]
 
 
 class VideoTooling(BaseEncoder):
     """Tools for video encoding"""
 
-    v_encoder: EncoderTypes.Video.Encoder
-    v_lossless_encoder: EncoderTypes.Video.LosslessEncoder | None = None
+    v_encoder: VideoEncoder
+    v_lossless_encoder: VideoLosslessEncoder | None = None
 
     qp_file: vs.VideoNode | None = None
     post_filterchain_func: Callable[[VPath], vs.VideoNode] | None = None
 
     def video_encoder(
         self,
-        encoder: type[EncoderTypes.Video.Encoder],
+        encoder: type[VideoEncoder],
         settings: str | list[str] | dict[str, Any],
         resumable: bool = False,
         zones: dict[tuple[int, int], dict[str, Any]] | None = None,
@@ -61,7 +63,7 @@ class VideoTooling(BaseEncoder):
 
 
     def video_lossless_encoder(
-        self, lossless_encoder: type[EncoderTypes.Video.LosslessEncoder],
+        self, lossless_encoder: type[VideoLosslessEncoder],
         post_filterchain_func: Callable[[VPath], vs.VideoNode] | None = None,
         **enc_overrides: Any
     ) -> None:

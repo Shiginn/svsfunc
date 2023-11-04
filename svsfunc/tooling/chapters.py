@@ -2,22 +2,22 @@ from __future__ import annotations
 
 __all__ = ["ChapterTooling"]
 
-from typing import Sequence, cast
+from typing import Sequence, TypeAlias, Union, cast
 
-from vardautomation import Chapter, MatroskaXMLChapters, VPath
+from vardautomation import Chapter, MatroskaXMLChapters, OGMChapters, VPath
 
-from ..custom_types import EncoderTypes
 from .base import BaseEncoder
+
+ChapterFormat: TypeAlias = Union[MatroskaXMLChapters, OGMChapters]
 
 
 class ChapterTooling(BaseEncoder):
     """Tools for generating chapter files"""
-
     def make_chapters(
         self,
         chapters: list[int] | list[Chapter],
         chapters_names: Sequence[str | None] | None = None,
-        format: type[EncoderTypes.Chapter.Format] = MatroskaXMLChapters,
+        format: type[ChapterFormat] = MatroskaXMLChapters,
         path: str | VPath | None = None,
         shift_time: int | None = None,
     ) -> None:
@@ -31,6 +31,7 @@ class ChapterTooling(BaseEncoder):
         :param shift_time:          Custom shift for all of the chapters in number of frames. Positive shift means
                                     chapters will start latter, negative means earlier. If None, use FileInfo trims.
         """
+        from vardautomation import Chapter, VPath
 
         if path is not None:
             if isinstance(path, str):

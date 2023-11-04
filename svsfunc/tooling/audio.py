@@ -1,11 +1,17 @@
 __all__ = ["AudioTooling"]
 
-from typing import Any, NoReturn
+from typing import Any, NoReturn, TypeAlias, Union
 
-from vardautomation import Eac3toAudioExtracter, PresetWEB, logger
+from vardautomation import (
+    Eac3toAudioExtracter, EztrimCutter, FFmpegAudioExtracter, FlacEncoder, MKVAudioExtracter, OpusEncoder,
+    PassthroughAudioEncoder, PassthroughCutter, PresetWEB, QAACEncoder, ScipyCutter, SoxCutter, logger
+)
 
-from ..custom_types import EncoderTypes
 from .base import BaseEncoder
+
+AudioExtracter: TypeAlias = Union[FFmpegAudioExtracter, MKVAudioExtracter, Eac3toAudioExtracter]
+AudioCutter: TypeAlias = Union[EztrimCutter, SoxCutter, ScipyCutter, PassthroughCutter]
+AudioEncoder: TypeAlias = Union[FlacEncoder, OpusEncoder, QAACEncoder, PassthroughAudioEncoder]
 
 
 class AudioTooling(BaseEncoder):
@@ -13,9 +19,9 @@ class AudioTooling(BaseEncoder):
 
     track_number: int = 0
     input_tracks: list[int] = []
-    a_extracter: list[EncoderTypes.Audio.Extracter] | None = None
-    a_cutter: list[EncoderTypes.Audio.Cutter] | None = None
-    a_encoder: list[EncoderTypes.Audio.Encoder] | None = None
+    a_extracter: list[AudioExtracter] | None = None
+    a_cutter: list[AudioCutter] | None = None
+    a_encoder: list[AudioEncoder] | None = None
 
 
     def set_audio_tracks(self, tracks: int | list[int] | None) -> None:
@@ -33,7 +39,7 @@ class AudioTooling(BaseEncoder):
 
     def audio_extracter(
         self,
-        extracter: type[EncoderTypes.Audio.Extracter],
+        extracter: type[AudioExtracter],
         global_settings: dict[str, Any] | None = None,
         overrides: dict[int, dict[str, Any]] | None = None
     ) -> None:
@@ -64,7 +70,7 @@ class AudioTooling(BaseEncoder):
 
     def audio_cutter(
         self,
-        cutter: type[EncoderTypes.Audio.Cutter],
+        cutter: type[AudioCutter],
         global_settings: dict[str, Any] | None = None,
         overrides: dict[int, dict[str, Any]] | None = None
     ) -> None:
@@ -90,10 +96,9 @@ class AudioTooling(BaseEncoder):
         logger.info(f"Overrides: {overrides}")
 
 
-
     def audio_encoder(
         self,
-        encoder: type[EncoderTypes.Audio.Encoder],
+        encoder: type[AudioEncoder],
         global_settings: dict[str, Any] | None = None,
         overrides: dict[int, dict[str, Any]] | None = None
     ) -> None:
