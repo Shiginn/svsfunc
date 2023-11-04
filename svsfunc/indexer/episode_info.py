@@ -3,11 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Generic
 
-from vardautomation import FileInfo
-from vstools import vs
+from vsmuxtools import src_file
+from vstools import vs, initialize_clip
 
-from ..custom_types import FileInfoT, HoldsVideoNodeT
-from ..utils import clip_from_indexer, ensure_path, trim
+from ..custom_types import HoldsVideoNodeT
+from ..utils import ensure_path, trim
 from .abstract import Indexer, PathLike
 from .video import LSMAS
 
@@ -29,8 +29,8 @@ class EpisodeInfo(Generic[HoldsVideoNodeT]):
     def __init__(
         self: "EpisodeInfo[HoldsVideoNodeT]", path: PathLike, ep_num: int = -1,
         op_range: tuple[int, int] | None = None, ed_range: tuple[int, int] | None = None,
-        ncop: PathLike | vs.VideoNode | None = None, nced: PathLike | vs.VideoNode | None = None,
-        indexer: Indexer[HoldsVideoNodeT] = LSMAS(), **indexer_overrides: Any  # type: ignore
+        ncop: vs.VideoNode | None = None, nced: vs.VideoNode | None = None,
+        indexer: Indexer[HoldsVideoNodeT] = LSMAS(), **indexer_overrides: Any
     ) -> None:
         self.path = ensure_path(path, "EpisodeInfo")
         self.indexed = indexer.index(self.path, **indexer_overrides)
@@ -38,8 +38,8 @@ class EpisodeInfo(Generic[HoldsVideoNodeT]):
         self.ep_num = ep_num
         self.op_range = op_range
         self.ed_range = ed_range
-        self.ncop = clip_from_indexer(ncop, indexer, True) if isinstance(ncop, str | Path) else ncop
-        self.nced = clip_from_indexer(nced, indexer, True) if isinstance(nced, str | Path) else nced
+        self.ncop = ncop
+        self.nced = nced
 
 
     def get_op(self, clip: vs.VideoNode | None = None) -> vs.VideoNode:
@@ -119,18 +119,28 @@ class EpisodeInfo(Generic[HoldsVideoNodeT]):
 
         :return:    VideoNode object
         """
-        return self.indexed.clip_cut if isinstance(self.indexed, FileInfo) else self.indexed
+        return self.indexed.src_cut if isinstance(self.indexed, src_file) else self.indexed  # type: ignore
+
+
+    def clip_init(self, **kwargs: Any) -> vs.VideoNode:
+        """
+        Initializes indexed clip using vs-tools' :py:func:`initialize_clip`.
+
+        :return:    VideoNode object
+        """
+
+        return initialize_clip(self.clip, **kwargs)
 
 
     @property
-    def file(self: "EpisodeInfo[FileInfoT]") -> FileInfoT:
+    def src_file(self: "EpisodeInfo[src_file]") -> src_file:
         """
-        Get FileInfo object from the indexed file
+        Get src_file object from the indexed file
 
-        :raises TypeError:  If indexer used is not FileInfo or FileInfo2
+        :raises TypeError:  If indexer used is not SrcFile
         :return:            FileInfo object
         """
-        if not isinstance(self.indexed, FileInfo):
-            raise TypeError("EpisodeInfo.file: The indexer used does not support FileInfo")
+        if not isinstance(self.indexed, src_file):
+            raise TypeError("EpisodeInfo.src_file: This property is only available if the indexer is SrcFile")
 
         return self.indexed
