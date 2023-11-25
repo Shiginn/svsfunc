@@ -199,7 +199,7 @@ class MplsFile:
             file_name = item.clip_information_filename
             file_ext = item.clip_codec_identifier
 
-            if (file_name or file_ext) is None:
+            if (file_name and file_ext) is None:
                 raise ValueError(f"MplsFile.parse: Could not locate file of item {i} of playlist {mpls_file}")
 
             file_path = ensure_path(m2ts_folder / f"{file_name}.{file_ext}", "MplsFile.parse")
