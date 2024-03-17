@@ -60,4 +60,4 @@ class Indexer(ABC, Generic[IndexedT]):
         return self.index(*args, **kwargs)
 
     def copy(self: T, **kwargs: Any) -> T:
-        return replace(self, **kwargs)
+        return replace(self, **kwargs)  # type: ignore
