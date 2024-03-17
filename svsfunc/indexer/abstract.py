@@ -1,14 +1,16 @@
 from abc import ABC
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Any, Callable, Generic, NamedTuple, overload
+from typing import Any, Callable, Generic, NamedTuple, TypeVar, overload
 
 from vstools import copy_signature
 
+from ..custom_types import IndexedT, PathLike
 from ..utils import ensure_path
-from ..custom_types import PathLike, IndexedT
 
 __all__ = ["Indexer", "IndexerCache"]
+
+T = TypeVar("T")
 
 
 class IndexerCache(NamedTuple):
@@ -56,3 +58,6 @@ class Indexer(ABC, Generic[IndexedT]):
     @copy_signature(index)
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         return self.index(*args, **kwargs)
+
+    def copy(self: T, **kwargs: Any) -> T:
+        return replace(self, **kwargs)
