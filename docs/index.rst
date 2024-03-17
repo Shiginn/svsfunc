@@ -24,7 +24,7 @@ svsfunc is a collection of VapourSynth functions I use in my scripts.
     
     submodules/indexer
     submodules/parse
-    submodules/filtering
+    submodules/filterchain
     submodules/encoder
     submodules/bdmv
     submodules/utils
@@ -36,5 +36,5 @@ svsfunc is a collection of VapourSynth functions I use in my scripts.
     
     usage/indexer
     usage/parse
-    usage/filtering
+    usage/filterchain
     usage/encoder

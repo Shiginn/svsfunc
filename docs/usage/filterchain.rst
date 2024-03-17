@@ -1,19 +1,19 @@
-Using svsfunc.filtering
-=======================
+Using svsfunc.filterchain
+=========================
 
-The :py:class:`svsfunc.filtering.BaseFiltering` class is an abstract base class that provide a set of methods useful to create filterchains.
+The :py:class:`svsfunc.filterchain.BaseFilterchain` class is an abstract base class that provide a set of methods useful to create filterchains.
 
-To create your filterchain, you need to create a class that inherits from :py:class:`svsfunc.filtering.BaseFiltering`. You also need to provide a :py:meth:`~svsfunc.filtering.BaseFiltering.filter` method that takes no argument and returns a ``vs.VideoNode``.
+To create your filterchain, you need to create a class that inherits from :py:class:`svsfunc.filterchain.BaseFilterchain`. You also need to provide a :py:meth:`~svsfunc.filterchain.BaseFilterchain.filter` method that takes no argument and returns a ``vs.VideoNode``.
 
-You can add clips to a preview list using the :py:meth:`~svsfunc.filtering.BaseFiltering.add_preview` method. To output the preview clips, use the :py:meth:`~svsfunc.filtering.BaseFiltering.set_outputs` methods.
-You can also get a clip from the list of preview clips with the :py:meth:`~svsfunc.filtering.BaseFiltering.get_clip` method.
+You can add clips to a preview list using the :py:meth:`~svsfunc.filterchain.BaseFilterchain.add_preview` method. To output the preview clips, use the :py:meth:`~svsfunc.filterchain.BaseFilterchain.set_outputs` methods.
+You can also get a clip from the list of preview clips with the :py:meth:`~svsfunc.filterchain.BaseFilterchain.get_clip` method.
 
 .. code:: python
 
-    from svsfunc import EpisodeInfo, BaseFiltering
+    from svsfunc import EpisodeInfo, BaseFilterchain
     from vstools import initilize_clip, fininalize_clip, vs
 
-    class MyFilterchain(BaseFiltering):
+    class MyFilterchain(BaseFilterchain):
         def __init__(self, source: EpisodeInfo[vs.VideoNode]):
             self.source = source
         

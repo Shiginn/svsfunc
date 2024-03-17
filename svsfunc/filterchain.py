@@ -1,16 +1,16 @@
 
 from abc import ABC, abstractmethod
-from typing import Callable, Dict
+from typing import Callable
 
 from vstools import set_output, vs
 
-__all__ = ["BaseFiltering"]
+__all__ = ["BaseFilterchain"]
 
 
-class BaseFiltering(ABC):
+class BaseFilterchain(ABC):
     """Abstract base class that can be used to build a filterchain"""
 
-    preview_clips: Dict[str, vs.VideoNode] | None = None
+    preview_clips: dict[str, vs.VideoNode] | None = None
 
     @abstractmethod
     def filter(self) -> vs.VideoNode:
@@ -31,22 +31,12 @@ class BaseFiltering(ABC):
         self.preview_clips = preview if self.preview_clips is None else self.preview_clips | preview
 
 
-    def set_outputs(
-        self,
-        name_pos: int = 8,
-        display_props: int | None = None,
-        font_scaling: int = 1,
-        preview_func: Callable[[vs.VideoNode], vs.VideoNode] | None = None
-    ) -> None:
+    def set_outputs(self, preview_func: Callable[[vs.VideoNode], vs.VideoNode] | None = None) -> None:
         """
         Output every clip in the list of preview clips.
 
-        :param name_pos:        Position of the name of the clip (0 = disable). Default to 8 (top-middle)
-        :param display_props:   Position of the frame-props of the clip. Default to disable.
-        :param font_scaling:    Scaling of the font used to write name and frame_props. Defaults to 1.
         :param preview_func:    Function to apply to every clip before outputting (e.g. PlaneStat, stack_planes, ...)
         """
-
         if preview_func is not None and not callable(preview_func):
             raise TypeError(f"{self.__class__.__name__}.set_outputs: preview_func must be callable.")
 
@@ -56,12 +46,6 @@ class BaseFiltering(ABC):
         for output_name, output in self.preview_clips.items():
             if preview_func is not None:
                 output = preview_func(output)
-
-            if display_props:
-                output = output.text.FrameProps(alignment=display_props, scale=font_scaling)
-
-            if name_pos:
-                output = output.text.Text(output_name, name_pos, font_scaling)
 
             set_output(output, output_name)
 
