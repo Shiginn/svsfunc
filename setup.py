@@ -20,7 +20,7 @@ setuptools.setup(
     long_description=readme,
     long_description_content_type='text/markdown',
     install_requires=requirements,
-    python_requires='>=3.10',
+    python_requires='>=3.12',
     packages=[package_name, f"{package_name}.tooling", f"{package_name}.indexer"],
     package_data={
         package_name: ['py.typed']
