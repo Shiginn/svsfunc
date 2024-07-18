@@ -4,7 +4,7 @@ from glob import glob
 from pathlib import Path
 from typing import Any, Generic, Iterator, Sequence
 
-from vsmuxtools import Chapters
+from vsmuxtools import Chapters, src_file
 from vstools import to_arr, vs
 
 from .bdmv import BDMV, MplsItem
@@ -168,7 +168,7 @@ class ParseFolder(HasEpisode[HoldsVideoNodeT], HasNCs):
 
     def __init__(
         self: "ParseFolder[HoldsVideoNodeT]", folder: PathLike, pattern: str | None = None, recursive: bool = False,
-        sort: bool = True, indexer: Indexer[HoldsVideoNodeT] = LSMAS()
+        sort: bool = True, indexer: Indexer[HoldsVideoNodeT] = LSMAS()  # type: ignore[assignment]
     ) -> None:
         """
         Parse folder and list every file that matches given pattern.
@@ -203,7 +203,7 @@ class ParseBD(HasEpisode[HoldsVideoNodeT], HasNCs):
     def __init__(
         self: "ParseBD[HoldsVideoNodeT]",
         bdmv_path: PathLike | list[PathLike] | tuple[PathLike, list[PathLike]],
-        ep_playlist: int | Sequence[int], indexer: Indexer[HoldsVideoNodeT] = LSMAS()
+        ep_playlist: int | Sequence[int], indexer: Indexer[HoldsVideoNodeT] = LSMAS()  # type: ignore[assignment]
     ) -> None:
         """
         Parse BDMV and list every file in matching episode playlist(s).
@@ -241,24 +241,42 @@ class ParseBD(HasEpisode[HoldsVideoNodeT], HasNCs):
         super().__init__([item.m2ts_file for item in self.items])
 
 
-    def get_chapter(self, ep_num: int, chapters_names: list[str | None] | None = None) -> Chapters:
-        """Get a list of chapters of an episode
-
-        :param ep_num:      Number of the episode to get chapters from, one-based
-
-        :return:            List of chapters
+    def get_chapter(
+        self, ep_num: int, chapters_names: list[str | None] | None = None,
+        src_file: src_file | None = None
+    ) -> Chapters:
         """
+        Get the list of chapters of an episode from the BD's playlist file
+
+        :param ep_num:          Episode number
+        :param chapters_names:  Names of the chapters, defaults to None
+        :param src_file:        src_file to trim the chapters, defaults to None
+
+        :raises ValueError:     The number of chapters names does not match the number of chapters (after trimming).
+
+        :return:                List of chapters
+        """
+
         mpls_item = self.items[ep_num - 1]
         chaps_frames = mpls_item.chapters
-        chap_num = len(chaps_frames)
+
+        chapters = Chapters([(frame, None) for frame in chaps_frames], fps=mpls_item.framerate)
+
+        if src_file:
+            # src_file.trim can be None despite type hint saying Trim
+            trim: tuple[int | None, int | None] = src_file.trim or (0, 0)
+            start = trim[0] or 0
+            chapters.trim(start, src_file.src_cut.num_frames, src_file.src_cut.num_frames)
+
+        chap_num = len(chapters.chapters)
 
         if chapters_names is None:
             chapters_names = [None] * chap_num
 
-        if (name_num := len(chapters_names)) != chap_num:
+        elif (name_num := len(chapters_names)) != chap_num:
             raise ValueError(
                 f"ParseBD.get_chapter: invalid number of chapters_names given, expected {chap_num}, got {name_num}. " +
                 f"Chapters frames: {', '.join([str(f) for f in chaps_frames])}"
             )
 
-        return Chapters(list(zip(chaps_frames, chapters_names, strict=True)), fps=mpls_item.framerate)
+        return chapters.set_names(chapters_names)
