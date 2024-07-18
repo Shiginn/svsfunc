@@ -75,7 +75,7 @@
 
 
 from abc import abstractmethod
-from ctypes import Structure, c_void_p
+from ctypes import c_void_p
 from enum import IntEnum
 from fractions import Fraction
 from inspect import Signature
@@ -85,10 +85,11 @@ from typing import (
     NamedTuple, NoReturn, Optional, Protocol, Sequence, Tuple, Type, TypedDict, TypeVar, Union, overload,
     runtime_checkable
 )
+from weakref import ReferenceType
 
 __all__ = [
     # Versioning
-    '__version__', '__api_version__',
+    '__version__', '__api_version__', 'PluginVersion',
 
     # Enums and constants
     'MessageType',
@@ -113,7 +114,7 @@ __all__ = [
     'SampleType',
         'INTEGER', 'FLOAT',
 
-    'PresetFormat',
+    'PresetVideoFormat',
         'GRAY',
         'GRAY8', 'GRAY9', 'GRAY10', 'GRAY12', 'GRAY14', 'GRAY16', 'GRAY32', 'GRAYH', 'GRAYS',
         'RGB',
@@ -156,7 +157,7 @@ __all__ = [
 
     'MatrixCoefficients',
         'MATRIX_RGB', 'MATRIX_BT709', 'MATRIX_UNSPECIFIED', 'MATRIX_FCC',
-        'MATRIX_BT470_BG', 'MATRIX_ST170_M', 'MATRIX_YCGCO', 'MATRIX_BT2020_NCL', 'MATRIX_BT2020_CL',
+        'MATRIX_BT470_BG', 'MATRIX_ST170_M', 'MATRIX_ST240_M', 'MATRIX_YCGCO', 'MATRIX_BT2020_NCL', 'MATRIX_BT2020_CL',
         'MATRIX_CHROMATICITY_DERIVED_NCL', 'MATRIX_CHROMATICITY_DERIVED_CL', 'MATRIX_ICTCP',
 
     'TransferCharacteristics',
@@ -190,7 +191,7 @@ __all__ = [
     'Plugin', 'Function',
 
     # Formats
-    'VideoFormat',
+    'VideoFormat', 'ChannelLayout',
 
     # Frames
     'RawFrame', 'VideoFrame', 'AudioFrame',
@@ -284,6 +285,15 @@ __api_version__: VapourSynthAPIVersion
 
 
 ###
+# Plugin Versioning
+
+
+class PluginVersion(NamedTuple):
+    major: int
+    minor: int
+
+
+###
 # VapourSynth Enums and Constants
 
 
@@ -366,113 +376,113 @@ INTEGER: Literal[SampleType.INTEGER]
 FLOAT: Literal[SampleType.FLOAT]
 
 
-class PresetFormat(IntEnum):
-    NONE: 'PresetFormat'
+class PresetVideoFormat(IntEnum):
+    NONE: 'PresetVideoFormat'
 
-    GRAY8: 'PresetFormat'
-    GRAY9: 'PresetFormat'
-    GRAY10: 'PresetFormat'
-    GRAY12: 'PresetFormat'
-    GRAY14: 'PresetFormat'
-    GRAY16: 'PresetFormat'
-    GRAY32: 'PresetFormat'
+    GRAY8: 'PresetVideoFormat'
+    GRAY9: 'PresetVideoFormat'
+    GRAY10: 'PresetVideoFormat'
+    GRAY12: 'PresetVideoFormat'
+    GRAY14: 'PresetVideoFormat'
+    GRAY16: 'PresetVideoFormat'
+    GRAY32: 'PresetVideoFormat'
 
-    GRAYH: 'PresetFormat'
-    GRAYS: 'PresetFormat'
+    GRAYH: 'PresetVideoFormat'
+    GRAYS: 'PresetVideoFormat'
 
-    YUV420P8: 'PresetFormat'
-    YUV422P8: 'PresetFormat'
-    YUV444P8: 'PresetFormat'
-    YUV410P8: 'PresetFormat'
-    YUV411P8: 'PresetFormat'
-    YUV440P8: 'PresetFormat'
+    YUV420P8: 'PresetVideoFormat'
+    YUV422P8: 'PresetVideoFormat'
+    YUV444P8: 'PresetVideoFormat'
+    YUV410P8: 'PresetVideoFormat'
+    YUV411P8: 'PresetVideoFormat'
+    YUV440P8: 'PresetVideoFormat'
 
-    YUV420P9: 'PresetFormat'
-    YUV422P9: 'PresetFormat'
-    YUV444P9: 'PresetFormat'
+    YUV420P9: 'PresetVideoFormat'
+    YUV422P9: 'PresetVideoFormat'
+    YUV444P9: 'PresetVideoFormat'
 
-    YUV420P10: 'PresetFormat'
-    YUV422P10: 'PresetFormat'
-    YUV444P10: 'PresetFormat'
+    YUV420P10: 'PresetVideoFormat'
+    YUV422P10: 'PresetVideoFormat'
+    YUV444P10: 'PresetVideoFormat'
 
-    YUV420P12: 'PresetFormat'
-    YUV422P12: 'PresetFormat'
-    YUV444P12: 'PresetFormat'
+    YUV420P12: 'PresetVideoFormat'
+    YUV422P12: 'PresetVideoFormat'
+    YUV444P12: 'PresetVideoFormat'
 
-    YUV420P14: 'PresetFormat'
-    YUV422P14: 'PresetFormat'
-    YUV444P14: 'PresetFormat'
+    YUV420P14: 'PresetVideoFormat'
+    YUV422P14: 'PresetVideoFormat'
+    YUV444P14: 'PresetVideoFormat'
 
-    YUV420P16: 'PresetFormat'
-    YUV422P16: 'PresetFormat'
-    YUV444P16: 'PresetFormat'
+    YUV420P16: 'PresetVideoFormat'
+    YUV422P16: 'PresetVideoFormat'
+    YUV444P16: 'PresetVideoFormat'
 
-    YUV444PH: 'PresetFormat'
-    YUV444PS: 'PresetFormat'
+    YUV444PH: 'PresetVideoFormat'
+    YUV444PS: 'PresetVideoFormat'
 
-    RGB24: 'PresetFormat'
-    RGB27: 'PresetFormat'
-    RGB30: 'PresetFormat'
-    RGB36: 'PresetFormat'
-    RGB42: 'PresetFormat'
-    RGB48: 'PresetFormat'
+    RGB24: 'PresetVideoFormat'
+    RGB27: 'PresetVideoFormat'
+    RGB30: 'PresetVideoFormat'
+    RGB36: 'PresetVideoFormat'
+    RGB42: 'PresetVideoFormat'
+    RGB48: 'PresetVideoFormat'
 
-    RGBH: 'PresetFormat'
-    RGBS: 'PresetFormat'
+    RGBH: 'PresetVideoFormat'
+    RGBS: 'PresetVideoFormat'
 
 
-NONE: Literal[PresetFormat.NONE]
+NONE: Literal[PresetVideoFormat.NONE]
 
-GRAY8: Literal[PresetFormat.GRAY8]
-GRAY9: Literal[PresetFormat.GRAY9]
-GRAY10: Literal[PresetFormat.GRAY10]
-GRAY12: Literal[PresetFormat.GRAY12]
-GRAY14: Literal[PresetFormat.GRAY14]
-GRAY16: Literal[PresetFormat.GRAY16]
-GRAY32: Literal[PresetFormat.GRAY32]
+GRAY8: Literal[PresetVideoFormat.GRAY8]
+GRAY9: Literal[PresetVideoFormat.GRAY9]
+GRAY10: Literal[PresetVideoFormat.GRAY10]
+GRAY12: Literal[PresetVideoFormat.GRAY12]
+GRAY14: Literal[PresetVideoFormat.GRAY14]
+GRAY16: Literal[PresetVideoFormat.GRAY16]
+GRAY32: Literal[PresetVideoFormat.GRAY32]
 
-GRAYH: Literal[PresetFormat.GRAYH]
-GRAYS: Literal[PresetFormat.GRAYS]
+GRAYH: Literal[PresetVideoFormat.GRAYH]
+GRAYS: Literal[PresetVideoFormat.GRAYS]
 
-YUV420P8: Literal[PresetFormat.YUV420P8]
-YUV422P8: Literal[PresetFormat.YUV422P8]
-YUV444P8: Literal[PresetFormat.YUV444P8]
-YUV410P8: Literal[PresetFormat.YUV410P8]
-YUV411P8: Literal[PresetFormat.YUV411P8]
-YUV440P8: Literal[PresetFormat.YUV440P8]
+YUV420P8: Literal[PresetVideoFormat.YUV420P8]
+YUV422P8: Literal[PresetVideoFormat.YUV422P8]
+YUV444P8: Literal[PresetVideoFormat.YUV444P8]
+YUV410P8: Literal[PresetVideoFormat.YUV410P8]
+YUV411P8: Literal[PresetVideoFormat.YUV411P8]
+YUV440P8: Literal[PresetVideoFormat.YUV440P8]
 
-YUV420P9: Literal[PresetFormat.YUV420P9]
-YUV422P9: Literal[PresetFormat.YUV422P9]
-YUV444P9: Literal[PresetFormat.YUV444P9]
+YUV420P9: Literal[PresetVideoFormat.YUV420P9]
+YUV422P9: Literal[PresetVideoFormat.YUV422P9]
+YUV444P9: Literal[PresetVideoFormat.YUV444P9]
 
-YUV420P10: Literal[PresetFormat.YUV420P10]
-YUV422P10: Literal[PresetFormat.YUV422P10]
-YUV444P10: Literal[PresetFormat.YUV444P10]
+YUV420P10: Literal[PresetVideoFormat.YUV420P10]
+YUV422P10: Literal[PresetVideoFormat.YUV422P10]
+YUV444P10: Literal[PresetVideoFormat.YUV444P10]
 
-YUV420P12: Literal[PresetFormat.YUV420P12]
-YUV422P12: Literal[PresetFormat.YUV422P12]
-YUV444P12: Literal[PresetFormat.YUV444P12]
+YUV420P12: Literal[PresetVideoFormat.YUV420P12]
+YUV422P12: Literal[PresetVideoFormat.YUV422P12]
+YUV444P12: Literal[PresetVideoFormat.YUV444P12]
 
-YUV420P14: Literal[PresetFormat.YUV420P14]
-YUV422P14: Literal[PresetFormat.YUV422P14]
-YUV444P14: Literal[PresetFormat.YUV444P14]
+YUV420P14: Literal[PresetVideoFormat.YUV420P14]
+YUV422P14: Literal[PresetVideoFormat.YUV422P14]
+YUV444P14: Literal[PresetVideoFormat.YUV444P14]
 
-YUV420P16: Literal[PresetFormat.YUV420P16]
-YUV422P16: Literal[PresetFormat.YUV422P16]
-YUV444P16: Literal[PresetFormat.YUV444P16]
+YUV420P16: Literal[PresetVideoFormat.YUV420P16]
+YUV422P16: Literal[PresetVideoFormat.YUV422P16]
+YUV444P16: Literal[PresetVideoFormat.YUV444P16]
 
-YUV444PH: Literal[PresetFormat.YUV444PH]
-YUV444PS: Literal[PresetFormat.YUV444PS]
+YUV444PH: Literal[PresetVideoFormat.YUV444PH]
+YUV444PS: Literal[PresetVideoFormat.YUV444PS]
 
-RGB24: Literal[PresetFormat.RGB24]
-RGB27: Literal[PresetFormat.RGB27]
-RGB30: Literal[PresetFormat.RGB30]
-RGB36: Literal[PresetFormat.RGB36]
-RGB42: Literal[PresetFormat.RGB42]
-RGB48: Literal[PresetFormat.RGB48]
+RGB24: Literal[PresetVideoFormat.RGB24]
+RGB27: Literal[PresetVideoFormat.RGB27]
+RGB30: Literal[PresetVideoFormat.RGB30]
+RGB36: Literal[PresetVideoFormat.RGB36]
+RGB42: Literal[PresetVideoFormat.RGB42]
+RGB48: Literal[PresetVideoFormat.RGB48]
 
-RGBH: Literal[PresetFormat.RGBH]
-RGBS: Literal[PresetFormat.RGBS]
+RGBH: Literal[PresetVideoFormat.RGBH]
+RGBS: Literal[PresetVideoFormat.RGBS]
 
 
 class AudioChannels(IntEnum):
@@ -565,6 +575,7 @@ class MatrixCoefficients(IntEnum):
     MATRIX_FCC: 'MatrixCoefficients'
     MATRIX_BT470_BG: 'MatrixCoefficients'
     MATRIX_ST170_M: 'MatrixCoefficients'
+    MATRIX_ST240_M: 'MatrixCoefficients'
     MATRIX_YCGCO: 'MatrixCoefficients'
     MATRIX_BT2020_NCL: 'MatrixCoefficients'
     MATRIX_BT2020_CL: 'MatrixCoefficients'
@@ -579,6 +590,7 @@ MATRIX_UNSPECIFIED: Literal[MatrixCoefficients.MATRIX_UNSPECIFIED]
 MATRIX_FCC: Literal[MatrixCoefficients.MATRIX_FCC]
 MATRIX_BT470_BG: Literal[MatrixCoefficients.MATRIX_BT470_BG]
 MATRIX_ST170_M: Literal[MatrixCoefficients.MATRIX_ST170_M]
+MATRIX_ST240_M: Literal[MatrixCoefficients.MATRIX_ST240_M]
 MATRIX_YCGCO: Literal[MatrixCoefficients.MATRIX_YCGCO]
 MATRIX_BT2020_NCL: Literal[MatrixCoefficients.MATRIX_BT2020_NCL]
 MATRIX_BT2020_CL: Literal[MatrixCoefficients.MATRIX_BT2020_CL]
@@ -682,6 +694,10 @@ class EnvironmentPolicyAPI:
 
     def set_logger(self, env: EnvironmentData, logger: Callable[[int, str], None]) -> None: ...
 
+    def get_vapoursynth_api(self, version: int) -> c_void_p: ...
+
+    def get_core_ptr(self, environment_data: EnvironmentData) -> c_void_p: ...
+
     def destroy_environment(self, env: EnvironmentData) -> None: ...
 
     def unregister_policy(self) -> None: ...
@@ -708,7 +724,7 @@ def unregister_on_destroy(callback: Callable[..., None]) -> None:
 
 
 class Environment:
-    env: EnvironmentData
+    env: ReferenceType[EnvironmentData]
 
     def __init__(self) -> NoReturn: ...
 
@@ -740,6 +756,17 @@ def get_current_environment() -> Environment:
     ...
 
 
+class Local:
+    def __getattr__(self, key: str) -> Any: ...
+    
+    # Even though object does have set/del methods, typecheckers will treat them differently
+    # when they are not explicit; for example by raising a member not found warning.
+
+    def __setattr__(self, key: str, value: Any) -> None: ...
+    
+    def __delattr__(self, key: str) -> None: ...
+
+
 class VideoOutputTuple(NamedTuple):
     clip: 'VideoNode'
     alpha: Union['VideoNode', None]
@@ -767,7 +794,7 @@ def get_output(index: int = 0) -> Union[VideoOutputTuple, 'AudioNode']:
 
 
 class FuncData:
-    def __init__(self) -> NoReturn: ... 
+    def __init__(self) -> NoReturn: ...
 
     def __call__(self, **kwargs: _VapourSynthMapValue) -> _VapourSynthMapValue: ...
 
@@ -807,7 +834,7 @@ class VideoFormat:
     ) -> 'VideoFormat': ...
 
     @overload
-    def __eq__(self, other: 'VideoFormat') -> bool: ...  # type: ignore[misc]
+    def __eq__(self, other: 'VideoFormat') -> bool: ...  # type: ignore[overload-overlap]
 
     @overload
     def __eq__(self, other: Any) -> Literal[False]: ...
@@ -843,10 +870,26 @@ class FrameProps(MutableMapping[str, _VapourSynthMapValue]):
     def __len__(self) -> int: ...
 
 
+class ChannelLayout(int):
+    def __init__(self) -> NoReturn: ...
+
+    def __contains__(self, layout: AudioChannels) -> bool: ...
+
+    def __iter__(self) -> Iterator[AudioChannels]: ...
+
+    @overload
+    def __eq__(self, other: 'ChannelLayout') -> bool: ...  # type: ignore[overload-overlap]
+
+    @overload
+    def __eq__(self, other: Any) -> Literal[False]: ...
+
+    def __len__(self) -> int: ...
+
+
 class audio_view(memoryview):  # type: ignore[misc]
     @property
     def shape(self) -> tuple[int]: ...
-    
+
     @property
     def strides(self) -> tuple[int]: ...
 
@@ -866,7 +909,7 @@ class audio_view(memoryview):  # type: ignore[misc]
 class video_view(memoryview):  # type: ignore[misc]
     @property
     def shape(self) -> tuple[int, int]: ...
-    
+
     @property
     def strides(self) -> tuple[int, int]: ...
 
@@ -941,6 +984,9 @@ class AudioFrame(RawFrame):
     channel_layout: int
     num_channels: int
 
+    @property
+    def channels(self) -> ChannelLayout: ...
+
     def __getitem__(self, index: int) -> audio_view: ...
 
     
@@ -965,8 +1011,12 @@ class _Plugin_akarin_Core_Bound(Plugin):
     def DLISR(self, clip: 'VideoNode', scale: Optional[int] = None, device_id: Optional[int] = None) -> 'VideoNode': ...
     def DLVFX(self, clip: 'VideoNode', op: int, scale: Optional[float] = None, strength: Optional[float] = None, output_depth: Optional[int] = None, num_streams: Optional[int] = None, model_dir: Optional[DataType] = None) -> 'VideoNode': ...
     def Expr(self, clips: SingleAndSequence['VideoNode'], expr: SingleAndSequence[DataType], format: Optional[int] = None, opt: Optional[int] = None, boundary: Optional[int] = None) -> 'VideoNode': ...
+    def ExprTest(self, clips: SingleAndSequence[float], expr: DataType, props: Optional[VSMapValueCallback[_VapourSynthMapValue]] = None, ref: Optional['VideoNode'] = None, vars: Optional[int] = None) -> 'VideoNode': ...
+    def PickFrames(self, clip: 'VideoNode', indices: SingleAndSequence[int]) -> 'VideoNode': ...
     def PropExpr(self, clips: SingleAndSequence['VideoNode'], dict: VSMapValueCallback[_VapourSynthMapValue]) -> 'VideoNode': ...
     def Select(self, clip_src: SingleAndSequence['VideoNode'], prop_src: SingleAndSequence['VideoNode'], expr: SingleAndSequence[DataType]) -> 'VideoNode': ...
+    def Text(self, clips: SingleAndSequence['VideoNode'], text: DataType, alignment: Optional[int] = None, scale: Optional[int] = None, prop: Optional[DataType] = None, strict: Optional[int] = None, vspipe: Optional[int] = None) -> 'VideoNode': ...
+    def Tmpl(self, clips: SingleAndSequence['VideoNode'], prop: SingleAndSequence[DataType], text: SingleAndSequence[DataType]) -> 'VideoNode': ...
     def Version(self) -> 'VideoNode': ...
 
 class _Plugin_akarin_VideoNode_Bound(Plugin):
@@ -975,8 +1025,11 @@ class _Plugin_akarin_VideoNode_Bound(Plugin):
     def DLISR(self, scale: Optional[int] = None, device_id: Optional[int] = None) -> 'VideoNode': ...
     def DLVFX(self, op: int, scale: Optional[float] = None, strength: Optional[float] = None, output_depth: Optional[int] = None, num_streams: Optional[int] = None, model_dir: Optional[DataType] = None) -> 'VideoNode': ...
     def Expr(self, expr: SingleAndSequence[DataType], format: Optional[int] = None, opt: Optional[int] = None, boundary: Optional[int] = None) -> 'VideoNode': ...
+    def PickFrames(self, indices: SingleAndSequence[int]) -> 'VideoNode': ...
     def PropExpr(self, dict: VSMapValueCallback[_VapourSynthMapValue]) -> 'VideoNode': ...
     def Select(self, prop_src: SingleAndSequence['VideoNode'], expr: SingleAndSequence[DataType]) -> 'VideoNode': ...
+    def Text(self, text: DataType, alignment: Optional[int] = None, scale: Optional[int] = None, prop: Optional[DataType] = None, strict: Optional[int] = None, vspipe: Optional[int] = None) -> 'VideoNode': ...
+    def Tmpl(self, prop: SingleAndSequence[DataType], text: SingleAndSequence[DataType]) -> 'VideoNode': ...
 
 # end implementation
 
@@ -990,6 +1043,21 @@ class _Plugin_amogus_Core_Bound(Plugin):
 class _Plugin_amogus_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "amogus" VapourSynth plugin.\n\n*This class cannot be imported.*"""
     def Amogus(self, depth: int, range: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: anime4kcpp
+
+class _Plugin_anime4kcpp_Core_Bound(Plugin):
+    """This class implements the module definitions for the "anime4kcpp" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Anime4KCPP(self, src: 'VideoNode', passes: Optional[int] = None, pushColorCount: Optional[int] = None, strengthColor: Optional[float] = None, strengthGradient: Optional[float] = None, zoomFactor: Optional[int] = None, ACNet: Optional[int] = None, GPUMode: Optional[int] = None, GPGPUModel: Optional[DataType] = None, HDN: Optional[int] = None, HDNLevel: Optional[int] = None, platformID: Optional[int] = None, deviceID: Optional[int] = None, OpenCLQueueNum: Optional[int] = None, OpenCLParallelIO: Optional[int] = None, safeMode: Optional[int] = None) -> 'VideoNode': ...
+    def benchmark(self, platformID: Optional[int] = None, deviceID: Optional[int] = None) -> 'VideoNode': ...
+    def listGPUs(self, GPGPUModel: Optional[DataType] = None) -> 'VideoNode': ...
+
+class _Plugin_anime4kcpp_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "anime4kcpp" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Anime4KCPP(self, passes: Optional[int] = None, pushColorCount: Optional[int] = None, strengthColor: Optional[float] = None, strengthGradient: Optional[float] = None, zoomFactor: Optional[int] = None, ACNet: Optional[int] = None, GPUMode: Optional[int] = None, GPGPUModel: Optional[DataType] = None, HDN: Optional[int] = None, HDNLevel: Optional[int] = None, platformID: Optional[int] = None, deviceID: Optional[int] = None, OpenCLQueueNum: Optional[int] = None, OpenCLParallelIO: Optional[int] = None, safeMode: Optional[int] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1046,11 +1114,26 @@ class _Plugin_bilateral_VideoNode_Bound(Plugin):
 
 class _Plugin_bilateralgpu_Core_Bound(Plugin):
     """This class implements the module definitions for the "bilateralgpu" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Bilateral(self, clip: 'VideoNode', sigma_spatial: Optional[SingleAndSequence[float]] = None, sigma_color: Optional[SingleAndSequence[float]] = None, radius: Optional[SingleAndSequence[int]] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None, use_shared_memory: Optional[int] = None) -> 'VideoNode': ...
+    def Bilateral(self, clip: 'VideoNode', sigma_spatial: Optional[SingleAndSequence[float]] = None, sigma_color: Optional[SingleAndSequence[float]] = None, radius: Optional[SingleAndSequence[int]] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None, use_shared_memory: Optional[int] = None, ref: Optional['VideoNode'] = None) -> 'VideoNode': ...
+    def Version(self) -> 'VideoNode': ...
 
 class _Plugin_bilateralgpu_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "bilateralgpu" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Bilateral(self, sigma_spatial: Optional[SingleAndSequence[float]] = None, sigma_color: Optional[SingleAndSequence[float]] = None, radius: Optional[SingleAndSequence[int]] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None, use_shared_memory: Optional[int] = None) -> 'VideoNode': ...
+    def Bilateral(self, sigma_spatial: Optional[SingleAndSequence[float]] = None, sigma_color: Optional[SingleAndSequence[float]] = None, radius: Optional[SingleAndSequence[int]] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None, use_shared_memory: Optional[int] = None, ref: Optional['VideoNode'] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: bilateralgpu_rtc
+
+class _Plugin_bilateralgpu_rtc_Core_Bound(Plugin):
+    """This class implements the module definitions for the "bilateralgpu_rtc" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Bilateral(self, clip: 'VideoNode', sigma_spatial: Optional[SingleAndSequence[float]] = None, sigma_color: Optional[SingleAndSequence[float]] = None, radius: Optional[SingleAndSequence[int]] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None, use_shared_memory: Optional[int] = None, block_x: Optional[int] = None, block_y: Optional[int] = None, ref: Optional['VideoNode'] = None) -> 'VideoNode': ...
+    def Version(self) -> 'VideoNode': ...
+
+class _Plugin_bilateralgpu_rtc_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "bilateralgpu_rtc" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Bilateral(self, sigma_spatial: Optional[SingleAndSequence[float]] = None, sigma_color: Optional[SingleAndSequence[float]] = None, radius: Optional[SingleAndSequence[int]] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None, use_shared_memory: Optional[int] = None, block_x: Optional[int] = None, block_y: Optional[int] = None, ref: Optional['VideoNode'] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1127,6 +1210,81 @@ class _Plugin_bm3dcuda_rtc_VideoNode_Bound(Plugin):
     def BM3D(self, ref: Optional['VideoNode'] = None, sigma: Optional[SingleAndSequence[float]] = None, block_step: Optional[SingleAndSequence[int]] = None, bm_range: Optional[SingleAndSequence[int]] = None, radius: Optional[int] = None, ps_num: Optional[SingleAndSequence[int]] = None, ps_range: Optional[SingleAndSequence[int]] = None, chroma: Optional[int] = None, device_id: Optional[int] = None, fast: Optional[int] = None, extractor_exp: Optional[int] = None, bm_error_s: Optional[SingleAndSequence[DataType]] = None, transform_2d_s: Optional[SingleAndSequence[DataType]] = None, transform_1d_s: Optional[SingleAndSequence[DataType]] = None, zero_init: Optional[int] = None) -> 'VideoNode': ...
     def BM3Dv2(self, ref: Optional['VideoNode'] = None, sigma: Optional[SingleAndSequence[float]] = None, block_step: Optional[SingleAndSequence[int]] = None, bm_range: Optional[SingleAndSequence[int]] = None, radius: Optional[int] = None, ps_num: Optional[SingleAndSequence[int]] = None, ps_range: Optional[SingleAndSequence[int]] = None, chroma: Optional[int] = None, device_id: Optional[int] = None, fast: Optional[int] = None, extractor_exp: Optional[int] = None, bm_error_s: Optional[SingleAndSequence[DataType]] = None, transform_2d_s: Optional[SingleAndSequence[DataType]] = None, transform_1d_s: Optional[SingleAndSequence[DataType]] = None, zero_init: Optional[int] = None) -> 'VideoNode': ...
     def VAggregate(self, src: 'VideoNode', planes: SingleAndSequence[int]) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: bmdegrain
+
+class _Plugin_bmdegrain_Core_Bound(Plugin):
+    """This class implements the module definitions for the "bmdegrain" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def BMDegrain(self, clip: 'VideoNode', th_sse: Optional[SingleAndSequence[float]] = None, block_size: Optional[int] = None, block_step: Optional[int] = None, group_size: Optional[int] = None, bm_range: Optional[int] = None, radius: Optional[int] = None, ps_num: Optional[int] = None, ps_range: Optional[int] = None, rclip: Optional['VideoNode'] = None) -> 'VideoNode': ...
+    def BMDegrainRaw(self, clip: 'VideoNode', th_sse: Optional[SingleAndSequence[float]] = None, block_size: Optional[int] = None, block_step: Optional[int] = None, group_size: Optional[int] = None, bm_range: Optional[int] = None, radius: Optional[int] = None, ps_num: Optional[int] = None, ps_range: Optional[int] = None, rclip: Optional['VideoNode'] = None) -> 'VideoNode': ...
+    def VAggregate(self, clip: 'VideoNode', src: 'VideoNode', planes: SingleAndSequence[int], internal: Optional[int] = None) -> 'VideoNode': ...
+    def Version(self) -> 'VideoNode': ...
+
+class _Plugin_bmdegrain_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "bmdegrain" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def BMDegrain(self, th_sse: Optional[SingleAndSequence[float]] = None, block_size: Optional[int] = None, block_step: Optional[int] = None, group_size: Optional[int] = None, bm_range: Optional[int] = None, radius: Optional[int] = None, ps_num: Optional[int] = None, ps_range: Optional[int] = None, rclip: Optional['VideoNode'] = None) -> 'VideoNode': ...
+    def BMDegrainRaw(self, th_sse: Optional[SingleAndSequence[float]] = None, block_size: Optional[int] = None, block_step: Optional[int] = None, group_size: Optional[int] = None, bm_range: Optional[int] = None, radius: Optional[int] = None, ps_num: Optional[int] = None, ps_range: Optional[int] = None, rclip: Optional['VideoNode'] = None) -> 'VideoNode': ...
+    def VAggregate(self, src: 'VideoNode', planes: SingleAndSequence[int], internal: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: bore
+
+class _Plugin_bore_Core_Bound(Plugin):
+    """This class implements the module definitions for the "bore" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Balance(self, clip: 'VideoNode', top: Optional[int] = None, bottom: Optional[int] = None, left: Optional[int] = None, right: Optional[int] = None, plane: Optional[int] = None, mode: Optional[int] = None) -> 'VideoNode': ...
+    def FixBrightness(self, clip: 'VideoNode', top: Optional[int] = None, bottom: Optional[int] = None, left: Optional[int] = None, right: Optional[int] = None, ignore_mask: Optional['VideoNode'] = None, thrlo: Optional[float] = None, thrhi: Optional[float] = None, step: Optional[int] = None, plane: Optional[int] = None) -> 'VideoNode': ...
+
+class _Plugin_bore_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "bore" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Balance(self, top: Optional[int] = None, bottom: Optional[int] = None, left: Optional[int] = None, right: Optional[int] = None, plane: Optional[int] = None, mode: Optional[int] = None) -> 'VideoNode': ...
+    def FixBrightness(self, top: Optional[int] = None, bottom: Optional[int] = None, left: Optional[int] = None, right: Optional[int] = None, ignore_mask: Optional['VideoNode'] = None, thrlo: Optional[float] = None, thrhi: Optional[float] = None, step: Optional[int] = None, plane: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: bs
+
+_ReturnDict_bs_TrackInfo = TypedDict("_ReturnDict_bs_TrackInfo", {"mediatype": int, "mediatypestr": DataType, "codec": int, "codecstr": DataType, "disposition": int, "dispositionstr": DataType})
+
+
+class _Plugin_bs_Core_Bound(Plugin):
+    """This class implements the module definitions for the "bs" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def AudioSource(self, source: DataType, track: Optional[int] = None, adjustdelay: Optional[int] = None, threads: Optional[int] = None, enable_drefs: Optional[int] = None, use_absolute_path: Optional[int] = None, drc_scale: Optional[float] = None, cachemode: Optional[int] = None, cachepath: Optional[DataType] = None, cachesize: Optional[int] = None, showprogress: Optional[int] = None) -> 'AudioNode': ...
+    def SetDebugOutput(self, enable: int) -> None: ...
+    def SetFFmpegLogLevel(self, level: int) -> int: ...
+    def TrackInfo(self, source: DataType, enable_drefs: Optional[int] = None, use_absolute_path: Optional[int] = None) -> '_ReturnDict_bs_TrackInfo': ...
+    def VideoSource(self, source: DataType, track: Optional[int] = None, variableformat: Optional[int] = None, fpsnum: Optional[int] = None, fpsden: Optional[int] = None, rff: Optional[int] = None, threads: Optional[int] = None, seekpreroll: Optional[int] = None, enable_drefs: Optional[int] = None, use_absolute_path: Optional[int] = None, cachemode: Optional[int] = None, cachepath: Optional[DataType] = None, cachesize: Optional[int] = None, hwdevice: Optional[DataType] = None, extrahwframes: Optional[int] = None, timecodes: Optional[DataType] = None, start_number: Optional[int] = None, showprogress: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: bwdif
+
+class _Plugin_bwdif_Core_Bound(Plugin):
+    """This class implements the module definitions for the "bwdif" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Bwdif(self, clip: 'VideoNode', field: int, edeint: Optional['VideoNode'] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+
+class _Plugin_bwdif_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "bwdif" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Bwdif(self, field: int, edeint: Optional['VideoNode'] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: cas
+
+class _Plugin_cas_Core_Bound(Plugin):
+    """This class implements the module definitions for the "cas" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def CAS(self, clip: 'VideoNode', sharpness: Optional[float] = None, planes: Optional[SingleAndSequence[int]] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+
+class _Plugin_cas_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "cas" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def CAS(self, sharpness: Optional[float] = None, planes: Optional[SingleAndSequence[int]] = None, opt: Optional[int] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1214,23 +1372,23 @@ class _Plugin_deblock_VideoNode_Bound(Plugin):
 
 class _Plugin_descale_Core_Bound(Plugin):
     """This class implements the module definitions for the "descale" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Debicubic(self, src: 'VideoNode', width: int, height: int, b: Optional[float] = None, c: Optional[float] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Debilinear(self, src: 'VideoNode', width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Delanczos(self, src: 'VideoNode', width: int, height: int, taps: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Descale(self, src: 'VideoNode', width: int, height: int, kernel: Optional[DataType] = None, custom_kernel: Optional[VSMapValueCallback[_VapourSynthMapValue]] = None, taps: Optional[int] = None, b: Optional[float] = None, c: Optional[float] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Despline16(self, src: 'VideoNode', width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Despline36(self, src: 'VideoNode', width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Despline64(self, src: 'VideoNode', width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Debicubic(self, src: 'VideoNode', width: int, height: int, b: Optional[float] = None, c: Optional[float] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Debilinear(self, src: 'VideoNode', width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Delanczos(self, src: 'VideoNode', width: int, height: int, taps: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Descale(self, src: 'VideoNode', width: int, height: int, kernel: Optional[DataType] = None, custom_kernel: Optional[VSMapValueCallback[_VapourSynthMapValue]] = None, taps: Optional[int] = None, b: Optional[float] = None, c: Optional[float] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Despline16(self, src: 'VideoNode', width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Despline36(self, src: 'VideoNode', width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Despline64(self, src: 'VideoNode', width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
 
 class _Plugin_descale_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "descale" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Debicubic(self, width: int, height: int, b: Optional[float] = None, c: Optional[float] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Debilinear(self, width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Delanczos(self, width: int, height: int, taps: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Descale(self, width: int, height: int, kernel: Optional[DataType] = None, custom_kernel: Optional[VSMapValueCallback[_VapourSynthMapValue]] = None, taps: Optional[int] = None, b: Optional[float] = None, c: Optional[float] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Despline16(self, width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Despline36(self, width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Despline64(self, width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Debicubic(self, width: int, height: int, b: Optional[float] = None, c: Optional[float] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Debilinear(self, width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Delanczos(self, width: int, height: int, taps: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Descale(self, width: int, height: int, kernel: Optional[DataType] = None, custom_kernel: Optional[VSMapValueCallback[_VapourSynthMapValue]] = None, taps: Optional[int] = None, b: Optional[float] = None, c: Optional[float] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Despline16(self, width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Despline36(self, width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def Despline64(self, width: int, height: int, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, border_handling: Optional[int] = None, force: Optional[int] = None, force_h: Optional[int] = None, force_v: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1259,6 +1417,21 @@ class _Plugin_dfttest2_avx2_Core_Bound(Plugin):
 class _Plugin_dfttest2_avx2_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "dfttest2_avx2" VapourSynth plugin.\n\n*This class cannot be imported.*"""
     def DFTTest(self, window: SingleAndSequence[float], sigma: SingleAndSequence[float], sigma2: float, pmin: float, pmax: float, filter_type: int, radius: Optional[int] = None, block_size: Optional[int] = None, block_step: Optional[int] = None, zero_mean: Optional[int] = None, window_freq: Optional[SingleAndSequence[float]] = None, planes: Optional[SingleAndSequence[int]] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: dfttest2_cpu
+
+class _Plugin_dfttest2_cpu_Core_Bound(Plugin):
+    """This class implements the module definitions for the "dfttest2_cpu" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def DFTTest(self, clip: 'VideoNode', window: SingleAndSequence[float], sigma: SingleAndSequence[float], sigma2: float, pmin: float, pmax: float, filter_type: int, radius: Optional[int] = None, block_size: Optional[int] = None, block_step: Optional[int] = None, zero_mean: Optional[int] = None, window_freq: Optional[SingleAndSequence[float]] = None, planes: Optional[SingleAndSequence[int]] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+    def RDFT(self, data: SingleAndSequence[float], shape: SingleAndSequence[int]) -> 'VideoNode': ...
+    def Version(self) -> 'VideoNode': ...
+
+class _Plugin_dfttest2_cpu_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "dfttest2_cpu" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def DFTTest(self, window: SingleAndSequence[float], sigma: SingleAndSequence[float], sigma2: float, pmin: float, pmax: float, filter_type: int, radius: Optional[int] = None, block_size: Optional[int] = None, block_step: Optional[int] = None, zero_mean: Optional[int] = None, window_freq: Optional[SingleAndSequence[float]] = None, planes: Optional[SingleAndSequence[int]] = None, opt: Optional[int] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1304,17 +1477,30 @@ class _Plugin_dgdecodenv_Core_Bound(Plugin):
 # end implementation
 
     
+# implementation: dmetrics
+
+class _Plugin_dmetrics_Core_Bound(Plugin):
+    """This class implements the module definitions for the "dmetrics" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def DMetrics(self, clip: 'VideoNode', tff: Optional[int] = None, chroma: Optional[int] = None, nt: Optional[int] = None, y0: Optional[int] = None, y1: Optional[int] = None, prefix: Optional[DataType] = None) -> 'VideoNode': ...
+
+class _Plugin_dmetrics_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "dmetrics" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def DMetrics(self, tff: Optional[int] = None, chroma: Optional[int] = None, nt: Optional[int] = None, y0: Optional[int] = None, y1: Optional[int] = None, prefix: Optional[DataType] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
 # implementation: dpid
 
 class _Plugin_dpid_Core_Bound(Plugin):
     """This class implements the module definitions for the "dpid" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Dpid(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, lambda_: Optional[SingleAndSequence[float]] = None, src_left: Optional[SingleAndSequence[float]] = None, src_top: Optional[SingleAndSequence[float]] = None, read_chromaloc: Optional[int] = None) -> 'VideoNode': ...
-    def DpidRaw(self, clip: 'VideoNode', clip2: 'VideoNode', lambda_: Optional[SingleAndSequence[float]] = None, src_left: Optional[SingleAndSequence[float]] = None, src_top: Optional[SingleAndSequence[float]] = None, read_chromaloc: Optional[int] = None, planes: Optional[SingleAndSequence[int]] = None) -> 'VideoNode': ...
+    def Dpid(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
+    def DpidRaw(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
 
 class _Plugin_dpid_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "dpid" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Dpid(self, width: Optional[int] = None, height: Optional[int] = None, lambda_: Optional[SingleAndSequence[float]] = None, src_left: Optional[SingleAndSequence[float]] = None, src_top: Optional[SingleAndSequence[float]] = None, read_chromaloc: Optional[int] = None) -> 'VideoNode': ...
-    def DpidRaw(self, clip2: 'VideoNode', lambda_: Optional[SingleAndSequence[float]] = None, src_left: Optional[SingleAndSequence[float]] = None, src_top: Optional[SingleAndSequence[float]] = None, read_chromaloc: Optional[int] = None, planes: Optional[SingleAndSequence[int]] = None) -> 'VideoNode': ...
+    def Dpid(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
+    def DpidRaw(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
 
 # end implementation
 
@@ -1323,11 +1509,13 @@ class _Plugin_dpid_VideoNode_Bound(Plugin):
 
 class _Plugin_edgefixer_Core_Bound(Plugin):
     """This class implements the module definitions for the "edgefixer" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def ContinuityFixer(self, clip: 'VideoNode', left: SingleAndSequence[int], top: SingleAndSequence[int], right: SingleAndSequence[int], bottom: SingleAndSequence[int], radius: Optional[SingleAndSequence[int]] = None) -> 'VideoNode': ...
+    def Continuity(self, clip: 'VideoNode', left: Optional[int] = None, top: Optional[int] = None, right: Optional[int] = None, bottom: Optional[int] = None, radius: Optional[int] = None) -> 'VideoNode': ...
+    def Reference(self, clip: 'VideoNode', ref: 'VideoNode', left: Optional[int] = None, top: Optional[int] = None, right: Optional[int] = None, bottom: Optional[int] = None, radius: Optional[int] = None) -> 'VideoNode': ...
 
 class _Plugin_edgefixer_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "edgefixer" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def ContinuityFixer(self, left: SingleAndSequence[int], top: SingleAndSequence[int], right: SingleAndSequence[int], bottom: SingleAndSequence[int], radius: Optional[SingleAndSequence[int]] = None) -> 'VideoNode': ...
+    def Continuity(self, left: Optional[int] = None, top: Optional[int] = None, right: Optional[int] = None, bottom: Optional[int] = None, radius: Optional[int] = None) -> 'VideoNode': ...
+    def Reference(self, ref: 'VideoNode', left: Optional[int] = None, top: Optional[int] = None, right: Optional[int] = None, bottom: Optional[int] = None, radius: Optional[int] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1359,6 +1547,19 @@ class _Plugin_eedi2cuda_VideoNode_Bound(Plugin):
     def AA2(self, mthresh: Optional[int] = None, lthresh: Optional[int] = None, vthresh: Optional[int] = None, estr: Optional[int] = None, dstr: Optional[int] = None, maxd: Optional[int] = None, map: Optional[int] = None, nt: Optional[int] = None, pp: Optional[int] = None, planes: Optional[SingleAndSequence[int]] = None, num_streams: Optional[int] = None, device_id: Optional[int] = None) -> 'VideoNode': ...
     def EEDI2(self, field: int, mthresh: Optional[int] = None, lthresh: Optional[int] = None, vthresh: Optional[int] = None, estr: Optional[int] = None, dstr: Optional[int] = None, maxd: Optional[int] = None, map: Optional[int] = None, nt: Optional[int] = None, pp: Optional[int] = None, planes: Optional[SingleAndSequence[int]] = None, num_streams: Optional[int] = None, device_id: Optional[int] = None) -> 'VideoNode': ...
     def Enlarge2(self, mthresh: Optional[int] = None, lthresh: Optional[int] = None, vthresh: Optional[int] = None, estr: Optional[int] = None, dstr: Optional[int] = None, maxd: Optional[int] = None, map: Optional[int] = None, nt: Optional[int] = None, pp: Optional[int] = None, planes: Optional[SingleAndSequence[int]] = None, num_streams: Optional[int] = None, device_id: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: eedi3
+
+class _Plugin_eedi3_Core_Bound(Plugin):
+    """This class implements the module definitions for the "eedi3" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def eedi3(self, clip: 'VideoNode', field: int, dh: Optional[int] = None, planes: Optional[SingleAndSequence[int]] = None, alpha: Optional[float] = None, beta: Optional[float] = None, gamma: Optional[float] = None, nrad: Optional[int] = None, mdis: Optional[int] = None, hp: Optional[int] = None, ucubic: Optional[int] = None, cost3: Optional[int] = None, vcheck: Optional[int] = None, vthresh0: Optional[float] = None, vthresh1: Optional[float] = None, vthresh2: Optional[float] = None, sclip: Optional['VideoNode'] = None) -> 'VideoNode': ...
+
+class _Plugin_eedi3_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "eedi3" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def eedi3(self, field: int, dh: Optional[int] = None, planes: Optional[SingleAndSequence[int]] = None, alpha: Optional[float] = None, beta: Optional[float] = None, gamma: Optional[float] = None, nrad: Optional[int] = None, mdis: Optional[int] = None, hp: Optional[int] = None, ucubic: Optional[int] = None, cost3: Optional[int] = None, vcheck: Optional[int] = None, vthresh0: Optional[float] = None, vthresh1: Optional[float] = None, vthresh2: Optional[float] = None, sclip: Optional['VideoNode'] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1406,6 +1607,19 @@ class _Plugin_f3kdb_VideoNode_Bound(Plugin):
 # end implementation
 
     
+# implementation: fb
+
+class _Plugin_fb_Core_Bound(Plugin):
+    """This class implements the module definitions for the "fb" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def FillBorders(self, clip: 'VideoNode', left: Optional[int] = None, right: Optional[int] = None, top: Optional[int] = None, bottom: Optional[int] = None, mode: Optional[DataType] = None, interlaced: Optional[int] = None) -> 'VideoNode': ...
+
+class _Plugin_fb_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "fb" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def FillBorders(self, left: Optional[int] = None, right: Optional[int] = None, top: Optional[int] = None, bottom: Optional[int] = None, mode: Optional[DataType] = None, interlaced: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
 # implementation: ffms2
 
 class _Plugin_ffms2_Core_Bound(Plugin):
@@ -1428,6 +1642,21 @@ class _Plugin_fft3dfilter_Core_Bound(Plugin):
 class _Plugin_fft3dfilter_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "fft3dfilter" VapourSynth plugin.\n\n*This class cannot be imported.*"""
     def FFT3DFilter(self, sigma: Optional[float] = None, beta: Optional[float] = None, planes: Optional[SingleAndSequence[int]] = None, bw: Optional[int] = None, bh: Optional[int] = None, bt: Optional[int] = None, ow: Optional[int] = None, oh: Optional[int] = None, kratio: Optional[float] = None, sharpen: Optional[float] = None, scutoff: Optional[float] = None, svr: Optional[float] = None, smin: Optional[float] = None, smax: Optional[float] = None, measure: Optional[int] = None, interlaced: Optional[int] = None, wintype: Optional[int] = None, pframe: Optional[int] = None, px: Optional[int] = None, py: Optional[int] = None, pshow: Optional[int] = None, pcutoff: Optional[float] = None, pfactor: Optional[float] = None, sigma2: Optional[float] = None, sigma3: Optional[float] = None, sigma4: Optional[float] = None, degrid: Optional[float] = None, dehalo: Optional[float] = None, hr: Optional[float] = None, ht: Optional[float] = None, ncpu: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: fh
+
+class _Plugin_fh_Core_Bound(Plugin):
+    """This class implements the module definitions for the "fh" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def FieldHint(self, clip: 'VideoNode', ovr: Optional[DataType] = None, tff: Optional[int] = None, matches: Optional[DataType] = None) -> 'VideoNode': ...
+    def Fieldhint(self, clip: 'VideoNode', ovr: Optional[DataType] = None, tff: Optional[int] = None, matches: Optional[DataType] = None) -> 'VideoNode': ...
+
+class _Plugin_fh_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "fh" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def FieldHint(self, ovr: Optional[DataType] = None, tff: Optional[int] = None, matches: Optional[DataType] = None) -> 'VideoNode': ...
+    def Fieldhint(self, ovr: Optional[DataType] = None, tff: Optional[int] = None, matches: Optional[DataType] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1456,7 +1685,7 @@ class _Plugin_fmtc_Core_Bound(Plugin):
     def matrix(self, clip: 'VideoNode', mat: Optional[DataType] = None, mats: Optional[DataType] = None, matd: Optional[DataType] = None, fulls: Optional[int] = None, fulld: Optional[int] = None, coef: Optional[SingleAndSequence[float]] = None, csp: Optional[int] = None, col_fam: Optional[int] = None, bits: Optional[int] = None, singleout: Optional[int] = None, cpuopt: Optional[int] = None, planes: Optional[SingleAndSequence[float]] = None) -> 'VideoNode': ...
     def matrix2020cl(self, clip: 'VideoNode', full: Optional[int] = None, csp: Optional[int] = None, bits: Optional[int] = None, cpuopt: Optional[int] = None) -> 'VideoNode': ...
     def nativetostack16(self, clip: 'VideoNode') -> 'VideoNode': ...
-    def primaries(self, clip: 'VideoNode', rs: Optional[SingleAndSequence[float]] = None, gs: Optional[SingleAndSequence[float]] = None, bs: Optional[SingleAndSequence[float]] = None, ws: Optional[SingleAndSequence[float]] = None, rd: Optional[SingleAndSequence[float]] = None, gd: Optional[SingleAndSequence[float]] = None, bd: Optional[SingleAndSequence[float]] = None, wd: Optional[SingleAndSequence[float]] = None, prims: Optional[DataType] = None, primd: Optional[DataType] = None, cpuopt: Optional[int] = None) -> 'VideoNode': ...
+    def primaries(self, clip: 'VideoNode', rs: Optional[SingleAndSequence[float]] = None, gs: Optional[SingleAndSequence[float]] = None, bs: Optional[SingleAndSequence[float]] = None, ws: Optional[SingleAndSequence[float]] = None, rd: Optional[SingleAndSequence[float]] = None, gd: Optional[SingleAndSequence[float]] = None, bd: Optional[SingleAndSequence[float]] = None, wd: Optional[SingleAndSequence[float]] = None, prims: Optional[DataType] = None, primd: Optional[DataType] = None, wconv: Optional[int] = None, cpuopt: Optional[int] = None) -> 'VideoNode': ...
     def resample(self, clip: 'VideoNode', w: Optional[int] = None, h: Optional[int] = None, sx: Optional[SingleAndSequence[float]] = None, sy: Optional[SingleAndSequence[float]] = None, sw: Optional[SingleAndSequence[float]] = None, sh: Optional[SingleAndSequence[float]] = None, scale: Optional[float] = None, scaleh: Optional[float] = None, scalev: Optional[float] = None, kernel: Optional[SingleAndSequence[DataType]] = None, kernelh: Optional[SingleAndSequence[DataType]] = None, kernelv: Optional[SingleAndSequence[DataType]] = None, impulse: Optional[SingleAndSequence[float]] = None, impulseh: Optional[SingleAndSequence[float]] = None, impulsev: Optional[SingleAndSequence[float]] = None, taps: Optional[SingleAndSequence[int]] = None, tapsh: Optional[SingleAndSequence[int]] = None, tapsv: Optional[SingleAndSequence[int]] = None, a1: Optional[SingleAndSequence[float]] = None, a2: Optional[SingleAndSequence[float]] = None, a3: Optional[SingleAndSequence[float]] = None, a1h: Optional[SingleAndSequence[float]] = None, a2h: Optional[SingleAndSequence[float]] = None, a3h: Optional[SingleAndSequence[float]] = None, a1v: Optional[SingleAndSequence[float]] = None, a2v: Optional[SingleAndSequence[float]] = None, a3v: Optional[SingleAndSequence[float]] = None, kovrspl: Optional[SingleAndSequence[int]] = None, fh: Optional[SingleAndSequence[float]] = None, fv: Optional[SingleAndSequence[float]] = None, cnorm: Optional[SingleAndSequence[int]] = None, total: Optional[SingleAndSequence[float]] = None, totalh: Optional[SingleAndSequence[float]] = None, totalv: Optional[SingleAndSequence[float]] = None, invks: Optional[SingleAndSequence[int]] = None, invksh: Optional[SingleAndSequence[int]] = None, invksv: Optional[SingleAndSequence[int]] = None, invkstaps: Optional[SingleAndSequence[int]] = None, invkstapsh: Optional[SingleAndSequence[int]] = None, invkstapsv: Optional[SingleAndSequence[int]] = None, csp: Optional[int] = None, css: Optional[DataType] = None, planes: Optional[SingleAndSequence[float]] = None, fulls: Optional[int] = None, fulld: Optional[int] = None, center: Optional[SingleAndSequence[int]] = None, cplace: Optional[DataType] = None, cplaces: Optional[DataType] = None, cplaced: Optional[DataType] = None, interlaced: Optional[int] = None, interlacedd: Optional[int] = None, tff: Optional[int] = None, tffd: Optional[int] = None, flt: Optional[int] = None, cpuopt: Optional[int] = None) -> 'VideoNode': ...
     def stack16tonative(self, clip: 'VideoNode') -> 'VideoNode': ...
     def transfer(self, clip: 'VideoNode', transs: Optional[SingleAndSequence[DataType]] = None, transd: Optional[SingleAndSequence[DataType]] = None, cont: Optional[float] = None, gcor: Optional[float] = None, bits: Optional[int] = None, flt: Optional[int] = None, fulls: Optional[int] = None, fulld: Optional[int] = None, logceis: Optional[int] = None, logceid: Optional[int] = None, cpuopt: Optional[int] = None, blacklvl: Optional[float] = None, sceneref: Optional[int] = None, lb: Optional[float] = None, lw: Optional[float] = None, lws: Optional[float] = None, lwd: Optional[float] = None, ambient: Optional[float] = None, match: Optional[int] = None, gy: Optional[int] = None, debug: Optional[int] = None, sig_c: Optional[float] = None, sig_t: Optional[float] = None) -> 'VideoNode': ...
@@ -1468,7 +1697,7 @@ class _Plugin_fmtc_VideoNode_Bound(Plugin):
     def matrix(self, mat: Optional[DataType] = None, mats: Optional[DataType] = None, matd: Optional[DataType] = None, fulls: Optional[int] = None, fulld: Optional[int] = None, coef: Optional[SingleAndSequence[float]] = None, csp: Optional[int] = None, col_fam: Optional[int] = None, bits: Optional[int] = None, singleout: Optional[int] = None, cpuopt: Optional[int] = None, planes: Optional[SingleAndSequence[float]] = None) -> 'VideoNode': ...
     def matrix2020cl(self, full: Optional[int] = None, csp: Optional[int] = None, bits: Optional[int] = None, cpuopt: Optional[int] = None) -> 'VideoNode': ...
     def nativetostack16(self) -> 'VideoNode': ...
-    def primaries(self, rs: Optional[SingleAndSequence[float]] = None, gs: Optional[SingleAndSequence[float]] = None, bs: Optional[SingleAndSequence[float]] = None, ws: Optional[SingleAndSequence[float]] = None, rd: Optional[SingleAndSequence[float]] = None, gd: Optional[SingleAndSequence[float]] = None, bd: Optional[SingleAndSequence[float]] = None, wd: Optional[SingleAndSequence[float]] = None, prims: Optional[DataType] = None, primd: Optional[DataType] = None, cpuopt: Optional[int] = None) -> 'VideoNode': ...
+    def primaries(self, rs: Optional[SingleAndSequence[float]] = None, gs: Optional[SingleAndSequence[float]] = None, bs: Optional[SingleAndSequence[float]] = None, ws: Optional[SingleAndSequence[float]] = None, rd: Optional[SingleAndSequence[float]] = None, gd: Optional[SingleAndSequence[float]] = None, bd: Optional[SingleAndSequence[float]] = None, wd: Optional[SingleAndSequence[float]] = None, prims: Optional[DataType] = None, primd: Optional[DataType] = None, wconv: Optional[int] = None, cpuopt: Optional[int] = None) -> 'VideoNode': ...
     def resample(self, w: Optional[int] = None, h: Optional[int] = None, sx: Optional[SingleAndSequence[float]] = None, sy: Optional[SingleAndSequence[float]] = None, sw: Optional[SingleAndSequence[float]] = None, sh: Optional[SingleAndSequence[float]] = None, scale: Optional[float] = None, scaleh: Optional[float] = None, scalev: Optional[float] = None, kernel: Optional[SingleAndSequence[DataType]] = None, kernelh: Optional[SingleAndSequence[DataType]] = None, kernelv: Optional[SingleAndSequence[DataType]] = None, impulse: Optional[SingleAndSequence[float]] = None, impulseh: Optional[SingleAndSequence[float]] = None, impulsev: Optional[SingleAndSequence[float]] = None, taps: Optional[SingleAndSequence[int]] = None, tapsh: Optional[SingleAndSequence[int]] = None, tapsv: Optional[SingleAndSequence[int]] = None, a1: Optional[SingleAndSequence[float]] = None, a2: Optional[SingleAndSequence[float]] = None, a3: Optional[SingleAndSequence[float]] = None, a1h: Optional[SingleAndSequence[float]] = None, a2h: Optional[SingleAndSequence[float]] = None, a3h: Optional[SingleAndSequence[float]] = None, a1v: Optional[SingleAndSequence[float]] = None, a2v: Optional[SingleAndSequence[float]] = None, a3v: Optional[SingleAndSequence[float]] = None, kovrspl: Optional[SingleAndSequence[int]] = None, fh: Optional[SingleAndSequence[float]] = None, fv: Optional[SingleAndSequence[float]] = None, cnorm: Optional[SingleAndSequence[int]] = None, total: Optional[SingleAndSequence[float]] = None, totalh: Optional[SingleAndSequence[float]] = None, totalv: Optional[SingleAndSequence[float]] = None, invks: Optional[SingleAndSequence[int]] = None, invksh: Optional[SingleAndSequence[int]] = None, invksv: Optional[SingleAndSequence[int]] = None, invkstaps: Optional[SingleAndSequence[int]] = None, invkstapsh: Optional[SingleAndSequence[int]] = None, invkstapsv: Optional[SingleAndSequence[int]] = None, csp: Optional[int] = None, css: Optional[DataType] = None, planes: Optional[SingleAndSequence[float]] = None, fulls: Optional[int] = None, fulld: Optional[int] = None, center: Optional[SingleAndSequence[int]] = None, cplace: Optional[DataType] = None, cplaces: Optional[DataType] = None, cplaced: Optional[DataType] = None, interlaced: Optional[int] = None, interlacedd: Optional[int] = None, tff: Optional[int] = None, tffd: Optional[int] = None, flt: Optional[int] = None, cpuopt: Optional[int] = None) -> 'VideoNode': ...
     def stack16tonative(self) -> 'VideoNode': ...
     def transfer(self, transs: Optional[SingleAndSequence[DataType]] = None, transd: Optional[SingleAndSequence[DataType]] = None, cont: Optional[float] = None, gcor: Optional[float] = None, bits: Optional[int] = None, flt: Optional[int] = None, fulls: Optional[int] = None, fulld: Optional[int] = None, logceis: Optional[int] = None, logceid: Optional[int] = None, cpuopt: Optional[int] = None, blacklvl: Optional[float] = None, sceneref: Optional[int] = None, lb: Optional[float] = None, lw: Optional[float] = None, lws: Optional[float] = None, lwd: Optional[float] = None, ambient: Optional[float] = None, match: Optional[int] = None, gy: Optional[int] = None, debug: Optional[int] = None, sig_c: Optional[float] = None, sig_t: Optional[float] = None) -> 'VideoNode': ...
@@ -1485,6 +1714,19 @@ class _Plugin_focus2_Core_Bound(Plugin):
 class _Plugin_focus2_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "focus2" VapourSynth plugin.\n\n*This class cannot be imported.*"""
     def TemporalSoften2(self, radius: Optional[int] = None, luma_threshold: Optional[int] = None, chroma_threshold: Optional[int] = None, scenechange: Optional[int] = None, mode: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: fpng
+
+class _Plugin_fpng_Core_Bound(Plugin):
+    """This class implements the module definitions for the "fpng" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Write(self, clip: 'VideoNode', filename: DataType, firstnum: Optional[int] = None, compression: Optional[int] = None, overwrite: Optional[int] = None, alpha: Optional['VideoNode'] = None) -> 'VideoNode': ...
+
+class _Plugin_fpng_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "fpng" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Write(self, filename: DataType, firstnum: Optional[int] = None, compression: Optional[int] = None, overwrite: Optional[int] = None, alpha: Optional['VideoNode'] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1550,6 +1792,31 @@ class _Plugin_imwri_VideoNode_Bound(Plugin):
 # end implementation
 
     
+# implementation: julek
+
+class _Plugin_julek_Core_Bound(Plugin):
+    """This class implements the module definitions for the "julek" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def AGM(self, clip: 'VideoNode', luma_scaling: Optional[float] = None) -> 'VideoNode': ...
+    def AutoGain(self, clip: 'VideoNode', planes: Optional[SingleAndSequence[int]] = None) -> 'VideoNode': ...
+    def Butteraugli(self, reference: 'VideoNode', distorted: 'VideoNode', distmap: Optional[int] = None, intensity_target: Optional[float] = None, linput: Optional[int] = None) -> 'VideoNode': ...
+    def ColorMap(self, clip: 'VideoNode', type: Optional[int] = None) -> 'VideoNode': ...
+    def RFS(self, clip_a: 'VideoNode', clip_b: 'VideoNode', frames: SingleAndSequence[int], mismatch: Optional[int] = None) -> 'VideoNode': ...
+    def SSIMULACRA(self, reference: 'VideoNode', distorted: 'VideoNode', feature: Optional[int] = None, simple: Optional[int] = None) -> 'VideoNode': ...
+    def VisualizeDiffs(self, clip_a: 'VideoNode', clip_b: 'VideoNode', auto_gain: Optional[int] = None, type: Optional[int] = None) -> 'VideoNode': ...
+
+class _Plugin_julek_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "julek" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def AGM(self, luma_scaling: Optional[float] = None) -> 'VideoNode': ...
+    def AutoGain(self, planes: Optional[SingleAndSequence[int]] = None) -> 'VideoNode': ...
+    def Butteraugli(self, distorted: 'VideoNode', distmap: Optional[int] = None, intensity_target: Optional[float] = None, linput: Optional[int] = None) -> 'VideoNode': ...
+    def ColorMap(self, type: Optional[int] = None) -> 'VideoNode': ...
+    def RFS(self, clip_b: 'VideoNode', frames: SingleAndSequence[int], mismatch: Optional[int] = None) -> 'VideoNode': ...
+    def SSIMULACRA(self, distorted: 'VideoNode', feature: Optional[int] = None, simple: Optional[int] = None) -> 'VideoNode': ...
+    def VisualizeDiffs(self, clip_b: 'VideoNode', auto_gain: Optional[int] = None, type: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
 # implementation: knlm
 
 class _Plugin_knlm_Core_Bound(Plugin):
@@ -1582,9 +1849,8 @@ class _Plugin_libp2p_VideoNode_Bound(Plugin):
 
 class _Plugin_lsmas_Core_Bound(Plugin):
     """This class implements the module definitions for the "lsmas" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def LibavSMASHSource(self, source: DataType, track: Optional[int] = None, threads: Optional[int] = None, seek_mode: Optional[int] = None, seek_threshold: Optional[int] = None, dr: Optional[int] = None, fpsnum: Optional[int] = None, fpsden: Optional[int] = None, variable: Optional[int] = None, format: Optional[DataType] = None, decoder: Optional[DataType] = None, prefer_hw: Optional[int] = None, ff_loglevel: Optional[int] = None) -> 'VideoNode': ...
-    def LWLibavSource(self, source: DataType, stream_index: Optional[int] = None, cache: Optional[int] = None, cachefile: Optional[DataType] = None, threads: Optional[int] = None, seek_mode: Optional[int] = None, seek_threshold: Optional[int] = None, dr: Optional[int] = None, fpsnum: Optional[int] = None, fpsden: Optional[int] = None, variable: Optional[int] = None, format: Optional[DataType] = None, decoder: Optional[DataType] = None, prefer_hw: Optional[int] = None, repeat: Optional[int] = None, dominance: Optional[int] = None, ff_loglevel: Optional[int] = None, cachedir: Optional[DataType] = None, soft_reset: Optional[int] = None) -> 'VideoNode': ...
-    def Version(self) -> 'VideoNode': ...
+    def LibavSMASHSource(self, source: DataType, track: Optional[int] = None, threads: Optional[int] = None, seek_mode: Optional[int] = None, seek_threshold: Optional[int] = None, dr: Optional[int] = None, fpsnum: Optional[int] = None, fpsden: Optional[int] = None, variable: Optional[int] = None, format: Optional[DataType] = None, decoder: Optional[DataType] = None, prefer_hw: Optional[int] = None, ff_loglevel: Optional[int] = None, ff_options: Optional[DataType] = None) -> 'VideoNode': ...
+    def LWLibavSource(self, source: DataType, stream_index: Optional[int] = None, cache: Optional[int] = None, cachefile: Optional[DataType] = None, threads: Optional[int] = None, seek_mode: Optional[int] = None, seek_threshold: Optional[int] = None, dr: Optional[int] = None, fpsnum: Optional[int] = None, fpsden: Optional[int] = None, variable: Optional[int] = None, format: Optional[DataType] = None, decoder: Optional[DataType] = None, prefer_hw: Optional[int] = None, repeat: Optional[int] = None, dominance: Optional[int] = None, ff_loglevel: Optional[int] = None, cachedir: Optional[DataType] = None, ff_options: Optional[DataType] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1648,9 +1914,12 @@ class _Plugin_morpho_VideoNode_Bound(Plugin):
     
 # implementation: mpls
 
+_ReturnDict_mpls_Read = TypedDict("_ReturnDict_mpls_Read", {"count": int, "clip": DataType, "filename": DataType})
+
+
 class _Plugin_mpls_Core_Bound(Plugin):
     """This class implements the module definitions for the "mpls" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Read(self, bd_path: DataType, playlist: int, angle: Optional[int] = None) -> Tuple[Any, ...]: ...
+    def Read(self, bd_path: DataType, playlist: int, angle: Optional[int] = None) -> '_ReturnDict_mpls_Read': ...
 
 # end implementation
 
@@ -1674,7 +1943,7 @@ class _Plugin_msmoosh_VideoNode_Bound(Plugin):
 
 class _Plugin_mv_Core_Bound(Plugin):
     """This class implements the module definitions for the "mv" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Analyse(self, super: 'VideoNode', blksize: Optional[int] = None, blksizev: Optional[int] = None, levels: Optional[int] = None, search: Optional[int] = None, searchparam: Optional[int] = None, pelsearch: Optional[int] = None, isb: Optional[int] = None, lambda_: Optional[int] = None, chroma: Optional[int] = None, delta: Optional[int] = None, truemotion: Optional[int] = None, lsad: Optional[int] = None, plevel: Optional[int] = None, global_: Optional[int] = None, pnew: Optional[int] = None, pzero: Optional[int] = None, pglobal: Optional[int] = None, overlap: Optional[int] = None, overlapv: Optional[int] = None, divide: Optional[int] = None, badsad: Optional[int] = None, badrange: Optional[int] = None, opt: Optional[int] = None, meander: Optional[int] = None, trymany: Optional[int] = None, fields: Optional[int] = None, tff: Optional[int] = None, search_coarse: Optional[int] = None, dct: Optional[int] = None) -> 'VideoNode': ...
+    def Analyse(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
     def BlockFPS(self, clip: 'VideoNode', super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', num: Optional[int] = None, den: Optional[int] = None, mode: Optional[int] = None, ml: Optional[float] = None, blend: Optional[int] = None, thscd1: Optional[int] = None, thscd2: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
     def Compensate(self, clip: 'VideoNode', super: 'VideoNode', vectors: 'VideoNode', scbehavior: Optional[int] = None, thsad: Optional[int] = None, fields: Optional[int] = None, time: Optional[float] = None, thscd1: Optional[int] = None, thscd2: Optional[int] = None, opt: Optional[int] = None, tff: Optional[int] = None) -> 'VideoNode': ...
     def Degrain1(self, clip: 'VideoNode', super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', thsad: Optional[int] = None, thsadc: Optional[int] = None, plane: Optional[int] = None, limit: Optional[int] = None, limitc: Optional[int] = None, thscd1: Optional[int] = None, thscd2: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
@@ -1690,13 +1959,13 @@ class _Plugin_mv_Core_Bound(Plugin):
     def FlowFPS(self, clip: 'VideoNode', super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', num: Optional[int] = None, den: Optional[int] = None, mask: Optional[int] = None, ml: Optional[float] = None, blend: Optional[int] = None, thscd1: Optional[int] = None, thscd2: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
     def FlowInter(self, clip: 'VideoNode', super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', time: Optional[float] = None, ml: Optional[float] = None, blend: Optional[int] = None, thscd1: Optional[int] = None, thscd2: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
     def Mask(self, clip: 'VideoNode', vectors: 'VideoNode', ml: Optional[float] = None, gamma: Optional[float] = None, kind: Optional[int] = None, time: Optional[float] = None, ysc: Optional[int] = None, thscd1: Optional[int] = None, thscd2: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Recalculate(self, super: 'VideoNode', vectors: 'VideoNode', thsad: Optional[int] = None, smooth: Optional[int] = None, blksize: Optional[int] = None, blksizev: Optional[int] = None, search: Optional[int] = None, searchparam: Optional[int] = None, lambda_: Optional[int] = None, chroma: Optional[int] = None, truemotion: Optional[int] = None, pnew: Optional[int] = None, overlap: Optional[int] = None, overlapv: Optional[int] = None, divide: Optional[int] = None, opt: Optional[int] = None, meander: Optional[int] = None, fields: Optional[int] = None, tff: Optional[int] = None, dct: Optional[int] = None) -> 'VideoNode': ...
+    def Recalculate(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
     def SCDetection(self, clip: 'VideoNode', vectors: 'VideoNode', thscd1: Optional[int] = None, thscd2: Optional[int] = None) -> 'VideoNode': ...
     def Super(self, clip: 'VideoNode', hpad: Optional[int] = None, vpad: Optional[int] = None, pel: Optional[int] = None, levels: Optional[int] = None, chroma: Optional[int] = None, sharp: Optional[int] = None, rfilter: Optional[int] = None, pelclip: Optional['VideoNode'] = None, opt: Optional[int] = None) -> 'VideoNode': ...
 
 class _Plugin_mv_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "mv" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Analyse(self, blksize: Optional[int] = None, blksizev: Optional[int] = None, levels: Optional[int] = None, search: Optional[int] = None, searchparam: Optional[int] = None, pelsearch: Optional[int] = None, isb: Optional[int] = None, lambda_: Optional[int] = None, chroma: Optional[int] = None, delta: Optional[int] = None, truemotion: Optional[int] = None, lsad: Optional[int] = None, plevel: Optional[int] = None, global_: Optional[int] = None, pnew: Optional[int] = None, pzero: Optional[int] = None, pglobal: Optional[int] = None, overlap: Optional[int] = None, overlapv: Optional[int] = None, divide: Optional[int] = None, badsad: Optional[int] = None, badrange: Optional[int] = None, opt: Optional[int] = None, meander: Optional[int] = None, trymany: Optional[int] = None, fields: Optional[int] = None, tff: Optional[int] = None, search_coarse: Optional[int] = None, dct: Optional[int] = None) -> 'VideoNode': ...
+    def Analyse(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
     def BlockFPS(self, super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', num: Optional[int] = None, den: Optional[int] = None, mode: Optional[int] = None, ml: Optional[float] = None, blend: Optional[int] = None, thscd1: Optional[int] = None, thscd2: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
     def Compensate(self, super: 'VideoNode', vectors: 'VideoNode', scbehavior: Optional[int] = None, thsad: Optional[int] = None, fields: Optional[int] = None, time: Optional[float] = None, thscd1: Optional[int] = None, thscd2: Optional[int] = None, opt: Optional[int] = None, tff: Optional[int] = None) -> 'VideoNode': ...
     def Degrain1(self, super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', thsad: Optional[int] = None, thsadc: Optional[int] = None, plane: Optional[int] = None, limit: Optional[int] = None, limitc: Optional[int] = None, thscd1: Optional[int] = None, thscd2: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
@@ -1712,7 +1981,7 @@ class _Plugin_mv_VideoNode_Bound(Plugin):
     def FlowFPS(self, super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', num: Optional[int] = None, den: Optional[int] = None, mask: Optional[int] = None, ml: Optional[float] = None, blend: Optional[int] = None, thscd1: Optional[int] = None, thscd2: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
     def FlowInter(self, super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', time: Optional[float] = None, ml: Optional[float] = None, blend: Optional[int] = None, thscd1: Optional[int] = None, thscd2: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
     def Mask(self, vectors: 'VideoNode', ml: Optional[float] = None, gamma: Optional[float] = None, kind: Optional[int] = None, time: Optional[float] = None, ysc: Optional[int] = None, thscd1: Optional[int] = None, thscd2: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
-    def Recalculate(self, vectors: 'VideoNode', thsad: Optional[int] = None, smooth: Optional[int] = None, blksize: Optional[int] = None, blksizev: Optional[int] = None, search: Optional[int] = None, searchparam: Optional[int] = None, lambda_: Optional[int] = None, chroma: Optional[int] = None, truemotion: Optional[int] = None, pnew: Optional[int] = None, overlap: Optional[int] = None, overlapv: Optional[int] = None, divide: Optional[int] = None, opt: Optional[int] = None, meander: Optional[int] = None, fields: Optional[int] = None, tff: Optional[int] = None, dct: Optional[int] = None) -> 'VideoNode': ...
+    def Recalculate(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
     def SCDetection(self, vectors: 'VideoNode', thscd1: Optional[int] = None, thscd2: Optional[int] = None) -> 'VideoNode': ...
     def Super(self, hpad: Optional[int] = None, vpad: Optional[int] = None, pel: Optional[int] = None, levels: Optional[int] = None, chroma: Optional[int] = None, sharp: Optional[int] = None, rfilter: Optional[int] = None, pelclip: Optional['VideoNode'] = None, opt: Optional[int] = None) -> 'VideoNode': ...
 
@@ -1723,8 +1992,8 @@ class _Plugin_mv_VideoNode_Bound(Plugin):
 
 class _Plugin_mvsf_Core_Bound(Plugin):
     """This class implements the module definitions for the "mvsf" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Analyse(self, super: 'VideoNode', blksize: Optional[int] = None, blksizev: Optional[int] = None, levels: Optional[int] = None, search: Optional[int] = None, searchparam: Optional[int] = None, pelsearch: Optional[int] = None, isb: Optional[int] = None, lambda_: Optional[float] = None, chroma: Optional[int] = None, delta: Optional[int] = None, truemotion: Optional[int] = None, lsad: Optional[float] = None, plevel: Optional[int] = None, global_: Optional[int] = None, pnew: Optional[int] = None, pzero: Optional[int] = None, pglobal: Optional[int] = None, overlap: Optional[int] = None, overlapv: Optional[int] = None, divide: Optional[int] = None, badsad: Optional[float] = None, badrange: Optional[int] = None, meander: Optional[int] = None, trymany: Optional[int] = None, fields: Optional[int] = None, tff: Optional[int] = None, search_coarse: Optional[int] = None, dct: Optional[int] = None) -> 'VideoNode': ...
-    def Analyze(self, super: 'VideoNode', blksize: Optional[int] = None, blksizev: Optional[int] = None, levels: Optional[int] = None, search: Optional[int] = None, searchparam: Optional[int] = None, pelsearch: Optional[int] = None, isb: Optional[int] = None, lambda_: Optional[float] = None, chroma: Optional[int] = None, delta: Optional[int] = None, truemotion: Optional[int] = None, lsad: Optional[float] = None, plevel: Optional[int] = None, global_: Optional[int] = None, pnew: Optional[int] = None, pzero: Optional[int] = None, pglobal: Optional[int] = None, overlap: Optional[int] = None, overlapv: Optional[int] = None, divide: Optional[int] = None, badsad: Optional[float] = None, badrange: Optional[int] = None, meander: Optional[int] = None, trymany: Optional[int] = None, fields: Optional[int] = None, tff: Optional[int] = None, search_coarse: Optional[int] = None, dct: Optional[int] = None) -> 'VideoNode': ...
+    def Analyse(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
+    def Analyze(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
     def BlockFPS(self, clip: 'VideoNode', super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', num: Optional[int] = None, den: Optional[int] = None, mode: Optional[int] = None, ml: Optional[float] = None, blend: Optional[int] = None, thscd1: Optional[float] = None, thscd2: Optional[float] = None) -> 'VideoNode': ...
     def Compensate(self, clip: 'VideoNode', super: 'VideoNode', vectors: 'VideoNode', scbehavior: Optional[int] = None, thsad: Optional[float] = None, fields: Optional[int] = None, time: Optional[float] = None, thscd1: Optional[float] = None, thscd2: Optional[float] = None, tff: Optional[int] = None) -> 'VideoNode': ...
     def Degrain1(self, clip: 'VideoNode', super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', thsad: Optional[SingleAndSequence[float]] = None, plane: Optional[int] = None, limit: Optional[SingleAndSequence[float]] = None, thscd1: Optional[float] = None, thscd2: Optional[float] = None) -> 'VideoNode': ...
@@ -1757,14 +2026,14 @@ class _Plugin_mvsf_Core_Bound(Plugin):
     def FlowFPS(self, clip: 'VideoNode', super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', num: Optional[int] = None, den: Optional[int] = None, mask: Optional[int] = None, ml: Optional[float] = None, blend: Optional[int] = None, thscd1: Optional[float] = None, thscd2: Optional[float] = None) -> 'VideoNode': ...
     def FlowInter(self, clip: 'VideoNode', super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', time: Optional[float] = None, ml: Optional[float] = None, blend: Optional[int] = None, thscd1: Optional[float] = None, thscd2: Optional[float] = None) -> 'VideoNode': ...
     def Mask(self, clip: 'VideoNode', vectors: 'VideoNode', ml: Optional[float] = None, gamma: Optional[float] = None, kind: Optional[int] = None, time: Optional[float] = None, ysc: Optional[float] = None, thscd1: Optional[float] = None, thscd2: Optional[float] = None) -> 'VideoNode': ...
-    def Recalculate(self, super: 'VideoNode', vectors: 'VideoNode', thsad: Optional[float] = None, smooth: Optional[int] = None, blksize: Optional[int] = None, blksizev: Optional[int] = None, search: Optional[int] = None, searchparam: Optional[int] = None, lambda_: Optional[float] = None, chroma: Optional[int] = None, truemotion: Optional[int] = None, pnew: Optional[int] = None, overlap: Optional[int] = None, overlapv: Optional[int] = None, divide: Optional[int] = None, meander: Optional[int] = None, fields: Optional[int] = None, tff: Optional[int] = None, dct: Optional[int] = None) -> 'VideoNode': ...
+    def Recalculate(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
     def SCDetection(self, clip: 'VideoNode', vectors: 'VideoNode', thscd1: Optional[float] = None, thscd2: Optional[float] = None) -> 'VideoNode': ...
     def Super(self, clip: 'VideoNode', hpad: Optional[int] = None, vpad: Optional[int] = None, pel: Optional[int] = None, levels: Optional[int] = None, chroma: Optional[int] = None, sharp: Optional[int] = None, rfilter: Optional[int] = None, pelclip: Optional['VideoNode'] = None) -> 'VideoNode': ...
 
 class _Plugin_mvsf_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "mvsf" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Analyse(self, blksize: Optional[int] = None, blksizev: Optional[int] = None, levels: Optional[int] = None, search: Optional[int] = None, searchparam: Optional[int] = None, pelsearch: Optional[int] = None, isb: Optional[int] = None, lambda_: Optional[float] = None, chroma: Optional[int] = None, delta: Optional[int] = None, truemotion: Optional[int] = None, lsad: Optional[float] = None, plevel: Optional[int] = None, global_: Optional[int] = None, pnew: Optional[int] = None, pzero: Optional[int] = None, pglobal: Optional[int] = None, overlap: Optional[int] = None, overlapv: Optional[int] = None, divide: Optional[int] = None, badsad: Optional[float] = None, badrange: Optional[int] = None, meander: Optional[int] = None, trymany: Optional[int] = None, fields: Optional[int] = None, tff: Optional[int] = None, search_coarse: Optional[int] = None, dct: Optional[int] = None) -> 'VideoNode': ...
-    def Analyze(self, blksize: Optional[int] = None, blksizev: Optional[int] = None, levels: Optional[int] = None, search: Optional[int] = None, searchparam: Optional[int] = None, pelsearch: Optional[int] = None, isb: Optional[int] = None, lambda_: Optional[float] = None, chroma: Optional[int] = None, delta: Optional[int] = None, truemotion: Optional[int] = None, lsad: Optional[float] = None, plevel: Optional[int] = None, global_: Optional[int] = None, pnew: Optional[int] = None, pzero: Optional[int] = None, pglobal: Optional[int] = None, overlap: Optional[int] = None, overlapv: Optional[int] = None, divide: Optional[int] = None, badsad: Optional[float] = None, badrange: Optional[int] = None, meander: Optional[int] = None, trymany: Optional[int] = None, fields: Optional[int] = None, tff: Optional[int] = None, search_coarse: Optional[int] = None, dct: Optional[int] = None) -> 'VideoNode': ...
+    def Analyse(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
+    def Analyze(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
     def BlockFPS(self, super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', num: Optional[int] = None, den: Optional[int] = None, mode: Optional[int] = None, ml: Optional[float] = None, blend: Optional[int] = None, thscd1: Optional[float] = None, thscd2: Optional[float] = None) -> 'VideoNode': ...
     def Compensate(self, super: 'VideoNode', vectors: 'VideoNode', scbehavior: Optional[int] = None, thsad: Optional[float] = None, fields: Optional[int] = None, time: Optional[float] = None, thscd1: Optional[float] = None, thscd2: Optional[float] = None, tff: Optional[int] = None) -> 'VideoNode': ...
     def Degrain1(self, super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', thsad: Optional[SingleAndSequence[float]] = None, plane: Optional[int] = None, limit: Optional[SingleAndSequence[float]] = None, thscd1: Optional[float] = None, thscd2: Optional[float] = None) -> 'VideoNode': ...
@@ -1797,9 +2066,23 @@ class _Plugin_mvsf_VideoNode_Bound(Plugin):
     def FlowFPS(self, super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', num: Optional[int] = None, den: Optional[int] = None, mask: Optional[int] = None, ml: Optional[float] = None, blend: Optional[int] = None, thscd1: Optional[float] = None, thscd2: Optional[float] = None) -> 'VideoNode': ...
     def FlowInter(self, super: 'VideoNode', mvbw: 'VideoNode', mvfw: 'VideoNode', time: Optional[float] = None, ml: Optional[float] = None, blend: Optional[int] = None, thscd1: Optional[float] = None, thscd2: Optional[float] = None) -> 'VideoNode': ...
     def Mask(self, vectors: 'VideoNode', ml: Optional[float] = None, gamma: Optional[float] = None, kind: Optional[int] = None, time: Optional[float] = None, ysc: Optional[float] = None, thscd1: Optional[float] = None, thscd2: Optional[float] = None) -> 'VideoNode': ...
-    def Recalculate(self, vectors: 'VideoNode', thsad: Optional[float] = None, smooth: Optional[int] = None, blksize: Optional[int] = None, blksizev: Optional[int] = None, search: Optional[int] = None, searchparam: Optional[int] = None, lambda_: Optional[float] = None, chroma: Optional[int] = None, truemotion: Optional[int] = None, pnew: Optional[int] = None, overlap: Optional[int] = None, overlapv: Optional[int] = None, divide: Optional[int] = None, meander: Optional[int] = None, fields: Optional[int] = None, tff: Optional[int] = None, dct: Optional[int] = None) -> 'VideoNode': ...
+    def Recalculate(self, *args: '_VapourSynthMapValue', **kwargs: '_VapourSynthMapValue') -> 'VideoNode': ...
     def SCDetection(self, vectors: 'VideoNode', thscd1: Optional[float] = None, thscd2: Optional[float] = None) -> 'VideoNode': ...
     def Super(self, hpad: Optional[int] = None, vpad: Optional[int] = None, pel: Optional[int] = None, levels: Optional[int] = None, chroma: Optional[int] = None, sharp: Optional[int] = None, rfilter: Optional[int] = None, pelclip: Optional['VideoNode'] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: ncnn
+
+class _Plugin_ncnn_Core_Bound(Plugin):
+    """This class implements the module definitions for the "ncnn" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Model(self, clips: SingleAndSequence['VideoNode'], network_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None, builtin: Optional[int] = None, builtindir: Optional[DataType] = None, fp16: Optional[int] = None, path_is_serialization: Optional[int] = None, flexible_output_prop: Optional[DataType] = None) -> 'VideoNode': ...
+    def Version(self) -> 'VideoNode': ...
+
+class _Plugin_ncnn_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "ncnn" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Model(self, network_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None, builtin: Optional[int] = None, builtindir: Optional[DataType] = None, fp16: Optional[int] = None, path_is_serialization: Optional[int] = None, flexible_output_prop: Optional[DataType] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1808,11 +2091,25 @@ class _Plugin_mvsf_VideoNode_Bound(Plugin):
 
 class _Plugin_neo_f3kdb_Core_Bound(Plugin):
     """This class implements the module definitions for the "neo_f3kdb" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Deband(self, clip: 'VideoNode', range: Optional[int] = None, y: Optional[int] = None, cb: Optional[int] = None, cr: Optional[int] = None, grainy: Optional[int] = None, grainc: Optional[int] = None, sample_mode: Optional[int] = None, seed: Optional[int] = None, blur_first: Optional[int] = None, dynamic_grain: Optional[int] = None, opt: Optional[int] = None, mt: Optional[int] = None, dither_algo: Optional[int] = None, keep_tv_range: Optional[int] = None, output_depth: Optional[int] = None, random_algo_ref: Optional[int] = None, random_algo_grain: Optional[int] = None, random_param_ref: Optional[float] = None, random_param_grain: Optional[float] = None, preset: Optional[DataType] = None) -> 'VideoNode': ...
+    def Deband(self, clip: 'VideoNode', range: Optional[int] = None, y: Optional[int] = None, cb: Optional[int] = None, cr: Optional[int] = None, grainy: Optional[int] = None, grainc: Optional[int] = None, sample_mode: Optional[int] = None, seed: Optional[int] = None, blur_first: Optional[int] = None, dynamic_grain: Optional[int] = None, opt: Optional[int] = None, mt: Optional[int] = None, dither_algo: Optional[int] = None, keep_tv_range: Optional[int] = None, output_depth: Optional[int] = None, random_algo_ref: Optional[int] = None, random_algo_grain: Optional[int] = None, random_param_ref: Optional[float] = None, random_param_grain: Optional[float] = None, preset: Optional[DataType] = None, y_1: Optional[int] = None, cb_1: Optional[int] = None, cr_1: Optional[int] = None, y_2: Optional[int] = None, cb_2: Optional[int] = None, cr_2: Optional[int] = None, scale: Optional[int] = None) -> 'VideoNode': ...
 
 class _Plugin_neo_f3kdb_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "neo_f3kdb" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Deband(self, range: Optional[int] = None, y: Optional[int] = None, cb: Optional[int] = None, cr: Optional[int] = None, grainy: Optional[int] = None, grainc: Optional[int] = None, sample_mode: Optional[int] = None, seed: Optional[int] = None, blur_first: Optional[int] = None, dynamic_grain: Optional[int] = None, opt: Optional[int] = None, mt: Optional[int] = None, dither_algo: Optional[int] = None, keep_tv_range: Optional[int] = None, output_depth: Optional[int] = None, random_algo_ref: Optional[int] = None, random_algo_grain: Optional[int] = None, random_param_ref: Optional[float] = None, random_param_grain: Optional[float] = None, preset: Optional[DataType] = None) -> 'VideoNode': ...
+    def Deband(self, range: Optional[int] = None, y: Optional[int] = None, cb: Optional[int] = None, cr: Optional[int] = None, grainy: Optional[int] = None, grainc: Optional[int] = None, sample_mode: Optional[int] = None, seed: Optional[int] = None, blur_first: Optional[int] = None, dynamic_grain: Optional[int] = None, opt: Optional[int] = None, mt: Optional[int] = None, dither_algo: Optional[int] = None, keep_tv_range: Optional[int] = None, output_depth: Optional[int] = None, random_algo_ref: Optional[int] = None, random_algo_grain: Optional[int] = None, random_param_ref: Optional[float] = None, random_param_grain: Optional[float] = None, preset: Optional[DataType] = None, y_1: Optional[int] = None, cb_1: Optional[int] = None, cr_1: Optional[int] = None, y_2: Optional[int] = None, cb_2: Optional[int] = None, cr_2: Optional[int] = None, scale: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: nlm_cuda
+
+class _Plugin_nlm_cuda_Core_Bound(Plugin):
+    """This class implements the module definitions for the "nlm_cuda" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def NLMeans(self, clip: 'VideoNode', d: Optional[int] = None, a: Optional[int] = None, s: Optional[int] = None, h: Optional[float] = None, channels: Optional[DataType] = None, wmode: Optional[int] = None, wref: Optional[float] = None, rclip: Optional['VideoNode'] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None) -> 'VideoNode': ...
+    def Version(self) -> 'VideoNode': ...
+
+class _Plugin_nlm_cuda_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "nlm_cuda" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def NLMeans(self, d: Optional[int] = None, a: Optional[int] = None, s: Optional[int] = None, h: Optional[float] = None, channels: Optional[DataType] = None, wmode: Optional[int] = None, wref: Optional[float] = None, rclip: Optional['VideoNode'] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1873,12 +2170,12 @@ class _Plugin_ocr_VideoNode_Bound(Plugin):
 
 class _Plugin_ort_Core_Bound(Plugin):
     """This class implements the module definitions for the "ort" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Model(self, clips: SingleAndSequence['VideoNode'], network_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, provider: Optional[DataType] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None, verbosity: Optional[int] = None, cudnn_benchmark: Optional[int] = None, builtin: Optional[int] = None, builtindir: Optional[DataType] = None, fp16: Optional[int] = None) -> 'VideoNode': ...
+    def Model(self, clips: SingleAndSequence['VideoNode'], network_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, provider: Optional[DataType] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None, verbosity: Optional[int] = None, cudnn_benchmark: Optional[int] = None, builtin: Optional[int] = None, builtindir: Optional[DataType] = None, fp16: Optional[int] = None, path_is_serialization: Optional[int] = None, use_cuda_graph: Optional[int] = None, fp16_blacklist_ops: Optional[SingleAndSequence[DataType]] = None, prefer_nhwc: Optional[int] = None, output_format: Optional[int] = None, tf32: Optional[int] = None, flexible_output_prop: Optional[DataType] = None) -> 'VideoNode': ...
     def Version(self) -> 'VideoNode': ...
 
 class _Plugin_ort_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "ort" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Model(self, network_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, provider: Optional[DataType] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None, verbosity: Optional[int] = None, cudnn_benchmark: Optional[int] = None, builtin: Optional[int] = None, builtindir: Optional[DataType] = None, fp16: Optional[int] = None) -> 'VideoNode': ...
+    def Model(self, network_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, provider: Optional[DataType] = None, device_id: Optional[int] = None, num_streams: Optional[int] = None, verbosity: Optional[int] = None, cudnn_benchmark: Optional[int] = None, builtin: Optional[int] = None, builtindir: Optional[DataType] = None, fp16: Optional[int] = None, path_is_serialization: Optional[int] = None, use_cuda_graph: Optional[int] = None, fp16_blacklist_ops: Optional[SingleAndSequence[DataType]] = None, prefer_nhwc: Optional[int] = None, output_format: Optional[int] = None, tf32: Optional[int] = None, flexible_output_prop: Optional[DataType] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1887,12 +2184,13 @@ class _Plugin_ort_VideoNode_Bound(Plugin):
 
 class _Plugin_ov_Core_Bound(Plugin):
     """This class implements the module definitions for the "ov" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Model(self, clips: SingleAndSequence['VideoNode'], network_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, device: Optional[DataType] = None, builtin: Optional[int] = None, builtindir: Optional[DataType] = None, fp16: Optional[int] = None, dot_path: Optional[DataType] = None) -> 'VideoNode': ...
+    def AvailableDevices(self) -> 'VideoNode': ...
+    def Model(self, clips: SingleAndSequence['VideoNode'], network_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, device: Optional[DataType] = None, builtin: Optional[int] = None, builtindir: Optional[DataType] = None, fp16: Optional[int] = None, config: Optional[VSMapValueCallback[_VapourSynthMapValue]] = None, path_is_serialization: Optional[int] = None, fp16_blacklist_ops: Optional[SingleAndSequence[DataType]] = None, dot_path: Optional[DataType] = None, flexible_output_prop: Optional[DataType] = None) -> 'VideoNode': ...
     def Version(self) -> 'VideoNode': ...
 
 class _Plugin_ov_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "ov" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Model(self, network_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, device: Optional[DataType] = None, builtin: Optional[int] = None, builtindir: Optional[DataType] = None, fp16: Optional[int] = None, dot_path: Optional[DataType] = None) -> 'VideoNode': ...
+    def Model(self, network_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, device: Optional[DataType] = None, builtin: Optional[int] = None, builtindir: Optional[DataType] = None, fp16: Optional[int] = None, config: Optional[VSMapValueCallback[_VapourSynthMapValue]] = None, path_is_serialization: Optional[int] = None, fp16_blacklist_ops: Optional[SingleAndSequence[DataType]] = None, dot_path: Optional[DataType] = None, flexible_output_prop: Optional[DataType] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1904,14 +2202,14 @@ class _Plugin_placebo_Core_Bound(Plugin):
     def Deband(self, clip: 'VideoNode', planes: Optional[int] = None, iterations: Optional[int] = None, threshold: Optional[float] = None, radius: Optional[float] = None, grain: Optional[float] = None, dither: Optional[int] = None, dither_algo: Optional[int] = None, log_level: Optional[int] = None) -> 'VideoNode': ...
     def Resample(self, clip: 'VideoNode', width: int, height: int, filter: Optional[DataType] = None, clamp: Optional[float] = None, blur: Optional[float] = None, taper: Optional[float] = None, radius: Optional[float] = None, param1: Optional[float] = None, param2: Optional[float] = None, sx: Optional[float] = None, sy: Optional[float] = None, antiring: Optional[float] = None, lut_entries: Optional[int] = None, cutoff: Optional[float] = None, sigmoidize: Optional[int] = None, sigmoid_center: Optional[float] = None, sigmoid_slope: Optional[float] = None, linearize: Optional[int] = None, trc: Optional[int] = None, log_level: Optional[int] = None) -> 'VideoNode': ...
     def Shader(self, clip: 'VideoNode', shader: Optional[DataType] = None, width: Optional[int] = None, height: Optional[int] = None, chroma_loc: Optional[int] = None, matrix: Optional[int] = None, trc: Optional[int] = None, linearize: Optional[int] = None, sigmoidize: Optional[int] = None, sigmoid_center: Optional[float] = None, sigmoid_slope: Optional[float] = None, lut_entries: Optional[int] = None, antiring: Optional[float] = None, filter: Optional[DataType] = None, clamp: Optional[float] = None, blur: Optional[float] = None, taper: Optional[float] = None, radius: Optional[float] = None, param1: Optional[float] = None, param2: Optional[float] = None, shader_s: Optional[DataType] = None, log_level: Optional[int] = None) -> 'VideoNode': ...
-    def Tonemap(self, clip: 'VideoNode', src_csp: Optional[int] = None, dst_csp: Optional[int] = None, src_max: Optional[float] = None, src_min: Optional[float] = None, dst_max: Optional[float] = None, dst_min: Optional[float] = None, dynamic_peak_detection: Optional[int] = None, smoothing_period: Optional[float] = None, scene_threshold_low: Optional[float] = None, scene_threshold_high: Optional[float] = None, intent: Optional[int] = None, gamut_mode: Optional[int] = None, tone_mapping_function: Optional[int] = None, tone_mapping_mode: Optional[int] = None, tone_mapping_param: Optional[float] = None, tone_mapping_crosstalk: Optional[float] = None, use_dovi: Optional[int] = None, log_level: Optional[int] = None) -> 'VideoNode': ...
+    def Tonemap(self, clip: 'VideoNode', src_csp: Optional[int] = None, dst_csp: Optional[int] = None, dst_prim: Optional[int] = None, src_max: Optional[float] = None, src_min: Optional[float] = None, dst_max: Optional[float] = None, dst_min: Optional[float] = None, dynamic_peak_detection: Optional[int] = None, smoothing_period: Optional[float] = None, scene_threshold_low: Optional[float] = None, scene_threshold_high: Optional[float] = None, intent: Optional[int] = None, gamut_mode: Optional[int] = None, tone_mapping_function: Optional[int] = None, tone_mapping_function_s: Optional[DataType] = None, tone_mapping_mode: Optional[int] = None, tone_mapping_param: Optional[float] = None, tone_mapping_crosstalk: Optional[float] = None, use_dovi: Optional[int] = None, visualize_lut: Optional[int] = None, log_level: Optional[int] = None) -> 'VideoNode': ...
 
 class _Plugin_placebo_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "placebo" VapourSynth plugin.\n\n*This class cannot be imported.*"""
     def Deband(self, planes: Optional[int] = None, iterations: Optional[int] = None, threshold: Optional[float] = None, radius: Optional[float] = None, grain: Optional[float] = None, dither: Optional[int] = None, dither_algo: Optional[int] = None, log_level: Optional[int] = None) -> 'VideoNode': ...
     def Resample(self, width: int, height: int, filter: Optional[DataType] = None, clamp: Optional[float] = None, blur: Optional[float] = None, taper: Optional[float] = None, radius: Optional[float] = None, param1: Optional[float] = None, param2: Optional[float] = None, sx: Optional[float] = None, sy: Optional[float] = None, antiring: Optional[float] = None, lut_entries: Optional[int] = None, cutoff: Optional[float] = None, sigmoidize: Optional[int] = None, sigmoid_center: Optional[float] = None, sigmoid_slope: Optional[float] = None, linearize: Optional[int] = None, trc: Optional[int] = None, log_level: Optional[int] = None) -> 'VideoNode': ...
     def Shader(self, shader: Optional[DataType] = None, width: Optional[int] = None, height: Optional[int] = None, chroma_loc: Optional[int] = None, matrix: Optional[int] = None, trc: Optional[int] = None, linearize: Optional[int] = None, sigmoidize: Optional[int] = None, sigmoid_center: Optional[float] = None, sigmoid_slope: Optional[float] = None, lut_entries: Optional[int] = None, antiring: Optional[float] = None, filter: Optional[DataType] = None, clamp: Optional[float] = None, blur: Optional[float] = None, taper: Optional[float] = None, radius: Optional[float] = None, param1: Optional[float] = None, param2: Optional[float] = None, shader_s: Optional[DataType] = None, log_level: Optional[int] = None) -> 'VideoNode': ...
-    def Tonemap(self, src_csp: Optional[int] = None, dst_csp: Optional[int] = None, src_max: Optional[float] = None, src_min: Optional[float] = None, dst_max: Optional[float] = None, dst_min: Optional[float] = None, dynamic_peak_detection: Optional[int] = None, smoothing_period: Optional[float] = None, scene_threshold_low: Optional[float] = None, scene_threshold_high: Optional[float] = None, intent: Optional[int] = None, gamut_mode: Optional[int] = None, tone_mapping_function: Optional[int] = None, tone_mapping_mode: Optional[int] = None, tone_mapping_param: Optional[float] = None, tone_mapping_crosstalk: Optional[float] = None, use_dovi: Optional[int] = None, log_level: Optional[int] = None) -> 'VideoNode': ...
+    def Tonemap(self, src_csp: Optional[int] = None, dst_csp: Optional[int] = None, dst_prim: Optional[int] = None, src_max: Optional[float] = None, src_min: Optional[float] = None, dst_max: Optional[float] = None, dst_min: Optional[float] = None, dynamic_peak_detection: Optional[int] = None, smoothing_period: Optional[float] = None, scene_threshold_low: Optional[float] = None, scene_threshold_high: Optional[float] = None, intent: Optional[int] = None, gamut_mode: Optional[int] = None, tone_mapping_function: Optional[int] = None, tone_mapping_function_s: Optional[DataType] = None, tone_mapping_mode: Optional[int] = None, tone_mapping_param: Optional[float] = None, tone_mapping_crosstalk: Optional[float] = None, use_dovi: Optional[int] = None, visualize_lut: Optional[int] = None, log_level: Optional[int] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1927,6 +2225,19 @@ class _Plugin_psm_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "psm" VapourSynth plugin.\n\n*This class cannot be imported.*"""
     def PlaneAverage(self, value_exclude: SingleAndSequence[int], plane: Optional[int] = None, prop: Optional[DataType] = None) -> 'VideoNode': ...
     def PlaneMinMax(self, minthr: Optional[float] = None, maxthr: Optional[float] = None, plane: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: recon
+
+class _Plugin_recon_Core_Bound(Plugin):
+    """This class implements the module definitions for the "recon" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Reconstruct(self, node: 'VideoNode', slope: 'VideoNode', weights: 'VideoNode', intercept: Optional['VideoNode'] = None, radius: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+
+class _Plugin_recon_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "recon" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def Reconstruct(self, slope: 'VideoNode', weights: 'VideoNode', intercept: Optional['VideoNode'] = None, radius: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -1958,25 +2269,25 @@ class _Plugin_remap_VideoNode_Bound(Plugin):
 
 class _Plugin_resize_Core_Bound(Plugin):
     """This class implements the module definitions for the "resize" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Bicubic(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Bilinear(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Bob(self, clip: 'VideoNode', filter: Optional[DataType] = None, tff: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Lanczos(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Point(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Spline16(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Spline36(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Spline64(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
+    def Bicubic(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Bilinear(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Bob(self, clip: 'VideoNode', filter: Optional[DataType] = None, tff: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Lanczos(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Point(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Spline16(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Spline36(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Spline64(self, clip: 'VideoNode', width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
 
 class _Plugin_resize_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "resize" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Bicubic(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Bilinear(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Bob(self, filter: Optional[DataType] = None, tff: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Lanczos(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Point(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Spline16(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Spline36(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
-    def Spline64(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None) -> 'VideoNode': ...
+    def Bicubic(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Bilinear(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Bob(self, filter: Optional[DataType] = None, tff: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Lanczos(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Point(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Spline16(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Spline36(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
+    def Spline64(self, width: Optional[int] = None, height: Optional[int] = None, format: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None, range_s: Optional[DataType] = None, chromaloc: Optional[int] = None, chromaloc_s: Optional[DataType] = None, matrix_in: Optional[int] = None, matrix_in_s: Optional[DataType] = None, transfer_in: Optional[int] = None, transfer_in_s: Optional[DataType] = None, primaries_in: Optional[int] = None, primaries_in_s: Optional[DataType] = None, range_in: Optional[int] = None, range_in_s: Optional[DataType] = None, chromaloc_in: Optional[int] = None, chromaloc_in_s: Optional[DataType] = None, filter_param_a: Optional[float] = None, filter_param_b: Optional[float] = None, resample_filter_uv: Optional[DataType] = None, filter_param_a_uv: Optional[float] = None, filter_param_b_uv: Optional[float] = None, dither_type: Optional[DataType] = None, cpu_type: Optional[DataType] = None, prefer_props: Optional[int] = None, src_left: Optional[float] = None, src_top: Optional[float] = None, src_width: Optional[float] = None, src_height: Optional[float] = None, nominal_luminance: Optional[float] = None, approximate_gamma: Optional[int] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -2068,6 +2379,28 @@ class _Plugin_scxvid_VideoNode_Bound(Plugin):
 # end implementation
 
     
+# implementation: sneedif
+
+_ReturnDict_sneedif_DeviceInfo = TypedDict("_ReturnDict_sneedif_DeviceInfo", {"name": DataType, "vendor": DataType, "profile": DataType, "version": DataType, "max_compute_units": int, "max_work_group_size": int, "max_work_item_sizes": SingleAndSequence[int], "image2D_max_width": int, "image2D_max_height": int, "image_support": int, "global_memory_cache_type": DataType, "global_memory_cache": int, "global_memory_size": int, "max_constant_buffer_size": int, "max_constant_arguments": int, "local_memory_type": DataType, "local_memory_size": int, "available": int, "compiler_available": int, "linker_available": int, "opencl_c_version": DataType, "image_max_buffer_size": int})
+_ReturnDict_sneedif_ListDevices = TypedDict("_ReturnDict_sneedif_ListDevices", {"numDevices": int, "deviceNames": SingleAndSequence[DataType], "platformNames": SingleAndSequence[DataType]})
+_ReturnDict_sneedif_NNEDI3 = TypedDict("_ReturnDict_sneedif_NNEDI3", {"device": Optional[int], "clip": 'VideoNode'})
+_ReturnDict_sneedif_PlatformInfo = TypedDict("_ReturnDict_sneedif_PlatformInfo", {"profile": DataType, "version": DataType, "name": DataType, "vendor": DataType})
+
+
+class _Plugin_sneedif_Core_Bound(Plugin):
+    """This class implements the module definitions for the "sneedif" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def DeviceInfo(self, device: Optional[int] = None) -> '_ReturnDict_sneedif_DeviceInfo': ...
+    def ListDevices(self) -> '_ReturnDict_sneedif_ListDevices': ...
+    def NNEDI3(self, clip: 'VideoNode', field: int, dh: Optional[int] = None, dw: Optional[int] = None, planes: Optional[SingleAndSequence[int]] = None, nsize: Optional[int] = None, nns: Optional[int] = None, qual: Optional[int] = None, etype: Optional[int] = None, pscrn: Optional[int] = None, transpose_first: Optional[int] = None) -> '_ReturnDict_sneedif_NNEDI3': ...
+    def PlatformInfo(self, device: Optional[int] = None) -> '_ReturnDict_sneedif_PlatformInfo': ...
+
+class _Plugin_sneedif_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "sneedif" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def NNEDI3(self, field: int, dh: Optional[int] = None, dw: Optional[int] = None, planes: Optional[SingleAndSequence[int]] = None, nsize: Optional[int] = None, nns: Optional[int] = None, qual: Optional[int] = None, etype: Optional[int] = None, pscrn: Optional[int] = None, transpose_first: Optional[int] = None) -> '_ReturnDict_sneedif_NNEDI3': ...
+
+# end implementation
+
+    
 # implementation: std
 
 class _Plugin_std_Core_Bound(Plugin):
@@ -2075,9 +2408,9 @@ class _Plugin_std_Core_Bound(Plugin):
     def AddBorders(self, clip: 'VideoNode', left: Optional[int] = None, right: Optional[int] = None, top: Optional[int] = None, bottom: Optional[int] = None, color: Optional[SingleAndSequence[float]] = None) -> 'VideoNode': ...
     def AssumeFPS(self, clip: 'VideoNode', src: Optional['VideoNode'] = None, fpsnum: Optional[int] = None, fpsden: Optional[int] = None) -> 'VideoNode': ...
     def AssumeSampleRate(self, clip: 'AudioNode', src: Optional['AudioNode'] = None, samplerate: Optional[int] = None) -> 'AudioNode': ...
-    def AudioGain(self, clip: 'AudioNode', gain: Optional[SingleAndSequence[float]] = None) -> 'AudioNode': ...
+    def AudioGain(self, clip: 'AudioNode', gain: Optional[SingleAndSequence[float]] = None, overflow_error: Optional[int] = None) -> 'AudioNode': ...
     def AudioLoop(self, clip: 'AudioNode', times: Optional[int] = None) -> 'AudioNode': ...
-    def AudioMix(self, clips: SingleAndSequence['AudioNode'], matrix: SingleAndSequence[float], channels_out: SingleAndSequence[int]) -> 'AudioNode': ...
+    def AudioMix(self, clips: SingleAndSequence['AudioNode'], matrix: SingleAndSequence[float], channels_out: SingleAndSequence[int], overflow_error: Optional[int] = None) -> 'AudioNode': ...
     def AudioReverse(self, clip: 'AudioNode') -> 'AudioNode': ...
     def AudioSplice(self, clips: SingleAndSequence['AudioNode']) -> 'AudioNode': ...
     def AudioTrim(self, clip: 'AudioNode', first: Optional[int] = None, last: Optional[int] = None, length: Optional[int] = None) -> 'AudioNode': ...
@@ -2090,7 +2423,7 @@ class _Plugin_std_Core_Bound(Plugin):
     def Cache(self, clip: 'VideoNode', size: Optional[int] = None, fixed: Optional[int] = None, make_linear: Optional[int] = None) -> 'VideoNode': ...
     def ClipToProp(self, clip: 'VideoNode', mclip: 'VideoNode', prop: Optional[DataType] = None) -> 'VideoNode': ...
     def Convolution(self, clip: 'VideoNode', matrix: SingleAndSequence[float], bias: Optional[float] = None, divisor: Optional[float] = None, planes: Optional[SingleAndSequence[int]] = None, saturate: Optional[int] = None, mode: Optional[DataType] = None) -> 'VideoNode': ...
-    def CopyFrameProps(self, clip: 'VideoNode', prop_src: 'VideoNode') -> 'VideoNode': ...
+    def CopyFrameProps(self, clip: 'VideoNode', prop_src: 'VideoNode', props: Optional[SingleAndSequence[DataType]] = None) -> 'VideoNode': ...
     def Crop(self, clip: 'VideoNode', left: Optional[int] = None, right: Optional[int] = None, top: Optional[int] = None, bottom: Optional[int] = None) -> 'VideoNode': ...
     def CropAbs(self, clip: 'VideoNode', width: int, height: int, left: Optional[int] = None, top: Optional[int] = None, x: Optional[int] = None, y: Optional[int] = None) -> 'VideoNode': ...
     def CropRel(self, clip: 'VideoNode', left: Optional[int] = None, right: Optional[int] = None, top: Optional[int] = None, bottom: Optional[int] = None) -> 'VideoNode': ...
@@ -2140,7 +2473,7 @@ class _Plugin_std_Core_Bound(Plugin):
     def SetMaxCPU(self, cpu: DataType) -> DataType: ...
     def SetVideoCache(self, clip: 'VideoNode', mode: Optional[int] = None, fixedsize: Optional[int] = None, maxsize: Optional[int] = None, maxhistory: Optional[int] = None) -> None: ...
     def ShuffleChannels(self, clips: SingleAndSequence['AudioNode'], channels_in: SingleAndSequence[int], channels_out: SingleAndSequence[int]) -> 'AudioNode': ...
-    def ShufflePlanes(self, clips: SingleAndSequence['VideoNode'], planes: SingleAndSequence[int], colorfamily: int) -> 'VideoNode': ...
+    def ShufflePlanes(self, clips: SingleAndSequence['VideoNode'], planes: SingleAndSequence[int], colorfamily: int, prop_src: Optional['VideoNode'] = None) -> 'VideoNode': ...
     def Sobel(self, clip: 'VideoNode', planes: Optional[SingleAndSequence[int]] = None, scale: Optional[float] = None) -> 'VideoNode': ...
     def Splice(self, clips: SingleAndSequence['VideoNode'], mismatch: Optional[int] = None) -> 'VideoNode': ...
     def SplitChannels(self, clip: 'AudioNode') -> SingleAndSequence['AudioNode']: ...
@@ -2164,7 +2497,7 @@ class _Plugin_std_VideoNode_Bound(Plugin):
     def Cache(self, size: Optional[int] = None, fixed: Optional[int] = None, make_linear: Optional[int] = None) -> 'VideoNode': ...
     def ClipToProp(self, mclip: 'VideoNode', prop: Optional[DataType] = None) -> 'VideoNode': ...
     def Convolution(self, matrix: SingleAndSequence[float], bias: Optional[float] = None, divisor: Optional[float] = None, planes: Optional[SingleAndSequence[int]] = None, saturate: Optional[int] = None, mode: Optional[DataType] = None) -> 'VideoNode': ...
-    def CopyFrameProps(self, prop_src: 'VideoNode') -> 'VideoNode': ...
+    def CopyFrameProps(self, prop_src: 'VideoNode', props: Optional[SingleAndSequence[DataType]] = None) -> 'VideoNode': ...
     def Crop(self, left: Optional[int] = None, right: Optional[int] = None, top: Optional[int] = None, bottom: Optional[int] = None) -> 'VideoNode': ...
     def CropAbs(self, width: int, height: int, left: Optional[int] = None, top: Optional[int] = None, x: Optional[int] = None, y: Optional[int] = None) -> 'VideoNode': ...
     def CropRel(self, left: Optional[int] = None, right: Optional[int] = None, top: Optional[int] = None, bottom: Optional[int] = None) -> 'VideoNode': ...
@@ -2209,7 +2542,7 @@ class _Plugin_std_VideoNode_Bound(Plugin):
     def SetFrameProp(self, prop: DataType, intval: Optional[SingleAndSequence[int]] = None, floatval: Optional[SingleAndSequence[float]] = None, data: Optional[SingleAndSequence[DataType]] = None) -> 'VideoNode': ...
     def SetFrameProps(self, **kwargs: Any) -> 'VideoNode': ...
     def SetVideoCache(self, mode: Optional[int] = None, fixedsize: Optional[int] = None, maxsize: Optional[int] = None, maxhistory: Optional[int] = None) -> None: ...
-    def ShufflePlanes(self, planes: SingleAndSequence[int], colorfamily: int) -> 'VideoNode': ...
+    def ShufflePlanes(self, planes: SingleAndSequence[int], colorfamily: int, prop_src: Optional['VideoNode'] = None) -> 'VideoNode': ...
     def Sobel(self, planes: Optional[SingleAndSequence[int]] = None, scale: Optional[float] = None) -> 'VideoNode': ...
     def Splice(self, mismatch: Optional[int] = None) -> 'VideoNode': ...
     def SplitPlanes(self) -> SingleAndSequence['VideoNode']: ...
@@ -2222,9 +2555,9 @@ class _Plugin_std_VideoNode_Bound(Plugin):
 class _Plugin_std_AudioNode_Bound(Plugin):
     """This class implements the module definitions for the "std" VapourSynth plugin.\n\n*This class cannot be imported.*"""
     def AssumeSampleRate(self, src: Optional['AudioNode'] = None, samplerate: Optional[int] = None) -> 'AudioNode': ...
-    def AudioGain(self, gain: Optional[SingleAndSequence[float]] = None) -> 'AudioNode': ...
+    def AudioGain(self, gain: Optional[SingleAndSequence[float]] = None, overflow_error: Optional[int] = None) -> 'AudioNode': ...
     def AudioLoop(self, times: Optional[int] = None) -> 'AudioNode': ...
-    def AudioMix(self, matrix: SingleAndSequence[float], channels_out: SingleAndSequence[int]) -> 'AudioNode': ...
+    def AudioMix(self, matrix: SingleAndSequence[float], channels_out: SingleAndSequence[int], overflow_error: Optional[int] = None) -> 'AudioNode': ...
     def AudioReverse(self) -> 'AudioNode': ...
     def AudioSplice(self) -> 'AudioNode': ...
     def AudioTrim(self, first: Optional[int] = None, last: Optional[int] = None, length: Optional[int] = None) -> 'AudioNode': ...
@@ -2232,6 +2565,23 @@ class _Plugin_std_AudioNode_Bound(Plugin):
     def SetAudioCache(self, mode: Optional[int] = None, fixedsize: Optional[int] = None, maxsize: Optional[int] = None, maxhistory: Optional[int] = None) -> None: ...
     def ShuffleChannels(self, channels_in: SingleAndSequence[int], channels_out: SingleAndSequence[int]) -> 'AudioNode': ...
     def SplitChannels(self) -> SingleAndSequence['AudioNode']: ...
+
+# end implementation
+
+    
+# implementation: sub
+
+class _Plugin_sub_Core_Bound(Plugin):
+    """This class implements the module definitions for the "sub" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def ImageFile(self, clip: 'VideoNode', file: DataType, id: Optional[int] = None, palette: Optional[SingleAndSequence[int]] = None, gray: Optional[int] = None, info: Optional[int] = None, flatten: Optional[int] = None, blend: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None) -> 'VideoNode': ...
+    def Subtitle(self, clip: 'VideoNode', text: DataType, start: Optional[int] = None, end: Optional[int] = None, debuglevel: Optional[int] = None, fontdir: Optional[DataType] = None, linespacing: Optional[float] = None, margins: Optional[SingleAndSequence[int]] = None, sar: Optional[float] = None, style: Optional[DataType] = None, blend: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None) -> 'VideoNode': ...
+    def TextFile(self, clip: 'VideoNode', file: DataType, charset: Optional[DataType] = None, scale: Optional[float] = None, debuglevel: Optional[int] = None, fontdir: Optional[DataType] = None, linespacing: Optional[float] = None, margins: Optional[SingleAndSequence[int]] = None, sar: Optional[float] = None, style: Optional[DataType] = None, blend: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None) -> 'VideoNode': ...
+
+class _Plugin_sub_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "sub" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def ImageFile(self, file: DataType, id: Optional[int] = None, palette: Optional[SingleAndSequence[int]] = None, gray: Optional[int] = None, info: Optional[int] = None, flatten: Optional[int] = None, blend: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None) -> 'VideoNode': ...
+    def Subtitle(self, text: DataType, start: Optional[int] = None, end: Optional[int] = None, debuglevel: Optional[int] = None, fontdir: Optional[DataType] = None, linespacing: Optional[float] = None, margins: Optional[SingleAndSequence[int]] = None, sar: Optional[float] = None, style: Optional[DataType] = None, blend: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None) -> 'VideoNode': ...
+    def TextFile(self, file: DataType, charset: Optional[DataType] = None, scale: Optional[float] = None, debuglevel: Optional[int] = None, fontdir: Optional[DataType] = None, linespacing: Optional[float] = None, margins: Optional[SingleAndSequence[int]] = None, sar: Optional[float] = None, style: Optional[DataType] = None, blend: Optional[int] = None, matrix: Optional[int] = None, matrix_s: Optional[DataType] = None, transfer: Optional[int] = None, transfer_s: Optional[DataType] = None, primaries: Optional[int] = None, primaries_s: Optional[DataType] = None, range: Optional[int] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -2298,6 +2648,21 @@ class _Plugin_text_VideoNode_Bound(Plugin):
 # end implementation
 
     
+# implementation: tivtc
+
+class _Plugin_tivtc_Core_Bound(Plugin):
+    """This class implements the module definitions for the "tivtc" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def TDecimate(self, clip: 'VideoNode', mode: Optional[int] = None, cycleR: Optional[int] = None, cycle: Optional[int] = None, rate: Optional[float] = None, dupThresh: Optional[float] = None, vidThresh: Optional[float] = None, sceneThresh: Optional[float] = None, hybrid: Optional[int] = None, vidDetect: Optional[int] = None, conCycle: Optional[int] = None, conCycleTP: Optional[int] = None, ovr: Optional[DataType] = None, output: Optional[DataType] = None, input: Optional[DataType] = None, tfmIn: Optional[DataType] = None, mkvOut: Optional[DataType] = None, nt: Optional[int] = None, blockx: Optional[int] = None, blocky: Optional[int] = None, debug: Optional[int] = None, display: Optional[int] = None, vfrDec: Optional[int] = None, batch: Optional[int] = None, tcfv1: Optional[int] = None, se: Optional[int] = None, chroma: Optional[int] = None, exPP: Optional[int] = None, maxndl: Optional[int] = None, m2PA: Optional[int] = None, denoise: Optional[int] = None, noblend: Optional[int] = None, ssd: Optional[int] = None, hint: Optional[int] = None, clip2: Optional['VideoNode'] = None, sdlim: Optional[int] = None, opt: Optional[int] = None, orgOut: Optional[DataType] = None) -> 'VideoNode': ...
+    def TFM(self, clip: 'VideoNode', order: Optional[int] = None, field: Optional[int] = None, mode: Optional[int] = None, PP: Optional[int] = None, ovr: Optional[DataType] = None, input: Optional[DataType] = None, output: Optional[DataType] = None, outputC: Optional[DataType] = None, debug: Optional[int] = None, display: Optional[int] = None, slow: Optional[int] = None, mChroma: Optional[int] = None, cNum: Optional[int] = None, cthresh: Optional[int] = None, MI: Optional[int] = None, chroma: Optional[int] = None, blockx: Optional[int] = None, blocky: Optional[int] = None, y0: Optional[int] = None, y1: Optional[int] = None, mthresh: Optional[int] = None, clip2: Optional['VideoNode'] = None, d2v: Optional[DataType] = None, ovrDefault: Optional[int] = None, flags: Optional[int] = None, scthresh: Optional[float] = None, micout: Optional[int] = None, micmatching: Optional[int] = None, trimIn: Optional[DataType] = None, hint: Optional[int] = None, metric: Optional[int] = None, batch: Optional[int] = None, ubsco: Optional[int] = None, mmsco: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+
+class _Plugin_tivtc_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "tivtc" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def TDecimate(self, mode: Optional[int] = None, cycleR: Optional[int] = None, cycle: Optional[int] = None, rate: Optional[float] = None, dupThresh: Optional[float] = None, vidThresh: Optional[float] = None, sceneThresh: Optional[float] = None, hybrid: Optional[int] = None, vidDetect: Optional[int] = None, conCycle: Optional[int] = None, conCycleTP: Optional[int] = None, ovr: Optional[DataType] = None, output: Optional[DataType] = None, input: Optional[DataType] = None, tfmIn: Optional[DataType] = None, mkvOut: Optional[DataType] = None, nt: Optional[int] = None, blockx: Optional[int] = None, blocky: Optional[int] = None, debug: Optional[int] = None, display: Optional[int] = None, vfrDec: Optional[int] = None, batch: Optional[int] = None, tcfv1: Optional[int] = None, se: Optional[int] = None, chroma: Optional[int] = None, exPP: Optional[int] = None, maxndl: Optional[int] = None, m2PA: Optional[int] = None, denoise: Optional[int] = None, noblend: Optional[int] = None, ssd: Optional[int] = None, hint: Optional[int] = None, clip2: Optional['VideoNode'] = None, sdlim: Optional[int] = None, opt: Optional[int] = None, orgOut: Optional[DataType] = None) -> 'VideoNode': ...
+    def TFM(self, order: Optional[int] = None, field: Optional[int] = None, mode: Optional[int] = None, PP: Optional[int] = None, ovr: Optional[DataType] = None, input: Optional[DataType] = None, output: Optional[DataType] = None, outputC: Optional[DataType] = None, debug: Optional[int] = None, display: Optional[int] = None, slow: Optional[int] = None, mChroma: Optional[int] = None, cNum: Optional[int] = None, cthresh: Optional[int] = None, MI: Optional[int] = None, chroma: Optional[int] = None, blockx: Optional[int] = None, blocky: Optional[int] = None, y0: Optional[int] = None, y1: Optional[int] = None, mthresh: Optional[int] = None, clip2: Optional['VideoNode'] = None, d2v: Optional[DataType] = None, ovrDefault: Optional[int] = None, flags: Optional[int] = None, scthresh: Optional[float] = None, micout: Optional[int] = None, micmatching: Optional[int] = None, trimIn: Optional[DataType] = None, hint: Optional[int] = None, metric: Optional[int] = None, batch: Optional[int] = None, ubsco: Optional[int] = None, mmsco: Optional[int] = None, opt: Optional[int] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
 # implementation: tonemap
 
 class _Plugin_tonemap_Core_Bound(Plugin):
@@ -2320,12 +2685,12 @@ class _Plugin_tonemap_VideoNode_Bound(Plugin):
 class _Plugin_trt_Core_Bound(Plugin):
     """This class implements the module definitions for the "trt" VapourSynth plugin.\n\n*This class cannot be imported.*"""
     def DeviceProperties(self, device_id: Optional[int] = None) -> 'VideoNode': ...
-    def Model(self, clips: SingleAndSequence['VideoNode'], engine_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, device_id: Optional[int] = None, use_cuda_graph: Optional[int] = None, num_streams: Optional[int] = None, verbosity: Optional[int] = None) -> 'VideoNode': ...
+    def Model(self, clips: SingleAndSequence['VideoNode'], engine_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, device_id: Optional[int] = None, use_cuda_graph: Optional[int] = None, num_streams: Optional[int] = None, verbosity: Optional[int] = None, flexible_output_prop: Optional[DataType] = None) -> 'VideoNode': ...
     def Version(self) -> 'VideoNode': ...
 
 class _Plugin_trt_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "trt" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def Model(self, engine_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, device_id: Optional[int] = None, use_cuda_graph: Optional[int] = None, num_streams: Optional[int] = None, verbosity: Optional[int] = None) -> 'VideoNode': ...
+    def Model(self, engine_path: DataType, overlap: Optional[SingleAndSequence[int]] = None, tilesize: Optional[SingleAndSequence[int]] = None, device_id: Optional[int] = None, use_cuda_graph: Optional[int] = None, num_streams: Optional[int] = None, verbosity: Optional[int] = None, flexible_output_prop: Optional[DataType] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -2339,6 +2704,38 @@ class _Plugin_ttmpsm_Core_Bound(Plugin):
 class _Plugin_ttmpsm_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "ttmpsm" VapourSynth plugin.\n\n*This class cannot be imported.*"""
     def TTempSmooth(self, maxr: Optional[int] = None, thresh: Optional[SingleAndSequence[int]] = None, mdiff: Optional[SingleAndSequence[int]] = None, strength: Optional[int] = None, scthresh: Optional[float] = None, fp: Optional[int] = None, pfclip: Optional['VideoNode'] = None, planes: Optional[SingleAndSequence[int]] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: vivtc
+
+class _Plugin_vivtc_Core_Bound(Plugin):
+    """This class implements the module definitions for the "vivtc" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def VDecimate(self, clip: 'VideoNode', cycle: Optional[int] = None, chroma: Optional[int] = None, dupthresh: Optional[float] = None, scthresh: Optional[float] = None, blockx: Optional[int] = None, blocky: Optional[int] = None, clip2: Optional['VideoNode'] = None, ovr: Optional[DataType] = None, dryrun: Optional[int] = None) -> 'VideoNode': ...
+    def VFM(self, clip: 'VideoNode', order: int, field: Optional[int] = None, mode: Optional[int] = None, mchroma: Optional[int] = None, cthresh: Optional[int] = None, mi: Optional[int] = None, chroma: Optional[int] = None, blockx: Optional[int] = None, blocky: Optional[int] = None, y0: Optional[int] = None, y1: Optional[int] = None, scthresh: Optional[float] = None, micmatch: Optional[int] = None, micout: Optional[int] = None, clip2: Optional['VideoNode'] = None) -> 'VideoNode': ...
+
+class _Plugin_vivtc_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "vivtc" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def VDecimate(self, cycle: Optional[int] = None, chroma: Optional[int] = None, dupthresh: Optional[float] = None, scthresh: Optional[float] = None, blockx: Optional[int] = None, blocky: Optional[int] = None, clip2: Optional['VideoNode'] = None, ovr: Optional[DataType] = None, dryrun: Optional[int] = None) -> 'VideoNode': ...
+    def VFM(self, order: int, field: Optional[int] = None, mode: Optional[int] = None, mchroma: Optional[int] = None, cthresh: Optional[int] = None, mi: Optional[int] = None, chroma: Optional[int] = None, blockx: Optional[int] = None, blocky: Optional[int] = None, y0: Optional[int] = None, y1: Optional[int] = None, scthresh: Optional[float] = None, micmatch: Optional[int] = None, micout: Optional[int] = None, clip2: Optional['VideoNode'] = None) -> 'VideoNode': ...
+
+# end implementation
+
+    
+# implementation: vmaf
+
+class _Plugin_vmaf_Core_Bound(Plugin):
+    """This class implements the module definitions for the "vmaf" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def CAMBI(self, clip: 'VideoNode', log_path: DataType, log_format: Optional[int] = None, window_size: Optional[int] = None, topk: Optional[float] = None, tvi_threshold: Optional[float] = None, max_log_contrast: Optional[int] = None, enc_width: Optional[int] = None, enc_height: Optional[int] = None) -> 'VideoNode': ...
+    def Metric(self, reference: 'VideoNode', distorted: 'VideoNode', feature: SingleAndSequence[int]) -> 'VideoNode': ...
+    def VMAF(self, reference: 'VideoNode', distorted: 'VideoNode', log_path: DataType, log_format: Optional[int] = None, model: Optional[SingleAndSequence[int]] = None, feature: Optional[SingleAndSequence[int]] = None) -> 'VideoNode': ...
+
+class _Plugin_vmaf_VideoNode_Bound(Plugin):
+    """This class implements the module definitions for the "vmaf" VapourSynth plugin.\n\n*This class cannot be imported.*"""
+    def CAMBI(self, log_path: DataType, log_format: Optional[int] = None, window_size: Optional[int] = None, topk: Optional[float] = None, tvi_threshold: Optional[float] = None, max_log_contrast: Optional[int] = None, enc_width: Optional[int] = None, enc_height: Optional[int] = None) -> 'VideoNode': ...
+    def Metric(self, distorted: 'VideoNode', feature: SingleAndSequence[int]) -> 'VideoNode': ...
+    def VMAF(self, distorted: 'VideoNode', log_path: DataType, log_format: Optional[int] = None, model: Optional[SingleAndSequence[int]] = None, feature: Optional[SingleAndSequence[int]] = None) -> 'VideoNode': ...
 
 # end implementation
 
@@ -2409,14 +2806,14 @@ class _Plugin_warp_VideoNode_Bound(Plugin):
 
 class _Plugin_wnnm_Core_Bound(Plugin):
     """This class implements the module definitions for the "wnnm" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def VAggregate(self, clip: 'VideoNode', src: 'VideoNode', planes: SingleAndSequence[int]) -> 'VideoNode': ...
+    def VAggregate(self, clip: 'VideoNode', src: 'VideoNode', planes: SingleAndSequence[int], internal: Optional[int] = None) -> 'VideoNode': ...
     def Version(self) -> 'VideoNode': ...
     def WNNM(self, clip: 'VideoNode', sigma: Optional[SingleAndSequence[float]] = None, block_size: Optional[int] = None, block_step: Optional[int] = None, group_size: Optional[int] = None, bm_range: Optional[int] = None, radius: Optional[int] = None, ps_num: Optional[int] = None, ps_range: Optional[int] = None, residual: Optional[int] = None, adaptive_aggregation: Optional[int] = None, rclip: Optional['VideoNode'] = None) -> 'VideoNode': ...
     def WNNMRaw(self, clip: 'VideoNode', sigma: Optional[SingleAndSequence[float]] = None, block_size: Optional[int] = None, block_step: Optional[int] = None, group_size: Optional[int] = None, bm_range: Optional[int] = None, radius: Optional[int] = None, ps_num: Optional[int] = None, ps_range: Optional[int] = None, residual: Optional[int] = None, adaptive_aggregation: Optional[int] = None, rclip: Optional['VideoNode'] = None) -> 'VideoNode': ...
 
 class _Plugin_wnnm_VideoNode_Bound(Plugin):
     """This class implements the module definitions for the "wnnm" VapourSynth plugin.\n\n*This class cannot be imported.*"""
-    def VAggregate(self, src: 'VideoNode', planes: SingleAndSequence[int]) -> 'VideoNode': ...
+    def VAggregate(self, src: 'VideoNode', planes: SingleAndSequence[int], internal: Optional[int] = None) -> 'VideoNode': ...
     def WNNM(self, sigma: Optional[SingleAndSequence[float]] = None, block_size: Optional[int] = None, block_step: Optional[int] = None, group_size: Optional[int] = None, bm_range: Optional[int] = None, radius: Optional[int] = None, ps_num: Optional[int] = None, ps_range: Optional[int] = None, residual: Optional[int] = None, adaptive_aggregation: Optional[int] = None, rclip: Optional['VideoNode'] = None) -> 'VideoNode': ...
     def WNNMRaw(self, sigma: Optional[SingleAndSequence[float]] = None, block_size: Optional[int] = None, block_step: Optional[int] = None, group_size: Optional[int] = None, bm_range: Optional[int] = None, radius: Optional[int] = None, ps_num: Optional[int] = None, ps_range: Optional[int] = None, residual: Optional[int] = None, adaptive_aggregation: Optional[int] = None, rclip: Optional['VideoNode'] = None) -> 'VideoNode': ...
 
@@ -2502,7 +2899,7 @@ class RawNode:
         def _dependencies(self): ...
 
     @overload
-    def __eq__(self: 'SelfRawNode', other: 'SelfRawNode', /) -> bool: ...  # type: ignore[misc]
+    def __eq__(self: 'SelfRawNode', other: 'SelfRawNode', /) -> bool: ...  # type: ignore[overload-overlap]
 
     @overload
     def __eq__(self, other: Any, /) -> Literal[False]: ...
@@ -2541,7 +2938,8 @@ class VideoNode(RawNode):
     ) -> None: ...
 
     def output(
-        self, fileobj: BinaryIO, y4m: bool = False, progress_update: object = None, prefetch: int = 0, backlog: int = -1
+        self, fileobj: BinaryIO, y4m: bool = False, progress_update: Callable[[int, int], None] | None = None,
+        prefetch: int = 0, backlog: int = -1
     ) -> None: ...
 
     def get_frame(self, n: int) -> VideoFrame: ...
@@ -2571,6 +2969,11 @@ class VideoNode(RawNode):
     def amogus(self) -> _Plugin_amogus_VideoNode_Bound:
         """Amogus Dither"""
     # end instance
+    # instance_bound_VideoNode: anime4kcpp
+    @property
+    def anime4kcpp(self) -> _Plugin_anime4kcpp_VideoNode_Bound:
+        """Anime4KCPP for VapourSynth"""
+    # end instance
     # instance_bound_VideoNode: average
     @property
     def average(self) -> _Plugin_average_VideoNode_Bound:
@@ -2585,6 +2988,11 @@ class VideoNode(RawNode):
     @property
     def bilateralgpu(self) -> _Plugin_bilateralgpu_VideoNode_Bound:
         """Bilateral filter using CUDA"""
+    # end instance
+    # instance_bound_VideoNode: bilateralgpu_rtc
+    @property
+    def bilateralgpu_rtc(self) -> _Plugin_bilateralgpu_rtc_VideoNode_Bound:
+        """Bilateral filter using CUDA (NVRTC)"""
     # end instance
     # instance_bound_VideoNode: bm3d
     @property
@@ -2605,6 +3013,26 @@ class VideoNode(RawNode):
     @property
     def bm3dcuda_rtc(self) -> _Plugin_bm3dcuda_rtc_VideoNode_Bound:
         """BM3D algorithm implemented in CUDA (NVRTC)"""
+    # end instance
+    # instance_bound_VideoNode: bmdegrain
+    @property
+    def bmdegrain(self) -> _Plugin_bmdegrain_VideoNode_Bound:
+        """bmdegrain"""
+    # end instance
+    # instance_bound_VideoNode: bore
+    @property
+    def bore(self) -> _Plugin_bore_VideoNode_Bound:
+        """bore plugin"""
+    # end instance
+    # instance_bound_VideoNode: bwdif
+    @property
+    def bwdif(self) -> _Plugin_bwdif_VideoNode_Bound:
+        """BobWeaver Deinterlacing Filter"""
+    # end instance
+    # instance_bound_VideoNode: cas
+    @property
+    def cas(self) -> _Plugin_cas_VideoNode_Bound:
+        """Contrast Adaptive Sharpening"""
     # end instance
     # instance_bound_VideoNode: ccd
     @property
@@ -2651,6 +3079,11 @@ class VideoNode(RawNode):
     def dfttest2_avx2(self) -> _Plugin_dfttest2_avx2_VideoNode_Bound:
         """DFTTest2 (AVX2)"""
     # end instance
+    # instance_bound_VideoNode: dfttest2_cpu
+    @property
+    def dfttest2_cpu(self) -> _Plugin_dfttest2_cpu_VideoNode_Bound:
+        """DFTTest2 (CPU)"""
+    # end instance
     # instance_bound_VideoNode: dfttest2_cuda
     @property
     def dfttest2_cuda(self) -> _Plugin_dfttest2_cuda_VideoNode_Bound:
@@ -2661,6 +3094,11 @@ class VideoNode(RawNode):
     def dfttest2_nvrtc(self) -> _Plugin_dfttest2_nvrtc_VideoNode_Bound:
         """DFTTest2 (NVRTC)"""
     # end instance
+    # instance_bound_VideoNode: dmetrics
+    @property
+    def dmetrics(self) -> _Plugin_dmetrics_VideoNode_Bound:
+        """Decomb Metrics"""
+    # end instance
     # instance_bound_VideoNode: dpid
     @property
     def dpid(self) -> _Plugin_dpid_VideoNode_Bound:
@@ -2669,7 +3107,7 @@ class VideoNode(RawNode):
     # instance_bound_VideoNode: edgefixer
     @property
     def edgefixer(self) -> _Plugin_edgefixer_VideoNode_Bound:
-        """VapourSynth edgefixer port"""
+        """ultraman"""
     # end instance
     # instance_bound_VideoNode: eedi2
     @property
@@ -2680,6 +3118,11 @@ class VideoNode(RawNode):
     @property
     def eedi2cuda(self) -> _Plugin_eedi2cuda_VideoNode_Bound:
         """EEDI2 filter using CUDA"""
+    # end instance
+    # instance_bound_VideoNode: eedi3
+    @property
+    def eedi3(self) -> _Plugin_eedi3_VideoNode_Bound:
+        """EEDI3"""
     # end instance
     # instance_bound_VideoNode: eedi3m
     @property
@@ -2696,10 +3139,20 @@ class VideoNode(RawNode):
     def f3kdb(self) -> _Plugin_f3kdb_VideoNode_Bound:
         """flash3kyuu_deband"""
     # end instance
+    # instance_bound_VideoNode: fb
+    @property
+    def fb(self) -> _Plugin_fb_VideoNode_Bound:
+        """FillBorders plugin for VapourSynth"""
+    # end instance
     # instance_bound_VideoNode: fft3dfilter
     @property
     def fft3dfilter(self) -> _Plugin_fft3dfilter_VideoNode_Bound:
         """systems"""
+    # end instance
+    # instance_bound_VideoNode: fh
+    @property
+    def fh(self) -> _Plugin_fh_VideoNode_Bound:
+        """FieldHint Plugin"""
     # end instance
     # instance_bound_VideoNode: flux
     @property
@@ -2715,6 +3168,11 @@ class VideoNode(RawNode):
     @property
     def focus2(self) -> _Plugin_focus2_VideoNode_Bound:
         """VapourSynth TemporalSoften Filter v1"""
+    # end instance
+    # instance_bound_VideoNode: fpng
+    @property
+    def fpng(self) -> _Plugin_fpng_VideoNode_Bound:
+        """fpng for vapoursynth"""
     # end instance
     # instance_bound_VideoNode: grain
     @property
@@ -2735,6 +3193,11 @@ class VideoNode(RawNode):
     @property
     def imwri(self) -> _Plugin_imwri_VideoNode_Bound:
         """VapourSynth ImageMagick 7 HDRI Writer/Reader"""
+    # end instance
+    # instance_bound_VideoNode: julek
+    @property
+    def julek(self) -> _Plugin_julek_VideoNode_Bound:
+        """Julek filters"""
     # end instance
     # instance_bound_VideoNode: knlm
     @property
@@ -2776,10 +3239,20 @@ class VideoNode(RawNode):
     def mvsf(self) -> _Plugin_mvsf_VideoNode_Bound:
         """MVTools Single Precision"""
     # end instance
+    # instance_bound_VideoNode: ncnn
+    @property
+    def ncnn(self) -> _Plugin_ncnn_VideoNode_Bound:
+        """NCNN ML Filter Runtime"""
+    # end instance
     # instance_bound_VideoNode: neo_f3kdb
     @property
     def neo_f3kdb(self) -> _Plugin_neo_f3kdb_VideoNode_Bound:
-        """Neo F3KDB Deband Filter r7"""
+        """Neo F3KDB Deband Filter r9"""
+    # end instance
+    # instance_bound_VideoNode: nlm_cuda
+    @property
+    def nlm_cuda(self) -> _Plugin_nlm_cuda_VideoNode_Bound:
+        """Non-local means denoise filter implemented in CUDA"""
     # end instance
     # instance_bound_VideoNode: nnedi3
     @property
@@ -2821,6 +3294,11 @@ class VideoNode(RawNode):
     def psm(self) -> _Plugin_psm_VideoNode_Bound:
         """PlaneStats with threshold"""
     # end instance
+    # instance_bound_VideoNode: recon
+    @property
+    def recon(self) -> _Plugin_recon_VideoNode_Bound:
+        """Chroma reconstruction plugin."""
+    # end instance
     # instance_bound_VideoNode: remap
     @property
     def remap(self) -> _Plugin_remap_VideoNode_Bound:
@@ -2856,10 +3334,20 @@ class VideoNode(RawNode):
     def scxvid(self) -> _Plugin_scxvid_VideoNode_Bound:
         """VapourSynth Scxvid Plugin"""
     # end instance
+    # instance_bound_VideoNode: sneedif
+    @property
+    def sneedif(self) -> _Plugin_sneedif_VideoNode_Bound:
+        """Setsugen No Ensemble of Edge Directed Interpolation Functions"""
+    # end instance
     # instance_bound_VideoNode: std
     @property
     def std(self) -> _Plugin_std_VideoNode_Bound:
         """VapourSynth Core Functions"""
+    # end instance
+    # instance_bound_VideoNode: sub
+    @property
+    def sub(self) -> _Plugin_sub_VideoNode_Bound:
+        """A subtitling filter based on libass and FFmpeg."""
     # end instance
     # instance_bound_VideoNode: tcanny
     @property
@@ -2881,6 +3369,11 @@ class VideoNode(RawNode):
     def text(self) -> _Plugin_text_VideoNode_Bound:
         """VapourSynth Text"""
     # end instance
+    # instance_bound_VideoNode: tivtc
+    @property
+    def tivtc(self) -> _Plugin_tivtc_VideoNode_Bound:
+        """Field matching and decimation"""
+    # end instance
     # instance_bound_VideoNode: tonemap
     @property
     def tonemap(self) -> _Plugin_tonemap_VideoNode_Bound:
@@ -2895,6 +3388,16 @@ class VideoNode(RawNode):
     @property
     def ttmpsm(self) -> _Plugin_ttmpsm_VideoNode_Bound:
         """A basic, motion adaptive, temporal smoothing filter"""
+    # end instance
+    # instance_bound_VideoNode: vivtc
+    @property
+    def vivtc(self) -> _Plugin_vivtc_VideoNode_Bound:
+        """VFM"""
+    # end instance
+    # instance_bound_VideoNode: vmaf
+    @property
+    def vmaf(self) -> _Plugin_vmaf_VideoNode_Bound:
+        """Video Multi-Method Assessment Fusion"""
     # end instance
     # instance_bound_VideoNode: vsf
     @property
@@ -2939,7 +3442,7 @@ class VideoNode(RawNode):
 
 
 class AudioNode(RawNode):
-    sample_type: object
+    sample_type: SampleType
     bits_per_sample: int
     bytes_per_sample: int
 
@@ -2950,6 +3453,9 @@ class AudioNode(RawNode):
     num_samples: int
 
     num_frames: int
+
+    @property
+    def channels(self) -> ChannelLayout: ...
 
     def get_frame(self, n: int) -> AudioFrame: ...
 
@@ -2999,6 +3505,9 @@ class Plugin:
 
     def functions(self) -> Iterator[Function]: ...
 
+    @property
+    def version(self) -> PluginVersion: ...
+
 
 class Core:
     def __init__(self) -> NoReturn: ...
@@ -3025,7 +3534,7 @@ class Core:
         subsampling_h: int = 0
     ) -> VideoFormat: ...
 
-    def get_video_format(self, id: Union[VideoFormat, int, PresetFormat]) -> VideoFormat: ...
+    def get_video_format(self, id: Union[VideoFormat, int, PresetVideoFormat]) -> VideoFormat: ...
 
     def create_video_frame(self, format: VideoFormat, width: int, height: int) -> VideoFrame: ...
 
@@ -3054,6 +3563,11 @@ class Core:
     def amogus(self) -> _Plugin_amogus_Core_Bound:
         """Amogus Dither"""
     # end instance
+    # instance_bound_Core: anime4kcpp
+    @property
+    def anime4kcpp(self) -> _Plugin_anime4kcpp_Core_Bound:
+        """Anime4KCPP for VapourSynth"""
+    # end instance
     # instance_bound_Core: average
     @property
     def average(self) -> _Plugin_average_Core_Bound:
@@ -3079,6 +3593,11 @@ class Core:
     def bilateralgpu(self) -> _Plugin_bilateralgpu_Core_Bound:
         """Bilateral filter using CUDA"""
     # end instance
+    # instance_bound_Core: bilateralgpu_rtc
+    @property
+    def bilateralgpu_rtc(self) -> _Plugin_bilateralgpu_rtc_Core_Bound:
+        """Bilateral filter using CUDA (NVRTC)"""
+    # end instance
     # instance_bound_Core: bm3d
     @property
     def bm3d(self) -> _Plugin_bm3d_Core_Bound:
@@ -3098,6 +3617,31 @@ class Core:
     @property
     def bm3dcuda_rtc(self) -> _Plugin_bm3dcuda_rtc_Core_Bound:
         """BM3D algorithm implemented in CUDA (NVRTC)"""
+    # end instance
+    # instance_bound_Core: bmdegrain
+    @property
+    def bmdegrain(self) -> _Plugin_bmdegrain_Core_Bound:
+        """bmdegrain"""
+    # end instance
+    # instance_bound_Core: bore
+    @property
+    def bore(self) -> _Plugin_bore_Core_Bound:
+        """bore plugin"""
+    # end instance
+    # instance_bound_Core: bs
+    @property
+    def bs(self) -> _Plugin_bs_Core_Bound:
+        """Best Source 2"""
+    # end instance
+    # instance_bound_Core: bwdif
+    @property
+    def bwdif(self) -> _Plugin_bwdif_Core_Bound:
+        """BobWeaver Deinterlacing Filter"""
+    # end instance
+    # instance_bound_Core: cas
+    @property
+    def cas(self) -> _Plugin_cas_Core_Bound:
+        """Contrast Adaptive Sharpening"""
     # end instance
     # instance_bound_Core: ccd
     @property
@@ -3144,6 +3688,11 @@ class Core:
     def dfttest2_avx2(self) -> _Plugin_dfttest2_avx2_Core_Bound:
         """DFTTest2 (AVX2)"""
     # end instance
+    # instance_bound_Core: dfttest2_cpu
+    @property
+    def dfttest2_cpu(self) -> _Plugin_dfttest2_cpu_Core_Bound:
+        """DFTTest2 (CPU)"""
+    # end instance
     # instance_bound_Core: dfttest2_cuda
     @property
     def dfttest2_cuda(self) -> _Plugin_dfttest2_cuda_Core_Bound:
@@ -3159,6 +3708,11 @@ class Core:
     def dgdecodenv(self) -> _Plugin_dgdecodenv_Core_Bound:
         """DGDecodeNV for VapourSynth"""
     # end instance
+    # instance_bound_Core: dmetrics
+    @property
+    def dmetrics(self) -> _Plugin_dmetrics_Core_Bound:
+        """Decomb Metrics"""
+    # end instance
     # instance_bound_Core: dpid
     @property
     def dpid(self) -> _Plugin_dpid_Core_Bound:
@@ -3167,7 +3721,7 @@ class Core:
     # instance_bound_Core: edgefixer
     @property
     def edgefixer(self) -> _Plugin_edgefixer_Core_Bound:
-        """VapourSynth edgefixer port"""
+        """ultraman"""
     # end instance
     # instance_bound_Core: eedi2
     @property
@@ -3178,6 +3732,11 @@ class Core:
     @property
     def eedi2cuda(self) -> _Plugin_eedi2cuda_Core_Bound:
         """EEDI2 filter using CUDA"""
+    # end instance
+    # instance_bound_Core: eedi3
+    @property
+    def eedi3(self) -> _Plugin_eedi3_Core_Bound:
+        """EEDI3"""
     # end instance
     # instance_bound_Core: eedi3m
     @property
@@ -3194,6 +3753,11 @@ class Core:
     def f3kdb(self) -> _Plugin_f3kdb_Core_Bound:
         """flash3kyuu_deband"""
     # end instance
+    # instance_bound_Core: fb
+    @property
+    def fb(self) -> _Plugin_fb_Core_Bound:
+        """FillBorders plugin for VapourSynth"""
+    # end instance
     # instance_bound_Core: ffms2
     @property
     def ffms2(self) -> _Plugin_ffms2_Core_Bound:
@@ -3203,6 +3767,11 @@ class Core:
     @property
     def fft3dfilter(self) -> _Plugin_fft3dfilter_Core_Bound:
         """systems"""
+    # end instance
+    # instance_bound_Core: fh
+    @property
+    def fh(self) -> _Plugin_fh_Core_Bound:
+        """FieldHint Plugin"""
     # end instance
     # instance_bound_Core: flux
     @property
@@ -3218,6 +3787,11 @@ class Core:
     @property
     def focus2(self) -> _Plugin_focus2_Core_Bound:
         """VapourSynth TemporalSoften Filter v1"""
+    # end instance
+    # instance_bound_Core: fpng
+    @property
+    def fpng(self) -> _Plugin_fpng_Core_Bound:
+        """fpng for vapoursynth"""
     # end instance
     # instance_bound_Core: grain
     @property
@@ -3238,6 +3812,11 @@ class Core:
     @property
     def imwri(self) -> _Plugin_imwri_Core_Bound:
         """VapourSynth ImageMagick 7 HDRI Writer/Reader"""
+    # end instance
+    # instance_bound_Core: julek
+    @property
+    def julek(self) -> _Plugin_julek_Core_Bound:
+        """Julek filters"""
     # end instance
     # instance_bound_Core: knlm
     @property
@@ -3289,10 +3868,20 @@ class Core:
     def mvsf(self) -> _Plugin_mvsf_Core_Bound:
         """MVTools Single Precision"""
     # end instance
+    # instance_bound_Core: ncnn
+    @property
+    def ncnn(self) -> _Plugin_ncnn_Core_Bound:
+        """NCNN ML Filter Runtime"""
+    # end instance
     # instance_bound_Core: neo_f3kdb
     @property
     def neo_f3kdb(self) -> _Plugin_neo_f3kdb_Core_Bound:
-        """Neo F3KDB Deband Filter r7"""
+        """Neo F3KDB Deband Filter r9"""
+    # end instance
+    # instance_bound_Core: nlm_cuda
+    @property
+    def nlm_cuda(self) -> _Plugin_nlm_cuda_Core_Bound:
+        """Non-local means denoise filter implemented in CUDA"""
     # end instance
     # instance_bound_Core: nnedi3
     @property
@@ -3334,6 +3923,11 @@ class Core:
     def psm(self) -> _Plugin_psm_Core_Bound:
         """PlaneStats with threshold"""
     # end instance
+    # instance_bound_Core: recon
+    @property
+    def recon(self) -> _Plugin_recon_Core_Bound:
+        """Chroma reconstruction plugin."""
+    # end instance
     # instance_bound_Core: remap
     @property
     def remap(self) -> _Plugin_remap_Core_Bound:
@@ -3369,10 +3963,20 @@ class Core:
     def scxvid(self) -> _Plugin_scxvid_Core_Bound:
         """VapourSynth Scxvid Plugin"""
     # end instance
+    # instance_bound_Core: sneedif
+    @property
+    def sneedif(self) -> _Plugin_sneedif_Core_Bound:
+        """Setsugen No Ensemble of Edge Directed Interpolation Functions"""
+    # end instance
     # instance_bound_Core: std
     @property
     def std(self) -> _Plugin_std_Core_Bound:
         """VapourSynth Core Functions"""
+    # end instance
+    # instance_bound_Core: sub
+    @property
+    def sub(self) -> _Plugin_sub_Core_Bound:
+        """A subtitling filter based on libass and FFmpeg."""
     # end instance
     # instance_bound_Core: tcanny
     @property
@@ -3394,6 +3998,11 @@ class Core:
     def text(self) -> _Plugin_text_Core_Bound:
         """VapourSynth Text"""
     # end instance
+    # instance_bound_Core: tivtc
+    @property
+    def tivtc(self) -> _Plugin_tivtc_Core_Bound:
+        """Field matching and decimation"""
+    # end instance
     # instance_bound_Core: tonemap
     @property
     def tonemap(self) -> _Plugin_tonemap_Core_Bound:
@@ -3408,6 +4017,16 @@ class Core:
     @property
     def ttmpsm(self) -> _Plugin_ttmpsm_Core_Bound:
         """A basic, motion adaptive, temporal smoothing filter"""
+    # end instance
+    # instance_bound_Core: vivtc
+    @property
+    def vivtc(self) -> _Plugin_vivtc_Core_Bound:
+        """VFM"""
+    # end instance
+    # instance_bound_Core: vmaf
+    @property
+    def vmaf(self) -> _Plugin_vmaf_Core_Bound:
+        """Video Multi-Method Assessment Fusion"""
     # end instance
     # instance_bound_Core: vsf
     @property
