@@ -4,19 +4,46 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Callable, NoReturn, TypeVar
 
+from vsmuxtools import src_file
+from vssource import Indexer
 from vstools import (
-    ChromaLocation, ColorRange, FrameRangeN, FrameRangesN, Matrix, Primaries, Transfer, normalize_ranges, remap_frames,
-    to_arr, vs
+    ChromaLocation,
+    ColorRange,
+    FrameRangeN,
+    FrameRangesN,
+    Matrix,
+    Primaries,
+    Transfer,
+    normalize_ranges,
+    remap_frames,
+    to_arr,
+    vs,
 )
 
-from .custom_types import FramePropKey
+from .custom_types import FramePropKey, PathLike
 
 __all__ = [
-    "trim", "write_props",
+    "src", "trim", "write_props",
     "ensure_path", "normalize_list"
 ]
 
 T = TypeVar("T")
+
+
+def src(
+    indexer: Indexer | Callable[[PathLike], vs.VideoNode],
+    trim: tuple[int | None, int | None] | None,
+    **idx_args: Any
+) -> Callable[[PathLike], src_file]:
+    """
+    Small utility function so I don't have to write this code everytime I want to pass a preconfigured src_file as an
+    argument to something else
+    """
+    return partial(
+        src_file,
+        trim=trim,  # type: ignore[arg-type]
+        idx=lambda file: indexer.source(file, **idx_args) if isinstance(indexer, Indexer) else indexer(file, **idx_args)
+    )
 
 
 def trim(clip: vs.VideoNode, frame_range: FrameRangeN | FrameRangesN) -> vs.VideoNode:
