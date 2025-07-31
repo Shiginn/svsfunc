@@ -2,12 +2,12 @@
 from abc import ABC, abstractmethod
 from typing import Callable
 
-from vstools import set_output, vs
+from vstools import set_output, vs, vs_object
 
 __all__ = ["BaseFilterchain"]
 
 
-class BaseFilterchain(ABC):
+class BaseFilterchain(vs_object, ABC):
     """Abstract base class that can be used to build a filterchain"""
 
     preview_clips: dict[str, vs.VideoNode] | None = None
@@ -70,3 +70,12 @@ class BaseFilterchain(ABC):
             raise ValueError(f"{self.__class__.__name__}.get_clip: requested clip does not exist.")
 
         return clip
+
+    def __vs_del__(self, core_id: int) -> None:
+        if self.preview_clips is None:
+            return
+
+        for value in self.preview_clips.values():
+            del value
+
+        self.preview_clips.clear()
