@@ -2,22 +2,21 @@ from __future__ import annotations
 
 from glob import glob
 from pathlib import Path
-from typing import Any, Generic, Iterator, Sequence
+from typing import Any, Callable, Generic, Iterator, Sequence
 
 from vsmuxtools import Chapters, src_file
-from vstools import to_arr
+from vstools import to_arr, vs_object
 
 from .bdmv import BDMV, MplsItem
 from .custom_types import HoldsVideoNodeT, PathLike
-from .indexer import LSMAS, Indexer
 from .utils import normalize_list
 
 __all__ = ["ParseFolder", "ParseBD"]
 
 
-class HasEpisode(Generic[HoldsVideoNodeT]):
+class HasEpisode(Generic[HoldsVideoNodeT], vs_object):
     episodes: list[Path]
-    indexer: Indexer[HoldsVideoNodeT]
+    indexer: Callable[[str | Path], HoldsVideoNodeT]
 
     _ep_cache: dict[int, HoldsVideoNodeT]
     _idx: int
@@ -73,6 +72,10 @@ class HasEpisode(Generic[HoldsVideoNodeT]):
         self._idx += 1
         return episode
 
+    def __vs_del__(self, core_id: int) -> None:
+        for value in self._ep_cache.values():
+            del value
+        self._ep_cache.clear()
 
 
 class ParseFolder(HasEpisode[HoldsVideoNodeT]):
@@ -82,8 +85,10 @@ class ParseFolder(HasEpisode[HoldsVideoNodeT]):
     folder: Path
 
     def __init__(
-        self: "ParseFolder[HoldsVideoNodeT]", folder: PathLike, pattern: str | None = None, recursive: bool = False,
-        sort: bool = True, indexer: Indexer[HoldsVideoNodeT] = LSMAS()  # type: ignore[assignment]
+        self,
+        folder: PathLike, pattern: str,
+        indexer: Callable[[str | Path], HoldsVideoNodeT],
+        recursive: bool = False, sort: bool = True
     ) -> None:
         """
         Parse folder and list every file that matches given pattern.
@@ -116,9 +121,9 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
     items: list[MplsItem]
 
     def __init__(
-        self: "ParseBD[HoldsVideoNodeT]",
-        bdmv_path: PathLike | list[PathLike] | tuple[PathLike, list[PathLike]],
-        ep_playlist: int | Sequence[int], indexer: Indexer[HoldsVideoNodeT] = LSMAS()  # type: ignore[assignment]
+        self,
+        bdmv_path: PathLike | list[PathLike] | tuple[PathLike, list[PathLike]] | BDMV,
+        ep_playlist: int | Sequence[int], indexer: Callable[[str | Path], HoldsVideoNodeT]
     ) -> None:
         """
         Parse BDMV and list every file in matching episode playlist(s).
@@ -136,8 +141,10 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
             bdmv = BDMV.from_volumes(volumes, folder)
         elif isinstance(bdmv_path, list):
             bdmv = BDMV.from_volumes(bdmv_path)
-        else:
+        elif isinstance(bdmv_path, str) or isinstance(bdmv_path, Path):
             bdmv = BDMV.from_path(bdmv_path)
+        else:
+            bdmv = bdmv_path
 
         self.bdmv = bdmv
 
@@ -170,7 +177,7 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
         mpls_item = self.items[ep_num - 1]
         chaps_frames = mpls_item.chapters
 
-        chapters = Chapters([(frame, None) for frame in chaps_frames], fps=mpls_item.framerate)
+        chapters = Chapters([(frame, None) for frame in chaps_frames], timesource=mpls_item.framerate)
 
         if src_file:
             # src_file.trim can be None despite type hint saying Trim
