@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Generic
 
 from vsmuxtools import src_file
-from vstools import initialize_clip, vs
+from vstools import initialize_clip, vs, vs_object
 
 from .custom_types import HoldsVideoNodeT
 from .utils import trim
@@ -11,7 +11,7 @@ from .utils import trim
 __all__ = ["EpisodeInfo"]
 
 
-class EpisodeInfo(Generic[HoldsVideoNodeT]):
+class EpisodeInfo(Generic[HoldsVideoNodeT], vs_object):
     """Class that represent an indexed episode with episode number and optional OP/ED ranges + NCOP/NCED."""
 
     source: HoldsVideoNodeT
@@ -171,3 +171,14 @@ class EpisodeInfo(Generic[HoldsVideoNodeT]):
             raise TypeError("Source trimming is only available via src_file")
 
         return self.source.init_cut(**kwargs)
+
+
+    def __vs_del__(self, core_id: int) -> None:
+        if isinstance(self.source, vs.VideoNode):
+            del self.source
+
+        if self.ncop is not None:
+            del self.ncop
+
+        if self.nced is not None:
+            del self.nced
