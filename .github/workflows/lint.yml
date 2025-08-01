@@ -14,22 +14,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
           pip install vapoursynth-portable==${{ matrix.versions }}
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
-      
-      - name: Running flake8
+
+      - name: Running ruff
         continue-on-error: true
-        run: flake8 svsfunc
-      
+        run: ruff check svsfunc
+
       - name: Running mypy
-        run: mypy svsfunc --verbose
+        run: mypy svsfunc
