@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from typing import Any, Generic
+from typing import Any, Generic, TypeVar
 
 from vsmuxtools import src_file
 from vstools import initialize_clip, vs, vs_object
 
-from .custom_types import HoldsVideoNodeT
+from .custom_types import BaseVsObject, HoldsVideoNodeT
 from .utils import trim
 
 __all__ = ["EpisodeInfo"]
 
 
-class EpisodeInfo(Generic[HoldsVideoNodeT], vs_object):
+class EpisodeInfo(BaseVsObject, Generic[HoldsVideoNodeT]):
     """Class that represent an indexed episode with episode number and optional OP/ED ranges + NCOP/NCED."""
 
     source: HoldsVideoNodeT

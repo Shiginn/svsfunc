@@ -5,16 +5,16 @@ from pathlib import Path
 from typing import Any, Callable, Generic, Iterator, Sequence
 
 from vsmuxtools import Chapters, src_file
-from vstools import to_arr, vs_object
+from vstools import to_arr
 
 from .bdmv import BDMV, MplsItem
-from .custom_types import HoldsVideoNodeT, PathLike
+from .custom_types import BaseVsObject, HoldsVideoNodeT, PathLike
 from .utils import normalize_list
 
 __all__ = ["ParseFolder", "ParseBD"]
 
 
-class HasEpisode(Generic[HoldsVideoNodeT], vs_object):
+class HasEpisode(BaseVsObject, Generic[HoldsVideoNodeT]):
     episodes: list[Path]
     indexer: Callable[[str | Path], HoldsVideoNodeT]
 
