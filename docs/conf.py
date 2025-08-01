@@ -84,7 +84,7 @@ autodoc_default_options = {
 autodoc_typehints = "signature"
 autodoc_mock_imports = [
     re.split("[>=~]=", line.strip())[0].lower() for line in Path("../requirements.txt").open()
-] + ["vssource"]
+] + ["vssource", "vstools"]
 pygments_style = 'sphinx'
 
 
