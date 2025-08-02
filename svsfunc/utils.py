@@ -40,6 +40,12 @@ def src(
     """
     Small utility function so I don't have to write this code everytime I want to pass a preconfigured src_file as an
     argument to something else
+
+    :param indexer:     Indexer to pass to src_file
+    :param trim:        Trims to pass to src_file
+    :param idx_args:    Other arguments to pass to the indexer
+
+    :return:            Callable indexer
     """
     return partial(
         src_file,
@@ -116,6 +122,16 @@ def write_props(
 
 
 def ensure_path(path: str | Path, source: str = "ensure_path") -> Path:
+    """
+    Make sure the given path exist, and convert it to a Path object if it is not.
+
+    :param path:            Path to validate
+    :param source:          Caller function, defaults to "ensure_path"
+
+    :raises ValueError:     If the input path is not valid
+
+    :return:                Validated and resolved path
+    """
     if isinstance(path, str):
         path = Path(path)
 
