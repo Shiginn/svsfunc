@@ -1,7 +1,7 @@
 svsfunc's Documentation
 ===================================
 
-.. image:: https://img.shields.io/badge/python-3.11-blue
+.. image:: https://img.shields.io/badge/python-3.12-blue
 
 .. image:: https://img.shields.io/github/actions/workflow/status/Shiginn/svsfunc/lint.yml?branch=master&label=lint
 
@@ -25,7 +25,6 @@ svsfunc is a collection of VapourSynth functions I use in my scripts.
     submodules/episode_info
     submodules/parse
     submodules/filterchain
-    submodules/encoder
     submodules/bdmv
     submodules/utils
     submodules/types
@@ -37,4 +36,3 @@ svsfunc is a collection of VapourSynth functions I use in my scripts.
     usage/episode_info
     usage/parse
     usage/filterchain
-    usage/encoder

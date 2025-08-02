@@ -11,7 +11,6 @@ __all__ = [
     "PathLike", "FramePropKey"
 ]
 
-
 IndexedT = TypeVar("IndexedT", vs.VideoNode, vs.AudioNode, src_file)
 HoldsVideoNodeT = TypeVar("HoldsVideoNodeT", vs.VideoNode, src_file)
 

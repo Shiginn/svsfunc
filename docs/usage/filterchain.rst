@@ -55,7 +55,8 @@ Example usage of the filterchain:
     filterchain = Episode1Filterchain(source)
 
     if __name__ == "__main__":
-        enc = Encoder(source.file, filterchain.filter())
+        from vsmuxtools import x265, ...
+        video = x265(my_settings).encode(filterchain.filter())
         ...
 
     elif __name__ == "__vapoursynth__":

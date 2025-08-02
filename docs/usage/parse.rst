@@ -5,64 +5,32 @@ ParseBD
 -------
 ParseBD will try to parse the .mpls files in the BDMV to extract the list of the episodes in the correct order. To do so, you can specify the path to the BDMV folder (it will try to find every volumes present in this folder and subfolders) or give the path to every BD volume.
 Use the ``ep_playlist`` parameters to select the playlist file to parse. In most BD, the correct playlist file is ``00000.mpls`` or ``00001.mpls``. In this exemple, it will use the playlist file ``00000.mpls`` (``ep_playlist=0``).
-
-The indexer used can be configured using :py:class:`svsfunc.indexer.Indexer`.
-
-.. code:: python
-
-    from svsfunc import SrcFile, LSMAS
-
-    idx = SrcFile(idx=LSMAS())
-    BDMV = ParseBD("/path/to/BDMV", ep_playlist=0, indexer=idx)
-
-
-You can set the range of the OP/ED of each episode with the ``set_op_ed_ranges`` method. Use ``None`` if the episode does not have an OP/ED.
+.
 
 .. code:: python
 
-    BDMV.set_op_ed_ranges(
-        op_ranges=[
-            None
-            (504, 2658),
-            ...
-        ],
-        ed_ranges=[
-            (30688, 32844),
-            (30687, 32843),
-            ...
-        ]
-    )
+    from svsfunc import ParseBD
+    from vssource import BestSource
 
-You can also set the NCOP and NCED of each episode with ``set_ncs``. Use a tuple for a range of episode or an int for a specific episode. Can be a path or a clip or ``None``.
-
-.. code:: python
-
-    idx = LSMAS()
-
-    BDMV.set_ncs(
-        ncops={
-            (1, 12): idx("/path/to/ncop1.m2ts"),
-            (13, 24): idx("/path/to/ncop2.m2ts")
-        },
-        nceds={
-            (1, 12): idx("/path/to/nced1.m2ts")[:-24],
-            13: None,
-            (14, 24): idx("/path/to/nced2.m2ts")[24:]
-        }
-    )
+    BDMV = ParseBD("/path/to/BDMV", ep_playlist=0, indexer=lambda f: BestSource().source(f))
 
 
-To get an episode, use the ``get_episode`` method. The index start at 1, so doing ``BDMV.get_episode(1)`` will return episode 1.
-``get_episode`` will return an :py:class:`svsfunc.indexer.EpisodeInfo` object with the corresponding episode number, OP/ED ranges (if set) and NCOP/NCED (if set).
 
-To get the list of chapters of an episode, use the ``get_chapter`` method. A list of name can be passed to rename the chapters (default to Chapter 1, 2, 3...)
+To get an episode, use the :py:meth:`svsfunc.parse.ParseBD.get_episode` method. The index start at 1, so doing ``BDMV.get_episode(1)`` will return episode 1.
+:py:meth:`svsfunc.parse.ParseBD.get_episode` will return a ``VideoNode`` or a ``src_file``, depending on the indexer used, which can be passed to :py:class:`svsfunc.episode_info.EpisodeInfo` or used as is.
+
+To get the list of chapters of an episode, use the :py:meth:`svsfunc.parse.ParseBD.get_chapter` method. A list of name can be passed to rename the chapters (default to Chapter 1, 2, 3...).
+If you use ``src_file`` with trims, you can pass the it to also apply the trims on the chapters.
 
 .. code:: 
 
-    ep_01 = BDMV.get_episode(1)  # type -> EpisodeInfo[SrcFile]
-    ep_01_chapters = BDMV.get_chapter(1)
-    ep_01_chapters = BDMV.get_chapter(1, ["Intro", "OP", "Part A", "Part B", "ED"])
+    ep_01 = BDMV.get_episode(1)
 
+    ep_01_chapters = BDMV.get_chapter(1)
+    # or 
+    ep_01_chapters = BDMV.get_chapter(1, ["Intro", "OP", "Part A", "Part B", "ED"])
+    # or 
+    ep_01_chapters = BDMV.get_chapter(1, [...], ep_01) # asuming ep_01 is of type vsmuxtools.src_file
 
 ParseFolder
 -----------
@@ -70,8 +38,10 @@ ParseFolder will try to get the list of files that matches an expression in the 
 
 .. code:: python
 
-    from svsfunc import LSMAS
-    WEB = ParseFolder("/path/to/folder", pattern="* Anime Name S??E?? *.mkv", indexer=LSMAS())
+    from svsfunc import ParseFolder
+    from vssource import BestSource
+
+    WEB = ParseFolder("/path/to/folder", pattern="* Anime Name S??E?? *.mkv", indexer=lambda f: BestSource().source(f))
 
 
 The episodes will be in the same order as the files in folder (sorted by name). So if your episodes don't have the same naming convention, it can impact the episode order. To fix this issue:
@@ -83,8 +53,8 @@ The episodes will be in the same order as the files in folder (sorted by name). 
 This will take the 4 last episodes and place them at the beginning of the list.
 
 
-Just like ParseBD, you can get an episode with ``get_episode`` and set the OP/ED ranges with ``set_op_ed_ranges`` and NCOP/NCED with ``set_ncs``.
+Just like ParseBD, you can get an episode with :py:meth:`svsfunc.parse.ParseFolder.get_episode`:
 
 .. code:: 
 
-    ep_01 = WEB.get_episode(1)  # Type is EpisodeInfo[VideoNode]
+    ep_01 = WEB.get_episode(1)
