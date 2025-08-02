@@ -8,7 +8,7 @@ build:
     pre_install:
       - pip install uv
     install:
-      - uv sync --locked --only-group docs
+      - uv sync --locked --only-group docs --active
 
 sphinx:
   configuration: docs/conf.py
