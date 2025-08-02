@@ -14,7 +14,8 @@ import os
 import re
 import sys
 from datetime import datetime
-from pathlib import Path
+
+import tomllib
 
 sys.path.insert(0, os.path.abspath(".."))
 
@@ -22,17 +23,22 @@ sys.path.insert(0, os.path.abspath(".."))
 
 project = "svsfunc"
 
-exec(Path(f"../{project}/_metadata.py").read_text(), meta := dict[str, str]())
+with open("../pyproject.toml", mode="rb") as f:
+    pyproject = tomllib.load(f)
 
-copyright = f"{datetime.now().year}, {meta['__author_name__']}"
-author = meta["__author__"]
+# exec(Path(f"../{project}/_metadata.py").read_text(), meta := dict[str, str]())
+
+author_name = pyproject["project"]["authors"][0]["name"]
+author_email = pyproject["project"]["authors"][0]["email"]
+
+copyright = f"{datetime.now().year}, {author_name}"
+author = f"{author_name} <{author_email}>"
 
 # The short X.Y version
-version = meta['__version__']
+version = pyproject["project"]["version"]
 
 # The full version, including alpha/beta/rc tags
-release = meta["__version__"]
-
+release = pyproject["project"]["version"]
 
 # -- General configuration ---------------------------------------------------
 
@@ -44,7 +50,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.todo",
     "sphinx_autodoc_typehints",
-    "sphinx_toolbox.more_autodoc.typevars"
+    "sphinx_toolbox.more_autodoc.typevars",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -67,25 +73,26 @@ html_theme = "sphinx_rtd_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # stolen from vardautomation
-html_static_path = ['_static']
-html_css_files = ['css/theme_overrides.css']
-html_style = 'css/theme_overrides.css'
+html_static_path = ["_static"]
+html_css_files = ["css/theme_overrides.css"]
+html_style = "css/theme_overrides.css"
 
 
 # -- Extension configuration -------------------------------------------------
 
 autosummary_generate = True
 autodoc_default_options = {
-    'members': True,
-    'undoc-members': True,
-    'member-order': 'bysource',
-    'special-members': '__init__',
+    "members": True,
+    "undoc-members": True,
+    "member-order": "bysource",
+    "special-members": "__init__",
 }
 autodoc_typehints = "signature"
-autodoc_mock_imports = [
-    re.split("[>=~]=", line.strip())[0].lower() for line in Path("../requirements.txt").open()
-] + ["vssource", "vstools"]
-pygments_style = 'sphinx'
+autodoc_mock_imports = [re.split("[>=~]=", dep.strip())[0].lower() for dep in pyproject["project"]["dependencies"]] + [
+    "vssource",
+    "vstools",
+]
+pygments_style = "sphinx"
 
 
 # -- Options for todo extension ----------------------------------------------

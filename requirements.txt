@@ -1,5 +1,0 @@
-pyparsebluray>=0.1.4
-pytimeconv>=0.0.2
-VapourSynth>=66
-vsjetpack>=0.5.3
-vsmuxtools>=0.3.0
