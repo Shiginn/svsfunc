@@ -24,8 +24,15 @@ docs = [
  "sphinxcontrib-serializinghtml==1.1.5",
 ]
 
-[tool.mypy]
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+include = ["svsfunc"]
+exclude = ["stubs", "docs"]
+
+[tool.mypy]
 python_version = 3.12
 
 mypy_path = "stubs"
