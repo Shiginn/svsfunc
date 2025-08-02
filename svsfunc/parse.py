@@ -8,13 +8,13 @@ from vsmuxtools import Chapters, src_file
 from vstools import to_arr
 
 from .bdmv import BDMV, MplsItem
-from .custom_types import BaseVsObject, HoldsVideoNodeT, PathLike
-from .utils import normalize_list
+from .custom_types import HoldsVideoNodeT, PathLike
+from .utils import normalize_list, vs_object
 
 __all__ = ["ParseFolder", "ParseBD"]
 
 
-class HasEpisode(BaseVsObject, Generic[HoldsVideoNodeT]):
+class HasEpisode(vs_object, Generic[HoldsVideoNodeT]):
     episodes: list[Path]
     indexer: Callable[[str | Path], HoldsVideoNodeT]
 

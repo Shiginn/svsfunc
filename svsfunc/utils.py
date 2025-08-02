@@ -19,12 +19,14 @@ from vstools import (
     to_arr,
     vs,
 )
+from vstools import vs_object as vst_vs_object
 
 from .custom_types import FramePropKey, PathLike
 
 __all__ = [
     "src", "trim", "write_props",
-    "ensure_path", "normalize_list"
+    "ensure_path", "normalize_list",
+    "vs_object"
 ]
 
 T = TypeVar("T")
@@ -147,3 +149,9 @@ def normalize_list(val: list[T] | T, max_size: int, padding: T, source: str) -> 
         return val + [padding] * (max_size - input_size)
     else:
         return val
+
+
+# for some reasons, docs build fails when inheriting from vs_object directly but not when inherinting from this
+# only happens when the class is generic
+class vs_object(vst_vs_object):
+    ...

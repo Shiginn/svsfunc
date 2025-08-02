@@ -4,18 +4,12 @@ from pathlib import Path
 from typing import Literal, TypeAlias, TypeVar, Union
 
 from vsmuxtools import src_file
-from vstools import vs, vs_object
+from vstools import vs
 
 __all__ = [
-    "BaseVsObject",
     "HoldsVideoNodeT", "IndexedT",
     "PathLike", "FramePropKey"
 ]
-
-
-# for some reasons, docs build fails when inheriting from vs_object directly but not when inherinting from this
-class BaseVsObject(vs_object):
-    ...
 
 IndexedT = TypeVar("IndexedT", vs.VideoNode, vs.AudioNode, src_file)
 HoldsVideoNodeT = TypeVar("HoldsVideoNodeT", vs.VideoNode, src_file)
