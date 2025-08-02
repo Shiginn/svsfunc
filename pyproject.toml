@@ -11,18 +11,6 @@ dependencies = ["pyparsebluray>=0.1.4", "pytimeconv>=0.0.2", "vapoursynth>=66", 
 
 [dependency-groups]
 dev = ["mypy==1.17.1", "mypy-extensions==1.1.0", "ruff==0.9.4", "typing-extensions==4.14.1"]
-docs = [
- "sphinx==6.2.1",
- "sphinx-autodoc-typehints==1.23.0",
- "sphinx-rtd-theme==1.2.0",
- "sphinx-toolbox==3.4.0",
- "sphinxcontrib-applehelp==1.0.4",
- "sphinxcontrib-devhelp==1.0.2",
- "sphinxcontrib-htmlhelp==2.0.1",
- "sphinxcontrib-jsmath==1.0.1",
- "sphinxcontrib-qthelp==1.0.3",
- "sphinxcontrib-serializinghtml==1.1.5",
-]
 
 [build-system]
 requires = ["setuptools>=68.0.0", "wheel"]
