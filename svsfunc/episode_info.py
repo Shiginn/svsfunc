@@ -21,11 +21,14 @@ class EpisodeInfo(vs_object, Generic[HoldsVideoNodeT]):
     ncop: vs.VideoNode | None
     nced: vs.VideoNode | None
 
-
     def __init__(
-        self, source: HoldsVideoNodeT, ep_num: int = -1,
-        op_range: tuple[int, int] | None = None, ed_range: tuple[int, int] | None = None,
-        ncop: vs.VideoNode | None = None, nced: vs.VideoNode | None = None,
+        self,
+        source: HoldsVideoNodeT,
+        ep_num: int = -1,
+        op_range: tuple[int, int] | None = None,
+        ed_range: tuple[int, int] | None = None,
+        ncop: vs.VideoNode | None = None,
+        nced: vs.VideoNode | None = None,
     ) -> None:
         self.source = source
         self.ep_num = ep_num
@@ -33,7 +36,6 @@ class EpisodeInfo(vs_object, Generic[HoldsVideoNodeT]):
         self.ed_range = ed_range
         self.ncop = ncop
         self.nced = nced
-
 
     def get_op(self, clip: vs.VideoNode | None = None) -> vs.VideoNode:
         """
@@ -50,7 +52,6 @@ class EpisodeInfo(vs_object, Generic[HoldsVideoNodeT]):
 
         return trim(clip or self.src_cut, self.op_range)
 
-
     def get_ed(self, clip: vs.VideoNode | None = None) -> vs.VideoNode:
         """
         Trims the episode clip to only keep the range that corresponds to the ED.
@@ -65,7 +66,6 @@ class EpisodeInfo(vs_object, Generic[HoldsVideoNodeT]):
             raise ValueError("EpisodeInfo.get_ed: cannot get ED clip if ed_range is None.")
 
         return trim(clip or self.src_cut, self.ed_range)
-
 
     def get_ncop(self, trim_ncop: bool = True) -> vs.VideoNode:
         """
@@ -90,7 +90,6 @@ class EpisodeInfo(vs_object, Generic[HoldsVideoNodeT]):
 
         return clip
 
-
     def get_nced(self, trim_nced: bool = True) -> vs.VideoNode:
         """
         Get NCED and raise an exception if it is not set.
@@ -114,7 +113,6 @@ class EpisodeInfo(vs_object, Generic[HoldsVideoNodeT]):
 
         return clip
 
-
     def ep_num_str(self, padding: int = 2) -> str:
         """
         Generate a padded string of the episode number
@@ -123,7 +121,6 @@ class EpisodeInfo(vs_object, Generic[HoldsVideoNodeT]):
         :return:            Padded string
         """
         return str(self.ep_num).zfill(padding)
-
 
     @property
     def src(self) -> vs.VideoNode:
@@ -148,15 +145,15 @@ class EpisodeInfo(vs_object, Generic[HoldsVideoNodeT]):
 
         return self.source.src_cut
 
-
     def init(self, **kwargs: Any) -> vs.VideoNode:
         """
         Get the indexed clip and initializes it using :py:func:`vstools.initialize_clip`.
 
         :return:    VideoNode object
         """
-        return self.source.init(**kwargs) if isinstance(self.source, src_file) else initialize_clip(self.source, **kwargs)  # noqa: E501
-
+        return (
+            self.source.init(**kwargs) if isinstance(self.source, src_file) else initialize_clip(self.source, **kwargs)
+        )  # noqa: E501
 
     def init_cut(self, **kwargs: Any) -> vs.VideoNode:
         """
@@ -171,7 +168,6 @@ class EpisodeInfo(vs_object, Generic[HoldsVideoNodeT]):
             raise TypeError("Source trimming is only available via src_file")
 
         return self.source.init_cut(**kwargs)
-
 
     def __vs_del__(self, core_id: int) -> None:
         if isinstance(self.source, vs.VideoNode):

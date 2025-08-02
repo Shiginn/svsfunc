@@ -178,7 +178,7 @@ class MplsFile:
         m2ts_folder = ensure_path(m2ts_folder, "MplsFile.parse")
 
         # taken from vardautomation and modified
-        with mpls_file.open('rb') as file:
+        with mpls_file.open("rb") as file:
             header = mpls.load_movie_playlist(file)
 
             file.seek(header.playlist_start_address, os.SEEK_SET)
@@ -206,8 +206,7 @@ class MplsFile:
 
             # all marks associated with the current file, sorted by timestamp
             item_marks = sorted(
-                [mark for mark in marks if mark.ref_to_play_item_id == i],
-                key=lambda x: x.mark_timestamp
+                [mark for mark in marks if mark.ref_to_play_item_id == i], key=lambda x: x.mark_timestamp
             )
 
             # offset from start of bd to start of current item
@@ -219,13 +218,16 @@ class MplsFile:
             # Extract the fps and store it
             item_chapters = list[int]()
             if not (
-                item.stn_table and item.stn_table.length != 0 and                      # stn table is present
-                item.stn_table.prim_video_stream_entries and                           # stn table has video streams
-                (fps_n := item.stn_table.prim_video_stream_entries[0][1].framerate)    # stn table has 1st video stream fps  # noqa: E501
+                item.stn_table
+                and item.stn_table.length != 0  # stn table is present
+                and item.stn_table.prim_video_stream_entries  # stn table has video streams
+                and (
+                    fps_n := item.stn_table.prim_video_stream_entries[0][1].framerate
+                )  # stn table has 1st video stream fps  # noqa: E501
             ):
                 raise ValueError(
-                    "MplsFile.parse: Could not locate video stream framerate of item " +
-                    f"{item.clip_information_filename} of file {mpls_file}"
+                    "MplsFile.parse: Could not locate video stream framerate of item "
+                    + f"{item.clip_information_filename} of file {mpls_file}"
                 )
 
             # find item fps
@@ -233,8 +235,8 @@ class MplsFile:
                 fps = mpls.FRAMERATE[fps_n]
             except AttributeError:
                 raise ValueError(
-                    f"MplsFile.parse: Unknown framerate {fps_n} for item {item.clip_information_filename} of " +
-                    f"file {mpls_file}."
+                    f"MplsFile.parse: Unknown framerate {fps_n} for item {item.clip_information_filename} of "
+                    + f"file {mpls_file}."
                 )
 
             # get chapters

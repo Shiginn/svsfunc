@@ -55,5 +55,6 @@ target-version = "py312"
 select = ["E", "F", "W", "I"]
 
 [tool.ruff.format]
+exclude = ["*.pyi"]
 quote-style = "double"
 indent-style = "space"

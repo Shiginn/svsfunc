@@ -1,4 +1,3 @@
-
 from abc import ABC, abstractmethod
 from typing import Callable
 
@@ -13,9 +12,7 @@ class BaseFilterchain(vs_object, ABC):
     preview_clips: dict[str, vs.VideoNode] | None = None
 
     @abstractmethod
-    def filter(self) -> vs.VideoNode:
-        ...
-
+    def filter(self) -> vs.VideoNode: ...
 
     def add_preview(self, clip: vs.VideoNode, name: str | None = None) -> None:
         """
@@ -29,7 +26,6 @@ class BaseFilterchain(vs_object, ABC):
 
         preview = {name: clip}
         self.preview_clips = preview if self.preview_clips is None else self.preview_clips | preview
-
 
     def set_outputs(self, preview_func: Callable[[vs.VideoNode], vs.VideoNode] | None = None) -> None:
         """
@@ -48,7 +44,6 @@ class BaseFilterchain(vs_object, ABC):
                 output = preview_func(output)
 
             set_output(output, output_name)
-
 
     def get_clip(self, clip_name: str | int) -> vs.VideoNode:
         """

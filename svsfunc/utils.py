@@ -23,19 +23,13 @@ from vstools import vs_object as vst_vs_object
 
 from .custom_types import FramePropKey, PathLike
 
-__all__ = [
-    "src", "trim", "write_props",
-    "ensure_path", "normalize_list",
-    "vs_object"
-]
+__all__ = ["src", "trim", "write_props", "ensure_path", "normalize_list", "vs_object"]
 
 T = TypeVar("T")
 
 
 def src(
-    indexer: Indexer | Callable[[PathLike], vs.VideoNode],
-    trim: tuple[int | None, int | None] | None,
-    **idx_args: Any
+    indexer: Indexer | Callable[[PathLike], vs.VideoNode], trim: tuple[int | None, int | None] | None, **idx_args: Any
 ) -> Callable[[PathLike], src_file]:
     """
     Small utility function so I don't have to write this code everytime I want to pass a preconfigured src_file as an
@@ -50,7 +44,9 @@ def src(
     return partial(
         src_file,
         trim=trim,  # type: ignore[arg-type]
-        idx=lambda file: indexer.source(file, **idx_args) if isinstance(indexer, Indexer) else indexer(file, **idx_args)
+        idx=lambda file: indexer.source(file, **idx_args)
+        if isinstance(indexer, Indexer)
+        else indexer(file, **idx_args),
     )
 
 
@@ -73,8 +69,11 @@ def trim(clip: vs.VideoNode, frame_range: FrameRangeN | FrameRangesN) -> vs.Vide
 
 
 def write_props(
-    clip: vs.VideoNode, props: FramePropKey | str | list[FramePropKey | str] | None = None,
-    name: str | None = None, alignment: int = 7, scale: int = 1
+    clip: vs.VideoNode,
+    props: FramePropKey | str | list[FramePropKey | str] | None = None,
+    name: str | None = None,
+    alignment: int = 7,
+    scale: int = 1,
 ) -> vs.VideoNode:
     """
     Write frame props on a clip
@@ -95,7 +94,7 @@ def write_props(
         "_Primaries": ("Primaries", lambda x: Primaries(x).pretty_string),
         "_Transfer": ("Transfer", lambda x: Transfer(x).pretty_string),
         "_Matrix": ("Matrix", lambda x: Matrix(x).pretty_string),
-        "_ColorRange": ("Color Range", lambda x: ColorRange(x).pretty_string)
+        "_ColorRange": ("Color Range", lambda x: ColorRange(x).pretty_string),
     }
 
     def _get_props(n: int, f: vs.VideoFrame, clip: vs.VideoNode, props: list[FramePropKey | str]) -> vs.VideoNode:
@@ -103,7 +102,7 @@ def write_props(
 
         for prop in props:
             if prop not in f.props:
-                raise KeyError(f"write_props: prop \"{prop}\" not found in frame {n}.")
+                raise KeyError(f'write_props: prop "{prop}" not found in frame {n}.')
 
             prop_value = f.props.get(prop)
 
@@ -136,7 +135,7 @@ def ensure_path(path: str | Path, source: str = "ensure_path") -> Path:
         path = Path(path)
 
     if not path.exists():
-        raise ValueError(f"{source}: path \"{path}\" does not exist.")
+        raise ValueError(f'{source}: path "{path}" does not exist.')
 
     return path.resolve()
 
@@ -169,5 +168,4 @@ def normalize_list(val: list[T] | T, max_size: int, padding: T, source: str) -> 
 
 # for some reasons, docs build fails when inheriting from vs_object directly but not when inherinting from this
 # only happens when the class is generic
-class vs_object(vst_vs_object):
-    ...
+class vs_object(vst_vs_object): ...

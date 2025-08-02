@@ -28,7 +28,7 @@ class HasEpisode(vs_object, Generic[HoldsVideoNodeT]):
         self.episodes = []
         for ep in eps:
             if not ep.exists():
-                raise ValueError(f"{self.__class__.__name__}: file with path \"{ep}\" does not exist.")
+                raise ValueError(f'{self.__class__.__name__}: file with path "{ep}" does not exist.')
             self.episodes.append(ep)
 
         self._ep_cache = {}
@@ -37,9 +37,7 @@ class HasEpisode(vs_object, Generic[HoldsVideoNodeT]):
     def episode_number(self) -> int:
         return len(self.episodes)
 
-    def get_episode(
-        self, ep_num: int, force_reindex: bool = False, **indexer_overrides: Any
-    ) -> HoldsVideoNodeT:
+    def get_episode(self, ep_num: int, force_reindex: bool = False, **indexer_overrides: Any) -> HoldsVideoNodeT:
         """
         Get indexed episode
 
@@ -56,7 +54,6 @@ class HasEpisode(vs_object, Generic[HoldsVideoNodeT]):
             self._ep_cache[ep_num] = self.indexer(self.episodes[ep_num - 1], **indexer_overrides)
 
         return self._ep_cache[ep_num]
-
 
     def __iter__(self) -> Iterator[HoldsVideoNodeT]:
         self._idx = 1
@@ -82,13 +79,16 @@ class ParseFolder(HasEpisode[HoldsVideoNodeT]):
     """
     Folder parser that uses pattern mathching to get episode list.
     """
+
     folder: Path
 
     def __init__(
         self,
-        folder: PathLike, pattern: str,
+        folder: PathLike,
+        pattern: str,
         indexer: Callable[[str | Path], HoldsVideoNodeT],
-        recursive: bool = False, sort: bool = True
+        recursive: bool = False,
+        sort: bool = True,
     ) -> None:
         """
         Parse folder and list every file that matches given pattern.
@@ -117,13 +117,15 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
     """
     BDMV parser that uses playlist files to get episodes and chapters
     """
+
     bdmv: BDMV
     items: list[MplsItem]
 
     def __init__(
         self,
         bdmv_path: PathLike | list[PathLike] | tuple[PathLike, list[PathLike]] | BDMV,
-        ep_playlist: int | Sequence[int], indexer: Callable[[str | Path], HoldsVideoNodeT]
+        ep_playlist: int | Sequence[int],
+        indexer: Callable[[str | Path], HoldsVideoNodeT],
     ) -> None:
         """
         Parse BDMV and list every file in matching episode playlist(s).
@@ -157,10 +159,8 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
 
         super().__init__([item.m2ts_file for item in self.items])
 
-
     def get_chapter(
-        self, ep_num: int, chapters_names: list[str | None] | None = None,
-        src_file: src_file | None = None
+        self, ep_num: int, chapters_names: list[str | None] | None = None, src_file: src_file | None = None
     ) -> Chapters:
         """
         Get the list of chapters of an episode from the BD's playlist file
@@ -192,8 +192,8 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
 
         elif (name_num := len(chapters_names)) != chap_num:
             raise ValueError(
-                f"ParseBD.get_chapter: invalid number of chapters_names given, expected {chap_num}, got {name_num}. " +
-                f"Chapters frames: {', '.join([str(f) for f in chaps_frames])}"
+                f"ParseBD.get_chapter: invalid number of chapters_names given, expected {chap_num}, got {name_num}. "
+                + f"Chapters frames: {', '.join([str(f) for f in chaps_frames])}"
             )
 
         return chapters.set_names(chapters_names)
