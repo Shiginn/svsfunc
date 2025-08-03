@@ -95,10 +95,10 @@ class ParseFolder(HasEpisode[HoldsVideoNodeT]):
 
         :param folder:      Folder that includes all the files to match.
         :param pattern:     Pattern that files must match (uses glob syntax). If None, will match every file.
+        :param indexer:     Indexer used to index the files.
         :param recursive:   If true, the pattern '**' will match any files and zero or more directories and
                             subdirectories.
         :param sort:        Sort matched files by name.
-        :param indexer:     Indexer used to index the files. Defaults to :py:meth:`svsfunc.indexer.Indexer.lsmas`
         """
         self.indexer = indexer
 
@@ -134,7 +134,7 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
                                 If list of str/Path, it is the list to the folder of every volume.
                                 If tuple, first value is path to BDMV folder, second is list of every volume.
         :param ep_playlist:     ID of the playlist file for the episodes, can be set for each BD volume
-        :param indexer:         Indexer used to index the files. Defaults to :py:meth:`svsfunc.indexer.Indexer.lsmas`
+        :param indexer:         Indexer used to index the files.
         """
         self.indexer = indexer
 
