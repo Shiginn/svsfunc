@@ -26,12 +26,13 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: |
-          uv sync --locked
+        run: uv sync --locked
 
       - name: Running ruff
         continue-on-error: true
-        run: uv run ruff check svsfunc
+        run: |
+          uv run ruff check svsfunc
+          uv run ruff format --check --diff svsfunc
 
       - name: Running mypy
         run: uv run mypy svsfunc
