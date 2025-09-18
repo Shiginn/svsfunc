@@ -11,6 +11,8 @@ from .bdmv import BDMV, MplsItem
 from .custom_types import HoldsVideoNodeT, PathLike
 from .utils import normalize_list, vs_object
 
+BluRayTrim = tuple[int | None, int | None]
+
 __all__ = ["ParseFolder", "ParseBD"]
 
 
@@ -126,6 +128,7 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
         bdmv_path: PathLike | list[PathLike] | tuple[PathLike, list[PathLike]] | BDMV,
         ep_playlist: int | Sequence[int],
         indexer: Callable[[str | Path], HoldsVideoNodeT],
+        trims: BluRayTrim | list[BluRayTrim | None] | None = None,
     ) -> None:
         """
         Parse BDMV and list every file in matching episode playlist(s).
@@ -153,9 +156,23 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
         ep_playlist = to_arr(ep_playlist)
         ep_playlist = normalize_list(ep_playlist, len(self.bdmv.bd_volumes), ep_playlist[-1], "ParseBD")
 
+        tr = [None] * len(self.bdmv.bd_volumes) if trims is None else trims
+        tr = normalize_list(tr, len(self.bdmv.bd_volumes), None, "ParseBD")
+
         self.items = []
-        for bd_vol, p in zip(self.bdmv.bd_volumes, ep_playlist):
-            self.items += bd_vol.get_playlist(p).items
+        for bd_vol, p, trim in zip(self.bdmv.bd_volumes, ep_playlist, tr):
+            volume_items = bd_vol.get_playlist(p).items
+
+            if trim is None:
+                trim = (0, len(volume_items))
+
+            ts, te = trim
+            if ts is None:
+                ts = 0
+            if te is None:
+                te = len(volume_items)
+
+            self.items += volume_items[ts:te]
 
         super().__init__([item.m2ts_file for item in self.items])
 
