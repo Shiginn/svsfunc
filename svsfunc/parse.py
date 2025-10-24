@@ -141,6 +141,7 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
                                 If None, heuristic will be used to find the correct playlist. This mode is experimental
                                 and will probably break.
         :param indexer:         Indexer used to index the files.
+        :param trims:           Trim for each volume's episode playlist, can be set for each BD volume.
         """
         self.indexer = indexer
 
