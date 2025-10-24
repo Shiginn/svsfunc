@@ -163,8 +163,7 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
             playlists_idx = normalize_list(playlists_idx, len(self.bdmv.bd_volumes), playlists_idx[-1], "ParseBD")
             playlists = [bd_vol.get_playlist(p) for bd_vol, p in zip(self.bdmv.bd_volumes, playlists_idx)]
 
-        tr = [None] * len(self.bdmv.bd_volumes) if trims is None else trims
-        tr = normalize_list(tr, len(self.bdmv.bd_volumes), None, "ParseBD")
+        tr = normalize_list(trims, len(self.bdmv.bd_volumes), None, "ParseBD")
 
         self.items = []
         for p, trim in zip(playlists, tr):
@@ -191,8 +190,8 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
             unique_durations = list[int]()
             for item in playlist.items:
                 if item.m2ts_file not in unique_items:
-                    unique_items.add(item.m2ts_file)
-                    unique_durations.append(item.item_data.outtime - item.item_data.intime)
+                    unique_items.add(str(item.m2ts_file))
+                    unique_durations.append((item.item_data.outtime or 0) - (item.item_data.intime or 0))
 
             playlist_info[playlist.mpls_file.name] = (len(unique_items), unique_durations, playlist)
 
