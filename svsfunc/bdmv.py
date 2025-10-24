@@ -119,25 +119,24 @@ class BdVolume:
 
         return BdVolume(path, mpls_folder.resolve(), m2ts_folder.resolve())
 
-    def get_playlist(self, playlist_idx: int) -> "MplsFile":
+    def get_playlist(self, playlist: int | str) -> "MplsFile":
         """
-        Get the a playlist of this BD volume
+        Get a playlist of this BD volume from its ID.
 
-        :param playlist_idx:    Id of the playlist
+        :param playlist:        ID of the playlist to get. Can be an int or str (with or without .mpls extension).
 
         :return:                MplsFile object
         """
-        playlist_id = str(playlist_idx).zfill(5)
-        files = list(self.mpls_folder.glob(f"{playlist_id}.mpls"))
-
-        if len(files) < 0:
-            raise ValueError(f"BdVolume.get_playlist: No playlist file found with id {playlist_id}.")
-        elif len(files) > 1:
-            raise ValueError(f"BdVolume.get_playlist: Multitple files found with id {playlist_id}.")
+        if isinstance(playlist, int):
+            playlist_name = str(playlist).zfill(5) + ".mpls"
         else:
-            playlist_file = files[0]
+            playlist_name = playlist + ".mpls" if not playlist.endswith(".mpls") else playlist
 
-        return MplsFile.parse(playlist_file, self.m2ts_folder)
+        file = self.mpls_folder / playlist_name
+        if (not file.exists()) or (not file.is_file()):
+            raise ValueError(f"BdVolume.get_playlist: No playlist file found with name {playlist_name}.")
+
+        return MplsFile.parse(file, self.m2ts_folder)
 
     def get_playlists(self) -> list["MplsFile"]:
         """
