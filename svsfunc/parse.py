@@ -4,10 +4,11 @@ from glob import glob
 from pathlib import Path
 from typing import Any, Callable, Generic, Iterator, Sequence
 
-from vsmuxtools import Chapters, src_file
+from pytimeconv import Convert
+from vsmuxtools import Chapters, debug, src_file, warn
 from vstools import to_arr
 
-from .bdmv import BDMV, MplsItem
+from .bdmv import BDMV, BdVolume, MplsFile, MplsItem
 from .custom_types import HoldsVideoNodeT, PathLike
 from .utils import normalize_list, vs_object
 
@@ -126,7 +127,7 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
     def __init__(
         self,
         bdmv_path: PathLike | list[PathLike] | tuple[PathLike, list[PathLike]] | BDMV,
-        ep_playlist: int | Sequence[int],
+        ep_playlist: int | Sequence[int] | None,
         indexer: Callable[[str | Path], HoldsVideoNodeT],
         trims: BluRayTrim | list[BluRayTrim | None] | None = None,
     ) -> None:
@@ -137,6 +138,8 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
                                 If list of str/Path, it is the list to the folder of every volume.
                                 If tuple, first value is path to BDMV folder, second is list of every volume.
         :param ep_playlist:     ID of the playlist file for the episodes, can be set for each BD volume
+                                If None, heuristic will be used to find the correct playlist. This mode is experimental
+                                and will probably break.
         :param indexer:         Indexer used to index the files.
         """
         self.indexer = indexer
@@ -152,16 +155,19 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
             bdmv = bdmv_path
 
         self.bdmv = bdmv
-
-        ep_playlist = to_arr(ep_playlist)
-        ep_playlist = normalize_list(ep_playlist, len(self.bdmv.bd_volumes), ep_playlist[-1], "ParseBD")
+        if ep_playlist is None:
+            playlists = [self._find_episode_playlist(bd_volume) for bd_volume in self.bdmv.bd_volumes]
+        else:
+            playlists_idx = to_arr(ep_playlist)
+            playlists_idx = normalize_list(playlists_idx, len(self.bdmv.bd_volumes), playlists_idx[-1], "ParseBD")
+            playlists = [bd_vol.get_playlist(p) for bd_vol, p in zip(self.bdmv.bd_volumes, playlists_idx)]
 
         tr = [None] * len(self.bdmv.bd_volumes) if trims is None else trims
         tr = normalize_list(tr, len(self.bdmv.bd_volumes), None, "ParseBD")
 
         self.items = []
-        for bd_vol, p, trim in zip(self.bdmv.bd_volumes, ep_playlist, tr):
-            volume_items = bd_vol.get_playlist(p).items
+        for p, trim in zip(playlists, tr):
+            volume_items = p.items
 
             if trim is None:
                 trim = (0, len(volume_items))
@@ -175,6 +181,44 @@ class ParseBD(HasEpisode[HoldsVideoNodeT]):
             self.items += volume_items[ts:te]
 
         super().__init__([item.m2ts_file for item in self.items])
+
+    def _find_episode_playlist(self, bd_volume: BdVolume) -> MplsFile:
+        volume_playlists = bd_volume.get_playlists()
+        playlist_info = dict[str, tuple[int, list[int], MplsFile]]()
+        for playlist in volume_playlists:
+            unique_items = set[str]()
+            unique_durations = list[int]()
+            for item in playlist.items:
+                if item.m2ts_file not in unique_items:
+                    unique_items.add(item.m2ts_file)
+                    unique_durations.append(item.item_data.outtime - item.item_data.intime)
+
+            playlist_info[playlist.mpls_file.name] = (len(unique_items), unique_durations, playlist)
+
+        max_elements = max(playlist_info.items(), key=lambda item: item[1][0])
+        max_duration = max(playlist_info.items(), key=lambda item: sum(item[1][1]))
+
+        if max_elements[1][0] == 1:
+            correct_playlist = max_duration
+        elif max_duration[0] == max_elements[0]:
+            correct_playlist = max_elements
+        else:
+            correct_playlist = max_duration
+            warn(
+                f"Heuristic conflict when selecting episode playlist for volume {bd_volume.volume_path}. "
+                + f"Choosing playlist {correct_playlist[0]} over playlist {max_elements[0]}. Check results carefully.",
+                "ParseBD",
+            )
+
+        ep_count = correct_playlist[1][0]
+        duration = sum(correct_playlist[1][1]) / 45000
+
+        debug(
+            f"Playlist {correct_playlist[0]} detected for volume {bd_volume.volume_path}"
+            + f" (episodes: {ep_count}, duration: {Convert.seconds2ts(duration, precision=0)}).",
+            "ParseBD",
+        )
+        return correct_playlist[1][2]
 
     def get_chapter(
         self, ep_num: int, chapters_names: list[str | None] | None = None, src_file: src_file | None = None
